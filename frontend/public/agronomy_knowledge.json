@@ -1,0 +1,805 @@
+{
+  "Anthracnose Redrot Sorghum": {
+    "crop": "Sorghum",
+    "disease": "Anthracnose and Red Rot",
+    "pathogen": "Colletotrichum sublineolum",
+    "healthy": false,
+    "symptoms": "Circular to elongated reddish-purple or brown lesions with dark margins on leaves and midribs. Black fungal fruiting bodies (acervuli) may develop in older lesions. Severe infection can cause stalk lesions and internal reddish-brown discoloration.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild / Early Infection",
+        "description": "Few isolated lesions, mainly on older or lower leaves, with little effect on the canopy.",
+        "treatment": "Remove heavily infected plant debris and maintain good field sanitation and crop spacing. Avoid prolonged leaf wetness.",
+        "fertilizer": "Maintain balanced crop nutrition and avoid excessive nitrogen. Adjust potassium and other nutrients according to soil-test recommendations."
+      },
+      "Medium": {
+        "severity_name": "Moderate Infection",
+        "description": "Lesions increase in number and size and begin spreading to middle leaves or along the midrib, with noticeable canopy damage.",
+        "treatment": "Use a locally registered fungicide such as Mancozeb where recommended for sorghum anthracnose. Follow the current product label and local agricultural recommendation for dose and spray interval.",
+        "fertilizer": "Maintain balanced NPK nutrition and avoid excessive nitrogen that can promote dense, susceptible growth."
+      },
+      "High": {
+        "severity_name": "Severe Infection",
+        "description": "Numerous coalescing lesions cause extensive leaf blighting, premature drying, and possible stalk infection or internal red discoloration.",
+        "treatment": "Remove severely infected plants and crop residues where practical. Use only locally registered fungicides recommended for sorghum anthracnose and follow the product label. Do not retain heavily infected stalks for seed or planting material.",
+        "fertilizer": "Do not apply excessive nitrogen. Maintain adequate potassium and other nutrients based on soil-test recommendations."
+      }
+    },
+    "organic_remedy": "Maintain field sanitation and use certified disease-free seed. Biological control products containing Trichoderma may be used where locally registered and recommended.",
+    "prevention": "Use resistant or tolerant varieties, certified disease-free seed, crop rotation, field sanitation, appropriate plant spacing, and removal of volunteer sorghum and grass hosts.",
+    "source_note": "Disease identification and management principles are consistent with TNAU sorghum disease guidance; pathogen nomenclature may differ between older TNAU material and modern taxonomy."
+  },
+
+  "Bacterialblight Cotton": {
+    "crop": "Cotton",
+    "disease": "Bacterial Blight / Angular Leaf Spot",
+    "pathogen": "Xanthomonas citri pv. malvacearum",
+    "healthy": false,
+    "symptoms": "Small water-soaked to dark angular lesions bounded by leaf veins. Lesions may become reddish-brown or dark. Veinal, petiole and stem infection can produce dark lesions, including the black-arm phase.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild / Early Spotting",
+        "description": "A few isolated angular water-soaked lesions occur mainly on lower leaves without significant stem or petiole infection.",
+        "treatment": "Remove severely affected plant material where practical. Avoid practices that unnecessarily splash contaminated water between plants and maintain field sanitation.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Moderate Spread",
+        "description": "Lesions increase and may extend along veins, with early infection of petioles or young branches.",
+        "treatment": "Use copper-based bactericidal products or other locally registered products recommended for cotton bacterial blight. Follow the current label and local agricultural recommendation.",
+        "fertilizer": "Maintain balanced NPK nutrition and avoid excessive nitrogen that produces soft, succulent tissue."
+      },
+      "High": {
+        "severity_name": "Severe / Black Arm Phase",
+        "description": "Extensive leaf infection occurs together with dark lesions on petioles and stems. Severe infection may cause defoliation and boll damage.",
+        "treatment": "Remove severely affected plant material where practical, disinfect farm equipment, maintain field sanitation, and use locally registered copper-based or other recommended bactericidal treatments according to label directions.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition based on crop requirements and soil testing."
+      }
+    },
+    "organic_remedy": "Use certified disease-free seed and maintain field sanitation. Biological products containing beneficial bacteria such as Pseudomonas fluorescens may be used where locally recommended.",
+    "prevention": "Use resistant or tolerant cultivars, disease-free seed, proper seed treatment or delinting according to local recommendations, crop sanitation, and avoidance of excessive irrigation that spreads contaminated water.",
+    "source_note": "TNAU uses the older name Xanthomonas campestris pv. malvacearum; Xanthomonas citri pv. malvacearum is used in modern taxonomy."
+  },
+
+  "Bacterialblight rice": {
+    "crop": "Rice",
+    "disease": "Bacterial Leaf Blight",
+    "pathogen": "Xanthomonas oryzae pv. oryzae",
+    "healthy": false,
+    "symptoms": "Water-soaked translucent streaks begin near leaf tips or margins and develop into yellow to straw-colored lesions with wavy margins. Severe infection can cause extensive leaf drying. Young plants may develop the kresek wilt phase.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Leaf Blight",
+        "description": "A few water-soaked or yellowish lesions are visible near leaf tips or margins with little canopy damage.",
+        "treatment": "Avoid excessive nitrogen and unnecessary leaf injury. Maintain appropriate field water management and sanitation.",
+        "fertilizer": "Avoid excessive nitrogen. Maintain balanced crop nutrition according to soil-test and crop-stage recommendations."
+      },
+      "Medium": {
+        "severity_name": "Moderate Leaf Blight",
+        "description": "Lesions expand along leaf margins and veins and become visible on a larger proportion of the canopy.",
+        "treatment": "Use locally registered bactericidal products recommended for rice bacterial blight, where applicable. Follow the current label and local agricultural recommendation.",
+        "fertilizer": "Avoid additional excessive nitrogen during active disease and maintain balanced nutrition."
+      },
+      "High": {
+        "severity_name": "Severe / Kresek Phase",
+        "description": "Large portions of leaves become blighted and dry. Young plants may wilt rapidly in the kresek phase, resulting in severe crop loss.",
+        "treatment": "Improve field drainage where excessive standing water contributes to disease spread, avoid unnecessary plant injury, and use locally recommended bactericidal treatments where registered.",
+        "fertilizer": "Avoid excessive nitrogen during active disease. Do not use blanket fertilizer restrictions without considering crop stage and soil conditions."
+      }
+    },
+    "organic_remedy": "Use resistant varieties, disease-free planting material and good field sanitation. Biological products containing Pseudomonas fluorescens may be used where locally recommended.",
+    "prevention": "Use resistant cultivars, avoid excessive nitrogen, avoid clipping seedling tips during transplanting, maintain clean bunds, and manage irrigation carefully.",
+    "source_note": "Disease symptoms and management principles are consistent with TNAU rice bacterial blight guidance."
+  },
+
+  "Brownrust Sugarcane": {
+    "crop": "Sugarcane",
+    "disease": "Brown Rust",
+    "pathogen": "Puccinia erianthi",
+    "healthy": false,
+    "symptoms": "Small elongated yellowish or chlorotic flecks develop into reddish-brown or brown rust pustules on leaves. Severe infection causes extensive leaf damage and premature drying.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild / Early Pustules",
+        "description": "Scattered rust pustules are present mainly on older leaves with limited canopy damage.",
+        "treatment": "Remove severely affected dried leaves where practical and maintain good field sanitation and canopy aeration.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen. Apply potassium according to soil-test and crop recommendations."
+      },
+      "Medium": {
+        "severity_name": "Moderate Rust Spread",
+        "description": "Rust pustules become more numerous and spread to middle leaves, producing visible chlorosis and leaf drying.",
+        "treatment": "Use a locally registered fungicide recommended for sugarcane rust, such as a suitable mancozeb-based product where currently registered. Follow the product label.",
+        "fertilizer": "Maintain balanced NPK nutrition and correct documented nutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Rust Infection",
+        "description": "Dense rust pustules occur across functional foliage, causing extensive chlorosis, premature leaf death and reduced photosynthetic capacity.",
+        "treatment": "Use locally registered fungicides recommended for sugarcane rust and remove severely affected debris. Follow current label directions and local agricultural recommendations.",
+        "fertilizer": "Avoid excessive nitrogen and maintain adequate potassium and other nutrients based on soil testing."
+      }
+    },
+    "organic_remedy": "Maintain sanitation, use resistant or tolerant varieties where available, and use registered biological control products only where locally recommended.",
+    "prevention": "Grow resistant or tolerant varieties, use healthy planting material, avoid poorly managed fields, and remove severely infected crop residues.",
+    "source_note": "TNAU identifies Puccinia erianthi for sugarcane rust. This corrects the original Puccinia melanocephala entry for a TNAU-aligned Tamil Nadu dataset."
+  },
+
+  "Brownspot rice": {
+    "crop": "Rice",
+    "disease": "Brown Spot",
+    "pathogen": "Bipolaris oryzae",
+    "healthy": false,
+    "symptoms": "Round to oval brown spots occur on leaves, often with darker margins or yellowish halos. Larger lesions may develop grey or dark centers. Severe infection can affect glumes and grain quality.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild Spotting",
+        "description": "A small number of scattered brown spots occur mainly on lower leaves.",
+        "treatment": "Maintain adequate soil moisture and correct documented nutrient deficiencies. Avoid drought stress.",
+        "fertilizer": "Maintain balanced nutrition. Correct nitrogen, potassium, zinc and other deficiencies according to soil testing."
+      },
+      "Medium": {
+        "severity_name": "Moderate Spot Spread",
+        "description": "Spots increase in number and size and spread to middle or upper leaves, with some lesions appearing on panicles or glumes.",
+        "treatment": "Use locally registered fungicides such as mancozeb or other products recommended for rice brown spot. Follow current label directions.",
+        "fertilizer": "Correct documented nutrient deficiencies and maintain balanced crop nutrition."
+      },
+      "High": {
+        "severity_name": "Severe Blighting",
+        "description": "Large numbers of lesions coalesce, causing extensive leaf damage and possible grain discoloration or poor grain filling.",
+        "treatment": "Use a locally registered fungicide recommended for brown spot and improve crop nutrition and moisture management. Follow current label directions.",
+        "fertilizer": "Correct documented nutrient deficiencies rather than applying a fixed universal NPK ratio."
+      }
+    },
+    "organic_remedy": "Use healthy seed, seed treatment and biological products such as Trichoderma or Pseudomonas fluorescens where locally recommended.",
+    "prevention": "Use healthy seed, appropriate seed treatment, balanced fertilization, adequate soil moisture, and good field sanitation.",
+    "source_note": "Bipolaris oryzae is the modern name corresponding to older nomenclature used for rice brown spot."
+  },
+
+  "Brownstreak Cassava": {
+    "crop": "Cassava",
+    "disease": "Cassava Brown Streak Disease",
+    "pathogen": "Cassava brown streak virus (CBSV) and Ugandan cassava brown streak virus (UCBSV)",
+    "healthy": false,
+    "symptoms": "Feathery yellow chlorosis along secondary and tertiary leaf veins may occur together with brown streaks on green stems. Severe infection produces characteristic brown corky necrosis in storage roots.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Vein Chlorosis",
+        "description": "Faint vein-associated chlorosis is visible on some leaves without obvious root symptoms.",
+        "treatment": "Tag and monitor suspected plants and remove confirmed infected plants. Use healthy planting material and monitor whitefly vectors.",
+        "fertilizer": "Maintain balanced nutrition based on soil testing and crop requirements."
+      },
+      "Medium": {
+        "severity_name": "Stem Streak Development",
+        "description": "Distinct leaf vein chlorosis and brown streaks appear on young stems, indicating increasing disease severity.",
+        "treatment": "Rogue and destroy confirmed infected plants to reduce virus sources. Vector management may help reduce spread but does not cure infected plants.",
+        "fertilizer": "Maintain balanced crop nutrition in unaffected plants; do not expect fertilizer to cure viral infection."
+      },
+      "High": {
+        "severity_name": "Severe Root Damage",
+        "description": "Severe disease causes stem dieback and characteristic brown corky necrosis in storage roots, resulting in major quality and yield loss.",
+        "treatment": "Remove and destroy severely infected plants and do not use infected stems for propagation. Maintain strict planting-material hygiene.",
+        "fertilizer": "No fertilizer treatment cures infected plants. Maintain nutrition only in healthy replacement crops."
+      }
+    },
+    "organic_remedy": "Use certified virus-free planting material and biological or cultural approaches for whitefly management where locally appropriate.",
+    "prevention": "Use certified virus-free planting material, rogue infected plants, monitor whiteflies, maintain field sanitation, and avoid propagation from infected plants.",
+    "source_note": "Cassava brown streak disease is a genuine viral disease but is primarily associated with African and Indian Ocean cassava production systems. Confirm geographical relevance before using it as a Tamil Nadu-specific class."
+  },
+
+  "Commonrust corn": {
+    "crop": "Corn (Maize)",
+    "disease": "Common Rust",
+    "pathogen": "Puccinia sorghi",
+    "healthy": false,
+    "symptoms": "Cinnamon-brown to reddish-brown oval or elongated rust pustules occur on both upper and lower leaf surfaces. Pustules rupture and release powdery spores.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild / Early Infection",
+        "description": "Scattered rust pustules occur mainly on lower leaves with little effect on the canopy.",
+        "treatment": "Monitor the crop and maintain good field management. Use resistant hybrids where available.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Moderate Rust Spread",
+        "description": "Pustules increase and spread into middle leaves, with localized chlorosis around infected areas.",
+        "treatment": "Use a locally registered fungicide recommended for maize rust when disease severity and crop stage justify treatment. Follow the current product label.",
+        "fertilizer": "Maintain balanced crop nutrition and correct documented nutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Rust Infection",
+        "description": "Dense pustule development causes extensive leaf damage, premature drying and reduced photosynthetic capacity.",
+        "treatment": "Use a locally registered fungicide recommended for maize rust and protect the upper functional canopy. Follow current label directions.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use resistant hybrids, crop sanitation and biological products where locally recommended. Neem-based products should not be considered a substitute for proven rust management.",
+    "prevention": "Use resistant hybrids, timely planting, good field sanitation and management of alternate hosts such as Oxalis where relevant.",
+    "source_note": "Disease and pathogen are consistent with TNAU maize common rust guidance."
+  },
+
+  "Earlyleafspot Groundnut": {
+    "crop": "Groundnut (Peanut)",
+    "disease": "Early Leaf Spot",
+    "pathogen": "Cercospora arachidicola",
+    "healthy": false,
+    "symptoms": "Circular to sub-circular dark brown or reddish-brown lesions develop mainly on the upper leaf surface and are commonly surrounded by a distinct yellow halo.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Initial Spotting",
+        "description": "A few isolated lesions occur mainly on lower leaves with little defoliation.",
+        "treatment": "Scout the crop regularly, maintain field sanitation and avoid prolonged leaf wetness.",
+        "fertilizer": "Maintain balanced nutrition and supply calcium according to local groundnut recommendations and soil requirements."
+      },
+      "Medium": {
+        "severity_name": "Canopy Spread",
+        "description": "Spots become numerous and spread to middle leaves, with early premature defoliation.",
+        "treatment": "Use locally registered fungicides such as chlorothalonil or mancozeb where recommended. Follow current label directions and local agricultural guidance.",
+        "fertilizer": "Maintain balanced crop nutrition and correct documented nutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Defoliation",
+        "description": "Large numbers of lesions coalesce and extensive premature defoliation occurs, substantially reducing photosynthetic leaf area.",
+        "treatment": "Use an appropriate locally registered fungicide recommended for groundnut leaf spot and remove or manage infected crop residues after harvest.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use healthy seed, crop rotation, sanitation and biological products such as Pseudomonas fluorescens or Trichoderma where locally recommended.",
+    "prevention": "Use healthy seed, crop rotation, residue management, adequate field drainage and timely fungicide protection where recommended.",
+    "source_note": "Disease identification is consistent with TNAU groundnut disease guidance."
+  },
+
+  "Grayleafspot Coconut": {
+    "crop": "Coconut",
+    "disease": "Grey Leaf Spot / Blight",
+    "pathogen": "Pestalotiopsis palmarum",
+    "healthy": false,
+    "symptoms": "Small yellowish spots enlarge into grey or grey-white lesions with darker margins. Severe infection causes coalescing lesions and a scorched appearance of leaflets.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild / Lower Frond Spots",
+        "description": "Scattered lesions are limited mainly to older lower fronds.",
+        "treatment": "Remove severely affected dried fronds where practical and maintain good crown aeration and sanitation.",
+        "fertilizer": "Maintain balanced palm nutrition according to soil, age and local coconut recommendations."
+      },
+      "Medium": {
+        "severity_name": "Moderate Blight",
+        "description": "Lesions become more numerous and spread to middle fronds, with visible browning or grey necrosis.",
+        "treatment": "Use a locally registered fungicide such as copper oxychloride or another product recommended for coconut leaf diseases. Follow the current label.",
+        "fertilizer": "Correct documented nutrient deficiencies and maintain balanced palm nutrition."
+      },
+      "High": {
+        "severity_name": "Severe Frond Blight",
+        "description": "Extensive blighting affects functional fronds and can reduce photosynthetic capacity and palm productivity.",
+        "treatment": "Remove severely affected fronds where practical and use locally recommended fungicide treatment according to label directions.",
+        "fertilizer": "Maintain balanced nutrition; do not withhold nutrients automatically unless specifically advised by a local agricultural expert."
+      }
+    },
+    "organic_remedy": "Maintain crown sanitation and use biological products such as Pseudomonas fluorescens or Trichoderma where locally recommended.",
+    "prevention": "Avoid excessive shade, maintain adequate drainage and sanitation, and remove severely affected fronds.",
+    "source_note": "TNAU uses older taxonomy including Pestalosia/Pestalotia names; Pestalotiopsis palmarum is used in modern references."
+  },
+
+  "Grayspot corn": {
+    "crop": "Corn (Maize)",
+    "disease": "Grey Leaf Spot",
+    "pathogen": "Cercospora zeae-maydis and Cercospora zeina",
+    "healthy": false,
+    "symptoms": "Rectangular or blocky tan-to-grey lesions develop between and along the parallel leaf veins. Lesions can enlarge and coalesce, causing extensive leaf blighting.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Veinal Lesions",
+        "description": "A small number of rectangular lesions occur mainly on lower leaves.",
+        "treatment": "Scout the lower canopy and maintain good field sanitation and crop rotation.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Ear Leaf Spread",
+        "description": "Lesions spread toward the ear leaf and become larger and more numerous.",
+        "treatment": "Use a locally registered fungicide recommended for maize grey leaf spot when treatment is justified by disease level and crop stage.",
+        "fertilizer": "Maintain balanced crop nutrition and correct documented deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Canopy Blight",
+        "description": "Lesions coalesce into large necrotic areas and destroy substantial photosynthetic leaf area during grain filling.",
+        "treatment": "Use locally registered fungicides recommended for grey leaf spot and protect the upper functional canopy.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use resistant hybrids, crop rotation and residue management. Biological products may be used where locally registered and recommended.",
+    "prevention": "Plant resistant hybrids, rotate with non-host crops, and manage infected crop residues because the pathogen can survive on maize residue.",
+    "source_note": "Disease identification and management principles are supported by university extension and plant pathology references."
+  },
+
+  "Healthy Cassava": {
+    "crop": "Cassava",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy cassava has uniformly green palmate leaves, normal leaf expansion, strong petioles and no characteristic mosaic, vein chlorosis, distortion or necrotic disease lesions.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Vigorous foliage with normal canopy development and no visible disease symptoms.",
+        "treatment": "No disease treatment is required. Continue routine pest, weed, irrigation and field sanitation management.",
+        "fertilizer": "Maintain balanced crop nutrition according to soil-test results, variety and local cassava recommendations."
+      }
+    },
+    "organic_remedy": "Use well-decomposed organic manure or locally recommended biofertilizers as part of an integrated nutrient-management program.",
+    "prevention": "Use healthy planting material, maintain field sanitation, monitor whiteflies and remove suspicious plants early."
+  },
+
+  "Healthy corn": {
+    "crop": "Corn (Maize)",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy maize has broad green leaves with uniform coloration, normal leaf expansion and no characteristic rust pustules, grey leaf spot lesions or blight lesions.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Vigorous green canopy with normal vegetative growth and no visible disease symptoms.",
+        "treatment": "No disease treatment is required. Continue routine scouting, irrigation, weed management and pest monitoring.",
+        "fertilizer": "Apply nitrogen, phosphorus and potassium according to soil testing, hybrid requirements and recommended crop-stage schedules."
+      }
+    },
+    "organic_remedy": "Use compost, properly prepared organic manures or permitted biological inputs as part of integrated crop nutrition.",
+    "prevention": "Maintain balanced nutrition, proper irrigation and drainage, weed control, crop rotation and regular disease scouting."
+  },
+
+  "Healthy Cotton": {
+    "crop": "Cotton",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy cotton has uniformly green lobed leaves, strong stems and normal square and boll development without characteristic bacterial blight, wilt, leaf spot or rust symptoms.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Vigorous vegetative and reproductive growth with clean foliage and no visible disease symptoms.",
+        "treatment": "No disease treatment is required. Continue routine scouting for insects and diseases.",
+        "fertilizer": "Maintain balanced crop nutrition according to soil test, cultivar or hybrid and crop-stage recommendations."
+      }
+    },
+    "organic_remedy": "Use well-decomposed organic manure and locally recommended biological inputs as part of integrated nutrient management.",
+    "prevention": "Use healthy seed, maintain balanced irrigation and nutrition, monitor insect vectors and maintain field sanitation."
+  },
+
+  "Healthy Groundnut": {
+    "crop": "Groundnut (Peanut)",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy groundnut has uniformly green pinnate leaves, normal branching and canopy development, and no characteristic leaf spot, rust or severe nutrient-deficiency symptoms.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Healthy canopy with normal flowering, pegging and pod development.",
+        "treatment": "No disease treatment is required. Monitor soil moisture, pests and diseases throughout the crop.",
+        "fertilizer": "Maintain balanced nutrition according to soil test and local groundnut recommendations. Apply gypsum where recommended for the soil and crop."
+      }
+    },
+    "organic_remedy": "Use Rhizobium and other locally recommended biofertilizers where appropriate.",
+    "prevention": "Use healthy seed, maintain appropriate soil moisture and drainage, control weeds and scout regularly for leaf diseases."
+  },
+
+  "Healthy rice": {
+    "crop": "Rice",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy rice has upright green leaves, normal tillering and sturdy culms without characteristic blast lesions, bacterial blight symptoms, brown spots or other major disease symptoms.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Vigorous green canopy with normal tillering and healthy development appropriate to crop stage.",
+        "treatment": "No disease treatment is required. Continue appropriate water management, nutrient management and field scouting.",
+        "fertilizer": "Apply nutrients according to soil testing, rice variety, crop duration and recommended crop-stage fertilizer schedules."
+      }
+    },
+    "organic_remedy": "Use locally recommended organic amendments or biological inputs such as Azolla where appropriate.",
+    "prevention": "Use healthy seed, maintain clean bunds, balanced fertilization, appropriate irrigation and regular disease monitoring."
+  },
+
+  "Healthy Sugarcane": {
+    "crop": "Sugarcane",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy sugarcane has long green leaves, vigorous stalk growth, normal internodes and no characteristic red rot, rust, yellow leaf or leaf-spot symptoms.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Vigorous stalk elongation and healthy green foliage with no visible disease symptoms.",
+        "treatment": "No disease treatment is required. Continue routine scouting, irrigation, weed management and sanitation.",
+        "fertilizer": "Apply NPK according to soil testing, variety, planting method and local sugarcane fertilizer recommendations."
+      }
+    },
+    "organic_remedy": "Use well-decomposed farmyard manure, compost or locally recommended biological inputs.",
+    "prevention": "Use healthy disease-free seed cane, maintain field sanitation, proper drainage and timely earthing-up and other recommended cultural practices."
+  },
+
+  "Lateleafspot Groundnut": {
+    "crop": "Groundnut (Peanut)",
+    "disease": "Late Leaf Spot",
+    "pathogen": "Nothopassalora personata",
+    "healthy": false,
+    "symptoms": "Small circular dark brown to nearly black spots occur mainly on the lower leaf surface. Compared with early leaf spot, the yellow halo is generally less conspicuous. Severe disease causes premature defoliation.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Black Spotting",
+        "description": "A few dark lesions are present mainly on lower leaves with little or no leaflet shedding.",
+        "treatment": "Scout frequently, maintain field sanitation and reduce conditions that favor prolonged leaf wetness.",
+        "fertilizer": "Maintain balanced crop nutrition and provide calcium and potassium according to local groundnut recommendations."
+      },
+      "Medium": {
+        "severity_name": "Mid-Canopy Defoliation",
+        "description": "Dark lesions become numerous and spread to middle leaves, with visible premature leaflet shedding.",
+        "treatment": "Use locally registered fungicides such as chlorothalonil or mancozeb where recommended. Follow current label directions.",
+        "fertilizer": "Maintain balanced nutrition and correct documented deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Defoliation",
+        "description": "Extensive lesions cause severe or near-total defoliation, reducing photosynthetic capacity and potentially causing yield loss.",
+        "treatment": "Use an appropriate locally registered fungicide recommended for late leaf spot and follow local spray schedules. Harvest according to crop maturity to minimize pod loss.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use healthy seed, crop rotation, sanitation and biological products such as Pseudomonas fluorescens or Trichoderma where locally recommended.",
+    "prevention": "Use resistant or tolerant varieties where available, rotate crops, manage residues and use timely fungicide protection when recommended.",
+    "source_note": "Nothopassalora personata is the modern taxonomic name; older literature may use Phaeoisariopsis personata or Cercospora personata."
+  },
+
+  "Leafblast rice": {
+    "crop": "Rice",
+    "disease": "Rice Blast",
+    "pathogen": "Magnaporthe oryzae",
+    "healthy": false,
+    "symptoms": "Spindle- or diamond-shaped lesions with grey or whitish centers and brown margins occur on leaves. Severe disease can cause extensive leaf blighting and may progress to collar or neck blast.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Leaf Blast",
+        "description": "A small number of spindle-shaped lesions occur on leaves with limited canopy damage.",
+        "treatment": "Maintain appropriate irrigation and avoid drought stress. Remove grass hosts and maintain nursery and field sanitation.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      },
+      "Medium": {
+        "severity_name": "Coalescing Leaf Blast",
+        "description": "Lesions increase in size and number and begin to coalesce across upper leaves.",
+        "treatment": "Use locally registered fungicides such as tricyclazole or other products recommended for rice blast. Follow the current product label.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition, particularly potassium and other nutrients according to soil testing."
+      },
+      "High": {
+        "severity_name": "Severe / Neck Blast Risk",
+        "description": "Extensive leaf blighting occurs and the disease may attack the panicle neck, causing partially or completely empty panicles.",
+        "treatment": "Use a locally registered fungicide recommended for blast and pay particular attention to crop-stage-specific protection against neck blast.",
+        "fertilizer": "Do not apply excessive nitrogen. Maintain balanced nutrition based on crop stage and soil-test recommendations."
+      }
+    },
+    "organic_remedy": "Use resistant varieties, healthy seed, appropriate seed treatment and biological products such as Pseudomonas fluorescens where locally recommended.",
+    "prevention": "Use blast-resistant varieties, avoid excessive nitrogen, maintain suitable plant density, manage irrigation appropriately and remove grass hosts."
+  },
+
+  "Leafblight corn": {
+    "crop": "Corn (Maize)",
+    "disease": "Northern Corn Leaf Blight",
+    "pathogen": "Exserohilum turcicum",
+    "healthy": false,
+    "symptoms": "Long elliptical or cigar-shaped grey-green to tan lesions develop mainly on leaves. Lesions can enlarge and coalesce, causing extensive foliar blighting.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Cigar Lesions",
+        "description": "A few cigar-shaped lesions occur mainly on lower leaves with limited canopy damage.",
+        "treatment": "Scout the lower canopy and maintain field sanitation and good crop management.",
+        "fertilizer": "Maintain balanced nitrogen and potassium nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Mid-Canopy Progression",
+        "description": "Lesions increase and spread toward the middle and upper canopy, including leaves around the ear.",
+        "treatment": "Use a locally registered fungicide recommended for northern corn leaf blight when treatment is justified by disease level and crop stage.",
+        "fertilizer": "Maintain balanced nutrition and correct documented nutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Foliar Blighting",
+        "description": "Extensive lesions coalesce above the ear leaf and cause substantial premature loss of functional foliage.",
+        "treatment": "Use locally registered fungicides recommended for northern corn leaf blight and protect the upper functional canopy.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use resistant hybrids, crop rotation and residue management. Biological products may be used where locally registered.",
+    "prevention": "Use resistant hybrids, rotate with non-host crops and bury or otherwise manage infected maize residues."
+  },
+
+  "Leafrot Coconut": {
+    "crop": "Coconut",
+    "disease": "Coconut Leaf Rot",
+    "pathogen": "Colletotrichum gloeosporioides / Exserohilum rostratum disease complex",
+    "healthy": false,
+    "symptoms": "The distal portions of unopened spear leaves become water-soaked, blackened and rotten. As affected leaves unfold, damaged portions may break away and produce a shredded or fan-like appearance.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild Spear Rot",
+        "description": "Rot is limited mainly to the distal portion of the emerging spear leaf.",
+        "treatment": "Remove rotten portions down to healthy tissue where practical and maintain crown sanitation.",
+        "fertilizer": "Maintain balanced palm nutrition according to local coconut recommendations and soil conditions."
+      },
+      "Medium": {
+        "severity_name": "Spreading Rot",
+        "description": "Rot extends farther down the spear and unfolded fronds develop black or shredded margins.",
+        "treatment": "Use locally recommended fungicide treatment such as hexaconazole or mancozeb according to the current label and local agricultural guidance.",
+        "fertilizer": "Maintain balanced nutrition and correct documented micronutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Crown Core Threat",
+        "description": "Severe infection approaches the central growing point and can threaten the crown and palm survival.",
+        "treatment": "Remove severely rotted material where practical and apply locally recommended fungicide treatment according to label directions. Maintain crown hygiene and manage insect damage that can create entry wounds.",
+        "fertilizer": "Do not use fertilizer as a substitute for disease control. Maintain appropriate nutrition for recovery."
+      }
+    },
+    "organic_remedy": "Biological products containing Pseudomonas fluorescens or Trichoderma may be used where locally recommended, together with crown sanitation.",
+    "prevention": "Maintain crown hygiene, avoid prolonged crown wetness, ensure good drainage and manage rhinoceros beetle and other insect damage that can predispose the crown to infection.",
+    "source_note": "The pathogen description reflects the disease complex described in TNAU coconut guidance."
+  },
+
+  "Mosaic Cassava": {
+    "crop": "Cassava",
+    "disease": "Cassava Mosaic Disease",
+    "pathogen": "Cassava mosaic begomoviruses, including Sri Lankan cassava mosaic virus and Indian cassava mosaic virus",
+    "healthy": false,
+    "symptoms": "Leaves show contrasting yellow-green and dark-green mosaic patterns, often accompanied by leaf distortion, curling, crinkling and reduced leaf size. Severe infection causes stunting.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild Mosaic Mottling",
+        "description": "Faint mosaic patterns occur on a limited number of young leaves with little distortion or stunting.",
+        "treatment": "Rogue and destroy clearly infected plants, particularly in young fields. Monitor whitefly populations.",
+        "fertilizer": "Maintain balanced nutrition in healthy plants; fertilizer does not cure infected plants."
+      },
+      "Medium": {
+        "severity_name": "Leaf Distortion and Spread",
+        "description": "Mosaic symptoms become prominent, with leaf curling, crinkling, reduced leaf area and noticeable stunting.",
+        "treatment": "Remove and destroy infected plants and use healthy planting material. Whitefly management may reduce virus spread but does not cure infected plants.",
+        "fertilizer": "Maintain balanced nutrition in healthy plants according to soil-test recommendations."
+      },
+      "High": {
+        "severity_name": "Severe Stunting",
+        "description": "Severe mosaic, leaf distortion and plant stunting result in major loss of canopy development and storage-root productivity.",
+        "treatment": "Remove severely infected plants and do not use stems from infected plants for propagation. Maintain strict planting-material hygiene.",
+        "fertilizer": "Fertilizer does not cure infected plants. Apply nutrients only to healthy replacement crops according to soil-test recommendations."
+      }
+    },
+    "organic_remedy": "Use certified virus-free planting material and manage whiteflies using integrated methods. Neem-based products may be used as supplementary vector-management tools where locally appropriate.",
+    "prevention": "Use certified virus-free or healthy stem cuttings, rogue infected plants early, monitor whiteflies, maintain field sanitation and use tolerant varieties where available.",
+    "source_note": "Disease identification and major management principles are consistent with TNAU cassava mosaic guidance."
+  },
+
+  "RedRot Sugarcane": {
+    "crop": "Sugarcane",
+    "disease": "Sugarcane Red Rot",
+    "pathogen": "Colletotrichum falcatum (syn. Glomerella tucumanensis)",
+    "healthy": false,
+    "symptoms": "Leaves may yellow and wither, particularly the third or fourth leaf from the top. Splitting an infected cane reveals characteristic reddish internal tissue with transverse white patches and may produce a sour or alcoholic odor.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Foliar Withering",
+        "description": "Yellowing and withering occur on a limited number of leaves or isolated clumps.",
+        "treatment": "Rogue and destroy infected clumps promptly and improve field sanitation and drainage.",
+        "fertilizer": "Maintain balanced nutrition and adequate potassium according to local sugarcane recommendations."
+      },
+      "Medium": {
+        "severity_name": "Stalk Infection",
+        "description": "Several canes in an affected stool show withering, and internal red discoloration is visible when stalks are split.",
+        "treatment": "Remove infected stools and improve drainage. Use locally recommended planting-material and soil treatments where appropriate.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced crop nutrition."
+      },
+      "High": {
+        "severity_name": "Severe Cane Infection",
+        "description": "Large portions of stools are affected, stalks become severely rotten and internal tissues show extensive red discoloration.",
+        "treatment": "Remove and destroy infected stools and avoid ratooning heavily infected fields. Use healthy seed cane for the next crop and follow local crop-rotation recommendations.",
+        "fertilizer": "Do not rely on fertilizer to control red rot. Maintain balanced nutrition for subsequent healthy crops."
+      }
+    },
+    "organic_remedy": "Use disease-free planting material and Trichoderma-enriched organic amendments where locally recommended.",
+    "prevention": "Use healthy disease-free seed cane, resistant or tolerant varieties where available, recommended seed-cane treatment, good drainage, field sanitation and removal of infected stools.",
+    "source_note": "Colletotrichum falcatum is the traditional name widely used for sugarcane red rot; Glomerella tucumanensis is used in some current taxonomic references and TNAU material."
+  },
+
+  "Rust Groundnut": {
+    "crop": "Groundnut (Peanut)",
+    "disease": "Groundnut Rust",
+    "pathogen": "Puccinia arachidis",
+    "healthy": false,
+    "symptoms": "Orange-brown to reddish-brown rust pustules develop mainly on the lower surface of leaves. Severe infection causes leaf curling, browning and drying while affected leaves may remain attached.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Pustule Emergence",
+        "description": "A few rust pustules occur on lower leaf surfaces with limited chlorosis or leaf damage.",
+        "treatment": "Scout regularly and maintain good field sanitation. Avoid prolonged leaf wetness where possible.",
+        "fertilizer": "Maintain balanced nutrition and follow local groundnut recommendations for calcium and potassium."
+      },
+      "Medium": {
+        "severity_name": "Mid-Canopy Rust Spread",
+        "description": "Pustules spread to middle leaves and foliage begins to curl, yellow or brown.",
+        "treatment": "Use locally registered fungicides such as mancozeb, chlorothalonil or wettable sulphur where recommended. Follow current label directions.",
+        "fertilizer": "Maintain balanced nutrition and correct documented deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Foliar Damage",
+        "description": "Large numbers of pustules cover the foliage, causing extensive browning and drying and reducing photosynthetic capacity.",
+        "treatment": "Use a locally registered fungicide recommended for groundnut rust and ensure adequate coverage of lower leaf surfaces.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use healthy seed, resistant varieties where available, crop rotation and biological products where locally recommended.",
+    "prevention": "Use resistant or tolerant varieties, maintain field sanitation, use appropriate crop rotation and begin fungicide protection when locally recommended."
+  },
+
+  "Rust Sorghum": {
+    "crop": "Sorghum",
+    "disease": "Sorghum Rust",
+    "pathogen": "Puccinia purpurea",
+    "healthy": false,
+    "symptoms": "Small elongated reddish-purple to brown powdery pustules occur on leaf surfaces, sometimes surrounded by reddish or tan areas. Severe infection can cause premature leaf drying.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild / Early Pustules",
+        "description": "Scattered pustules occur mainly on lower leaves with little canopy damage.",
+        "treatment": "Scout the crop and maintain field sanitation. Remove volunteer sorghum and relevant weed hosts.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Canopy Rust Expansion",
+        "description": "Pustules become more numerous and spread into the middle canopy, causing visible chlorosis or leaf damage.",
+        "treatment": "Use a locally registered fungicide such as mancozeb where recommended for sorghum rust. Follow the current product label.",
+        "fertilizer": "Maintain balanced nutrition and correct documented nutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Leaf Blighting",
+        "description": "Extensive pustule development causes premature drying of functional leaves and may reduce grain filling.",
+        "treatment": "Use a locally registered fungicide recommended for sorghum rust and protect functional foliage according to local recommendations.",
+        "fertilizer": "Avoid excessive nitrogen and maintain balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use resistant or tolerant varieties, field sanitation and biological products where locally recommended.",
+    "prevention": "Use resistant or tolerant varieties, appropriate planting time, field sanitation and management of alternate hosts where relevant."
+  },
+
+  "Yellowleaf Sugarcane": {
+    "crop": "Sugarcane",
+    "disease": "Sugarcane Yellow Leaf Disease",
+    "pathogen": "Sugarcane yellow leaf virus (SCYLV)",
+    "healthy": false,
+    "symptoms": "Prominent yellowing develops along the midrib, particularly on leaves several positions below the top. Yellowing may spread into the leaf blade and severe plants can become stunted with reduced cane productivity.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Midrib Yellowing",
+        "description": "Faint yellowing is visible along the lower surface of midribs on several leaves.",
+        "treatment": "Identify and remove severely affected plants where practical and monitor aphid vectors.",
+        "fertilizer": "Maintain balanced crop nutrition; fertilizer cannot eliminate the virus."
+      },
+      "Medium": {
+        "severity_name": "Blade Chlorosis and Spread",
+        "description": "Midrib yellowing becomes more pronounced and extends into surrounding leaf tissue. Plant vigor may decline.",
+        "treatment": "Manage aphid vectors using locally registered products or integrated pest-management methods. Do not use infected plants as seed cane.",
+        "fertilizer": "Maintain balanced nutrition and correct documented nutrient deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Canopy Decline",
+        "description": "Extensive yellowing, reduced vigor, shortened internodes and substantial reduction in cane productivity occur.",
+        "treatment": "Do not use infected stools as planting material. Plan removal and replacement with healthy planting material according to local recommendations.",
+        "fertilizer": "Maintain appropriate irrigation and nutrition for healthy surrounding plants; fertilizer does not cure infected stools."
+      }
+    },
+    "organic_remedy": "Use integrated aphid management, including conservation or release of beneficial insects and locally recommended botanical products where appropriate.",
+    "prevention": "Use healthy virus-free planting material, tolerant varieties where available, monitor and manage aphid vectors, and avoid propagation from infected stools.",
+    "source_note": "Disease and vector information are consistent with TNAU sugarcane yellow leaf disease guidance."
+  },
+
+  "Earlyblight tomato": {
+    "crop": "Tomato",
+    "disease": "Early Blight",
+    "pathogen": "Alternaria solani",
+    "healthy": false,
+    "symptoms": "Dark brown to black circular or irregular lesions with characteristic concentric rings develop mainly on older lower leaves. Yellowing may surround the lesions. Stem and fruit lesions can also occur.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Mild Lower Leaf Spots",
+        "description": "A few target-like lesions occur mainly on lower leaves with little canopy damage.",
+        "treatment": "Remove severely infected lower leaves where practical, maintain good plant spacing and avoid prolonged foliage wetness.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Moderate Canopy Spread",
+        "description": "Lesions increase and spread into middle leaves, with beginning defoliation and possible stem lesions.",
+        "treatment": "Use locally registered fungicides such as mancozeb or chlorothalonil where recommended. Follow current label directions.",
+        "fertilizer": "Maintain balanced nutrition and correct documented deficiencies."
+      },
+      "High": {
+        "severity_name": "Severe Defoliation",
+        "description": "Numerous lesions coalesce and extensive defoliation exposes fruit and reduces photosynthetic capacity.",
+        "treatment": "Use an appropriate locally registered fungicide recommended for tomato early blight and remove heavily infected plant debris.",
+        "fertilizer": "Avoid excessive nitrogen and maintain adequate potassium and balanced nutrition."
+      }
+    },
+    "organic_remedy": "Use crop sanitation, mulch to reduce soil splash, healthy seedlings and biological products such as Trichoderma where locally recommended.",
+    "prevention": "Use healthy transplants, crop rotation, drip irrigation where suitable, mulch, adequate plant spacing and removal of infected debris."
+  },
+
+  "Healthy tomato": {
+    "crop": "Tomato",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Healthy tomato plants have uniformly green compound leaves, sturdy stems, normal flowering and fruit development, and no characteristic leaf spot, blight, mosaic or leaf-curl symptoms.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Vigorous foliage and balanced vegetative and reproductive development with no visible disease symptoms.",
+        "treatment": "No disease treatment is required. Continue routine scouting, irrigation, staking and pest management.",
+        "fertilizer": "Maintain balanced nutrition according to soil testing, cultivar, crop stage and local tomato recommendations."
+      }
+    },
+    "organic_remedy": "Use compost, well-decomposed organic manure and permitted biological inputs as part of integrated nutrient management.",
+    "prevention": "Use healthy seedlings, maintain field sanitation, appropriate irrigation, good air circulation and regular disease scouting."
+  },
+
+  "Lateblight tomato": {
+    "crop": "Tomato",
+    "disease": "Late Blight",
+    "pathogen": "Phytophthora infestans",
+    "healthy": false,
+    "symptoms": "Water-soaked irregular pale-green to brown lesions enlarge rapidly under favorable humid conditions. White fungal-like sporulation may occur on leaf undersides. Dark lesions can develop on stems and fruits.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Water-Soaked Lesions",
+        "description": "A few water-soaked lesions occur on foliage with limited canopy damage.",
+        "treatment": "Remove severely infected leaves where practical, improve air circulation and avoid overhead irrigation. Begin locally recommended fungicide protection when disease risk is high.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "Medium": {
+        "severity_name": "Rapid Blight Spread",
+        "description": "Lesions rapidly increase on leaves and stems and begin to affect a substantial portion of the canopy.",
+        "treatment": "Use a locally registered fungicide recommended for tomato late blight, such as a current mancozeb-, cyazofamid- or appropriate combination product where registered. Follow the current label and resistance-management instructions.",
+        "fertilizer": "Maintain balanced nutrition and avoid excessive nitrogen."
+      },
+      "High": {
+        "severity_name": "Severe / Plant Collapse",
+        "description": "Large areas of foliage and stems are blighted, plants may collapse, and fruit rot becomes widespread.",
+        "treatment": "Remove severely infected plants and use an appropriate locally registered late-blight fungicide according to current label directions. Do not rely on fertilizer to recover severely infected plants.",
+        "fertilizer": "Maintain only necessary crop nutrition; do not apply excessive nitrogen during severe disease."
+      }
+    },
+    "organic_remedy": "Use sanitation, resistant or tolerant varieties where available, good ventilation, avoidance of overhead irrigation and permitted copper-based products where locally recommended.",
+    "prevention": "Use healthy transplants, resistant or tolerant varieties where available, avoid prolonged leaf wetness, improve air circulation, remove cull piles and use preventive fungicide programs when disease risk is high.",
+    "source_note": "Disease symptoms are consistent with TNAU tomato late blight guidance. Exact fungicide availability and registration should be checked against the current Indian label."
+  },
+
+  "Yellowleafcurlyvirus tomato": {
+    "crop": "Tomato",
+    "disease": "Tomato Yellow Leaf Curl Virus",
+    "pathogen": "Tomato yellow leaf curl begomovirus complex",
+    "healthy": false,
+    "symptoms": "Young leaves show upward curling, cupping and yellowing, especially along margins. Plants become stunted and bushy, and severe infection can cause flower drop and major reduction in fruit setting.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Leaf Curl",
+        "description": "Young terminal leaves show mild upward curling and yellowing with limited effect on overall plant growth.",
+        "treatment": "Remove confirmed infected plants early where practical and monitor whitefly populations.",
+        "fertilizer": "Maintain balanced nutrition; fertilizer cannot cure virus infection."
+      },
+      "Medium": {
+        "severity_name": "Leaf Curl and Stunting",
+        "description": "Leaf curling and yellowing become prominent, plant growth slows and whitefly populations may be high.",
+        "treatment": "Remove infected plants and manage whitefly vectors using integrated pest-management practices and locally registered insecticides when necessary.",
+        "fertilizer": "Maintain balanced nutrition in healthy plants; do not expect fertilizer to reverse viral infection."
+      },
+      "High": {
+        "severity_name": "Severe Stunting",
+        "description": "Severe curling, yellowing and dwarfing occur, with major flower loss and little or no useful fruit production.",
+        "treatment": "Remove and destroy severely infected plants and control whitefly populations to reduce secondary spread.",
+        "fertilizer": "Fertilizer does not cure infected plants. Maintain nutrition only in healthy replacement plants."
+      }
+    },
+    "organic_remedy": "Use yellow sticky traps, reflective or physical barriers where appropriate, conservation of natural enemies and permitted neem-based products as supplementary whitefly-management tools.",
+    "prevention": "Use TYLCV-tolerant or resistant hybrids where available, healthy seedlings, insect-proof nursery protection, whitefly management, early removal of infected plants and avoidance of overlapping susceptible solanaceous crops.",
+    "source_note": "The disease is transmitted primarily by Bemisia tabaci whiteflies; vector control reduces spread but does not cure infected plants."
+  }
+}
+

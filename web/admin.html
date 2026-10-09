@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgroLens — Continuous Learning &amp; Admin Staging Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="admin.css">
+<script src="theme.js"></script>
+<style id="adminAuthGuardStyle">body{opacity:0!important;pointer-events:none!important;}</style>
+<script>
+(async function() {
+  try {
+    const res = await fetch("/api/admin/check");
+    if (!res.ok) {
+      location.replace("admin-login.html");
+      return;
+    }
+    const data = await res.json();
+    if (!data.is_admin) {
+      location.replace("index.html");
+      return;
+    }
+    // Verified admin: unhide page
+    const guard = document.getElementById("adminAuthGuardStyle");
+    if (guard) guard.remove();
+  } catch(e) {
+    location.replace("admin-login.html");
+  }
+})();
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="admin.html">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z" fill="#2d4627"/><path d="M12 21V9" stroke="#f4f1e2" stroke-width="1.3" stroke-linecap="round"/></svg>
+      AgroLens <span style="font-size:0.72rem;font-weight:700;color:var(--gold);background:rgba(251,191,36,.14);border:1px solid var(--gold);padding:2px 8px;border-radius:99px;margin-left:6px;letter-spacing:.06em;">OPS CONSOLE</span>
+    </a>
+    <div class="nav-links">
+      <a href="javascript:void(0)" class="nav-link active" id="navTabStaging">🛡️ Staging &amp; Retraining</a>
+      <a href="javascript:void(0)" class="nav-link" id="navTabFarmers">👥 Farmer Registry &amp; Scans</a>
+    </div>
+    <div class="userbox">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <span class="user-pill" id="userPill">Admin: <b id="userName">…</b></span>
+      <button class="signout-btn" id="signoutBtn" type="button">Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 1: CONTINUOUS LEARNING & STAGING HUB
+       ══════════════════════════════════════════════════════════ -->
+  <div id="adminStagingSection">
+
+  <!-- Header Banner -->
+  <div class="admin-hero">
+    <div class="hero-title">
+      <h1>Continuous Learning <em>· Admin Staging Hub</em></h1>
+      <p>Human-in-the-Loop Quality Control, Dataset Expansion &amp; Feature-Frozen Model Retraining</p>
+    </div>
+    <div class="hero-badges">
+      <div class="badge-pill model-badge">
+        <span class="dot"></span>
+        <span>ConvNeXt-Tiny (96.7% Overall Accuracy)</span>
+      </div>
+      <div class="badge-pill">
+        <span>🔒 Feature Freezing Active</span>
+      </div>
+      <div class="badge-pill">
+        <span>📁 Local Training Pool</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Counter Metric Cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-num" id="statPendingCount">0</div>
+        <div class="stat-lbl">Pending Review (≥85%)</div>
+      </div>
+      <div class="stat-icon pending">📥</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-num" id="statApprovedCount">0</div>
+        <div class="stat-lbl">Approved in Pool</div>
+      </div>
+      <div class="stat-icon approved">✅</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-num" id="statRejectedCount">0</div>
+        <div class="stat-lbl">Rejected Samples</div>
+      </div>
+      <div class="stat-icon rejected">🚫</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <div class="stat-num" id="statTrainedRuns">0</div>
+        <div class="stat-lbl">Model Retraining Runs</div>
+      </div>
+      <div class="stat-icon health">🚀</div>
+    </div>
+  </div>
+
+  <!-- Section Tab Switcher (Direct 1-Click Navigation) -->
+  <div class="section-nav">
+    <button type="button" class="tab-trigger active accent-green" id="tabTriggerQueue" data-target="panelQueue">
+      <span>📥</span> <span>Pending Review Queue</span>
+    </button>
+    <button type="button" class="tab-trigger" id="tabTriggerDisease" data-target="panelClasses" data-subtab="disease">
+      <span>🦠</span> <span>Crop Diseases (<span id="topCountDisease">0</span>)</span>
+    </button>
+    <button type="button" class="tab-trigger" id="tabTriggerStage" data-target="panelClasses" data-subtab="stage">
+      <span>🌱</span> <span>Growth Stages (<span id="topCountStage">0</span>)</span>
+    </button>
+    <button type="button" class="tab-trigger" id="tabTriggerConsole" data-target="panelConsole">
+      <span>⚡</span> <span>Training Console</span>
+    </button>
+  </div>
+
+  <!-- PANEL 1: PENDING APPROVAL QUEUE -->
+  <div id="panelQueue" class="tab-panel">
+    <div class="staging-bar" style="margin-bottom: 20px;">
+      <div class="filter-group">
+        <span style="font-size:.82rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Source:</span>
+        <button class="filter-chip active" data-source="all">All (≥85%)</button>
+        <button class="filter-chip" data-source="nova_lite">Amazon Nova Lite</button>
+        <button class="filter-chip" data-source="stage_nova_lite">🌱 Stage Nova Lite</button>
+        <button class="filter-chip" data-source="farmer_report">Farmer Flagged</button>
+        <button class="filter-chip" data-source="model_high_confidence">Model QA (≥85%)</button>
+      </div>
+      <div class="batch-actions">
+        <button type="button" class="btn-sm" id="btnSelectAll">Select All</button>
+        <button type="button" class="btn-sm btn-approve" id="btnBatchApprove" disabled>Approve Selected (<span id="batchApproveCount">0</span>)</button>
+        <button type="button" class="btn-sm btn-reject" id="btnBatchReject" disabled>Reject Selected (<span id="batchRejectCount">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="gallery-grid" id="queueGallery">
+      <!-- Cards rendered dynamically by JS -->
+    </div>
+  </div>
+
+  <!-- PANEL 2: RETRAINING & CLASS HEALTH HUB -->
+  <div id="panelClasses" class="tab-panel" style="display:none;">
+    <!-- Search & Filter Toolbar -->
+    <div class="hub-toolbar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="classSearchInput" placeholder="Search crop or disease (e.g. Rice, Cotton, Rust)...">
+      </div>
+      <div class="filter-group" id="classFilterChips">
+        <button class="filter-chip active" data-filter="all">🎯 Retraining Targets (<span id="countAllClasses">0</span>)</button>
+        <button class="filter-chip" data-filter="new_classes">✨ New Classes (<span id="countNewClasses">0</span>)</button>
+        <button class="filter-chip" data-filter="has_samples">📁 Has Approved Samples (<span id="countHasSamples">0</span>)</button>
+        <button class="filter-chip" data-filter="mastered">🛡️ Mastered (≥97%) [Archived] (<span id="countMastered">0</span>)</button>
+      </div>
+    </div>
+
+    <div class="classes-grid" id="classesGrid">
+      <!-- Classes rendered dynamically -->
+    </div>
+  </div>
+
+  <!-- PANEL 3: LIVE RETRAINING CONSOLE -->
+  <div id="panelConsole" class="tab-panel" style="display:none;">
+    <div class="console-card">
+      <div class="console-header">
+        <div>
+          <h2>Feature-Freezing Retraining Console</h2>
+          <p style="color:var(--muted);font-size:.9rem;margin-top:4px;">
+            Fine-tunes the ConvNeXt-Tiny classifier head on new verified data while completely freezing convolutional stages 0–4.
+          </p>
+        </div>
+        <div id="liveStatusBadge" class="badge-pill" style="background:var(--paper);border-color:var(--line);">
+          <span class="dot" style="background:#888;"></span>
+          <span id="liveStatusText">Status: Idle</span>
+        </div>
+      </div>
+
+      <!-- Live Step Box -->
+      <div class="live-step-box" id="liveStepBox">
+        <div class="pulse-spinner" id="stepSpinner" style="display:none;"></div>
+        <div class="step-text">
+          <h4 id="stepTitle">No Training Session in Progress</h4>
+          <p id="stepSubtitle">Select any class from the Retraining Hub to trigger background fine-tuning.</p>
+        </div>
+      </div>
+
+      <!-- Live Metric Gauges -->
+      <div class="training-gauges">
+        <div class="gauge-box">
+          <div class="g-val" id="gaugeEpoch">0 / 0</div>
+          <div class="g-lbl">Current Epoch</div>
+        </div>
+        <div class="gauge-box">
+          <div class="g-val" id="gaugeLoss">0.000</div>
+          <div class="g-lbl">Training Loss</div>
+        </div>
+        <div class="gauge-box">
+          <div class="g-val" id="gaugeAcc">0.0%</div>
+          <div class="g-lbl">Validation Accuracy</div>
+        </div>
+        <div class="gauge-box">
+          <div class="g-val" id="gaugeTargetClass">—</div>
+          <div class="g-lbl">Target Class</div>
+        </div>
+      </div>
+
+      <!-- Hot-swap Notice Banner -->
+      <div id="hotSwapBanner" style="display:none;background:rgba(45,70,39,.1);border:1.5px solid var(--green);border-radius:12px;padding:16px 20px;color:var(--ink);">
+        <h4 style="font-weight:700;color:var(--green);display:flex;align-items:center;gap:8px;">
+          <span>🎉</span> <span>Retraining Succeeded &amp; Live Hot-Swap Active</span>
+        </h4>
+        <p style="font-size:.88rem;color:var(--ink);margin-top:6px;">
+          The PyTorch inference engine in <code>backend/app.py</code> was reloaded with the updated weights, and client-side ONNX was exported to <code>web/leaflet_model.onnx</code>. Zero service restart required.
+        </p>
+      </div>
+
+      <!-- Audit History Table -->
+      <div style="margin-top:10px;">
+        <h4 style="font-family:'Fraunces',serif;font-size:1.15rem;margin-bottom:12px;color:var(--ink);">
+          Recent Continuous Learning Training History
+        </h4>
+        <div class="history-table-wrap">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Target Class</th>
+                <th>Samples</th>
+                <th>Final Loss</th>
+                <th>Val Accuracy</th>
+                <th>Trained At</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr>
+                <td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No previous retraining runs recorded yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div><!-- end panelConsole -->
+</div><!-- end adminStagingSection -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 2: FARMER REGISTRY & DIAGNOSIS SCANS (15 / page)
+       ══════════════════════════════════════════════════════════ -->
+  <div id="adminFarmersSection" style="display:none;">
+    
+    <!-- SUB-VIEW 1: FARMERS DIRECTORY (15 per page) -->
+    <div id="farmersListView" class="farmers-panel">
+      <div class="farmer-header-bar">
+        <div>
+          <span class="eyebrow">User Directory</span>
+          <h2 style="font-size:1.65rem;margin-top:6px;">Registered Farmers &amp; Growers</h2>
+          <p style="font-size:.9rem;color:var(--muted);margin-top:4px;">Browse registered farmer accounts and click any farmer to inspect their full diagnosis scan history.</p>
+        </div>
+        <div class="farmer-search-box">
+          <span>🔍</span>
+          <input type="text" id="farmerSearchInput" placeholder="Search farmer by name or email...">
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+        <span id="farmersCountLabel" style="font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Loading farmers...</span>
+      </div>
+
+      <!-- Farmers Grid (15 cards per page) -->
+      <div id="farmersGrid" class="farmer-grid">
+        <!-- Rendered dynamically by admin.js -->
+      </div>
+
+      <!-- Pagination Controls for Farmers -->
+      <div class="pagination-wrap" id="farmersPagination">
+        <span id="farmersPageIndicator">Page 1 of 1</span>
+        <div class="pagination-btns">
+          <button type="button" class="page-btn" id="farmersPrevBtn" disabled>← Previous</button>
+          <button type="button" class="page-btn" id="farmersNextBtn" disabled>Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-VIEW 2: SELECTED FARMER'S SCANS (15 Grid Boxes per page) -->
+    <div id="farmerScansView" class="farmers-panel" style="display:none;">
+      <div class="farmer-header-bar">
+        <div>
+          <div style="margin-bottom:12px;">
+            <button type="button" class="back-farmers-btn" id="backToFarmersBtn">
+              <span>←</span> <span>Back to Farmers Registry</span>
+            </button>
+          </div>
+          <span class="eyebrow" id="activeFarmerEyebrow">Farmer Field Scans</span>
+          <h2 style="font-size:1.65rem;margin-top:4px;" id="activeFarmerTitle">Scans History</h2>
+          <p style="font-size:.9rem;color:var(--muted);margin-top:4px;" id="activeFarmerSub">Review high-resolution foliage scans, disease severities, and AI guidance.</p>
+        </div>
+        <div id="activeFarmerBadgeBox"></div>
+      </div>
+
+      <!-- 15 Scan Grid Boxes Layout -->
+      <div id="scansGrid15" class="scans-grid-15">
+        <!-- Rendered dynamically: 15 scan cards per page -->
+      </div>
+
+      <!-- Pagination Controls for Scans -->
+      <div class="pagination-wrap" id="scansPagination">
+        <span id="scansPageIndicator">Showing 1-15 of scans</span>
+        <div class="pagination-btns">
+          <button type="button" class="page-btn" id="scansPrevBtn" disabled>← Previous 15</button>
+          <button type="button" class="page-btn" id="scansNextBtn" disabled>Next 15 →</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end adminFarmersSection -->
+
+</div>
+
+<!-- INSPECTION & RELABEL MODAL -->
+<div class="modal-overlay" id="inspectModal">
+  <div class="inspect-modal">
+    <div class="modal-head">
+      <h3>Inspect Staged Candidate (≥85% Confidence)</h3>
+      <button type="button" class="modal-close" id="modalCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-img-wrap">
+        <img id="modalImg" src="" alt="Candidate crop foliage">
+      </div>
+      <div class="modal-details">
+        <div class="form-group">
+          <label class="form-label">Proposed Class &amp; Model Confidence</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--paper);padding:10px 14px;border-radius:10px;border:1px solid var(--line);">
+            <b id="modalProposedClass" style="color:var(--ink);">—</b>
+            <span id="modalConfidence" class="queue-conf-badge">0.0%</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Diagnostic Source &amp; Pathologist Reasoning</label>
+          <div id="modalReasoning" style="font-size:.86rem;color:var(--muted);background:var(--paper);padding:10px 14px;border-radius:10px;border:1px solid var(--line);line-height:1.45;">
+            —
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Destination Class (Accept Proposed or Relabel)</label>
+          <select id="modalTargetClassSelect" class="form-control">
+            <!-- Populated dynamically with all 25 classes -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Local File Storage Target</label>
+          <div class="modal-path-preview" id="modalPathPreview">
+            backend/training_pool/approved/...
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn-sm btn-reject" id="modalRejectBtn">Reject &amp; Archive</button>
+      <button type="button" class="btn-sm btn-approve" id="modalApproveBtn">Accept &amp; Move to Training Pool</button>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVED SAMPLES GALLERY VIEWER MODAL -->
+<div class="modal-overlay" id="approvedViewerModal">
+  <div class="approved-viewer-card">
+    <div class="modal-head">
+      <div>
+        <h3 id="viewerModalTitle" style="font-family:'Fraunces',serif;font-size:1.32rem;color:var(--ink);">Approved Training Images</h3>
+        <p id="viewerModalSub" style="font-size:.82rem;color:var(--green);margin-top:4px;font-family:ui-monospace,monospace;">
+          📁 approved/... • 0 samples
+        </p>
+      </div>
+      <button type="button" class="modal-close" id="viewerModalCloseBtn">&times;</button>
+    </div>
+    
+    <div style="padding: 20px 24px; flex: 1; overflow-y: auto;">
+      <div id="viewerLoadingSpinner" style="display:none; text-align:center; padding: 40px;">
+        <div class="pulse-spinner" style="margin: 0 auto 12px;"></div>
+        <p style="color:var(--muted); font-size:.9rem;">Loading approved training samples...</p>
+      </div>
+      <div id="viewerEmptyState" class="empty-queue" style="display:none;">
+        <div class="empty-icon">📁</div>
+        <h3>No Approved Images In This Folder</h3>
+        <p>No verified images have been moved into this class directory yet.</p>
+      </div>
+      <div id="viewerGalleryGrid" class="approved-gallery-grid">
+        <!-- Approved thumbnails rendered dynamically -->
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span id="viewerImageCountLabel" style="font-size:.85rem;color:var(--muted);margin-right:auto;">0 images</span>
+      <button type="button" class="btn-sm" id="viewerCloseBtnFooter">Close</button>
+      <button type="button" class="btn-sm btn-approve" id="viewerRetrainShortcutBtn" style="display:inline-flex;align-items:center;gap:6px;">
+        <span>🚀</span> <span>Start Retraining Head</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN HIGH-RES LIGHTBOX MODAL -->
+<div class="lightbox-modal" id="lightboxModal">
+  <button type="button" class="modal-close" id="lightboxCloseBtn" style="position:absolute;top:20px;right:24px;font-size:2.2rem;color:#fff;background:none;border:none;cursor:pointer;">&times;</button>
+  <div class="lightbox-img-wrap">
+    <img id="lightboxImg" src="" alt="High resolution preview">
+  </div>
+  <div class="lightbox-meta">
+    <div id="lightboxCaption" style="font-weight:700;font-size:1.05rem;"></div>
+    <div id="lightboxSub" style="font-size:.82rem;color:#a8b3a0;margin-top:4px;font-family:ui-monospace,monospace;"></div>
+  </div>
+<!-- FARMER SCAN DETAIL INSPECTION MODAL -->
+<div class="modal-overlay" id="scanDetailModal" style="display:none;">
+  <div class="modal-box" style="max-width:840px;">
+    <div class="modal-head">
+      <div>
+        <h3 id="detailDiseaseTitle" style="font-family:'Fraunces',serif;font-size:1.35rem;color:var(--ink);">Diagnosis Details</h3>
+        <p id="detailScanMeta" style="font-size:.82rem;color:var(--muted);margin-top:2px;">Scan metadata</p>
+      </div>
+      <button type="button" class="modal-close" id="scanDetailCloseBtn">&times;</button>
+    </div>
+    <div style="padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <div>
+          <span style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;">Original Field Photo</span>
+          <img id="detailOriginalImg" src="" alt="Foliage Scan" style="width:100%;height:230px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:var(--paper-3);">
+        </div>
+        <div>
+          <span style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;">Attention Heatmap (Grad-CAM)</span>
+          <div id="detailGradcamWrapper" style="width:100%;height:230px;border-radius:12px;border:1px solid var(--line);background:var(--paper-3);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <img id="detailGradcamImg" src="" alt="Grad-CAM" style="width:100%;height:100%;object-fit:cover;">
+            <span id="detailNoGradcam" style="display:none;color:var(--muted);font-size:.85rem;padding:20px;text-align:center;">No Heatmap (Phenology Scan)</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="scans-count-pill" id="detailConfidenceBadge">0.0% Confidence</span>
+        <span class="scans-count-pill" id="detailSeverityBadge" style="color:var(--gold);border-color:var(--gold);background:rgba(251,191,36,.12);">Normal Severity</span>
+      </div>
+      <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:16px;">
+        <h4 style="font-size:.88rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Clinical Diagnosis</h4>
+        <p id="detailDiagnosisTxt" style="font-size:.92rem;color:var(--ink);line-height:1.5;">—</p>
+      </div>
+      <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:16px;">
+        <h4 style="font-size:.88rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Treatment &amp; Agronomy Action</h4>
+        <p id="detailTreatmentTxt" style="font-size:.92rem;color:var(--ink);line-height:1.5;">—</p>
+      </div>
+      <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:16px;">
+        <h4 style="font-size:.88rem;font-weight:700;color:var(--green-l);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Nutrient &amp; Fertilizer Schedule</h4>
+        <p id="detailFertilizerTxt" style="font-size:.92rem;color:var(--ink);line-height:1.5;">—</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+
+</body>
+</html>

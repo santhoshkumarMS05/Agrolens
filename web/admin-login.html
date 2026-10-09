@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Portal Login — AgroLens Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="auth.css">
+<script src="theme.js"></script>
+<style>
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(193, 156, 64, 0.16);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.side.admin-side {
+  background: linear-gradient(130deg, #0f2314, #19381e 40%, #164020 70%, #0d1e12) !important;
+}
+.admin-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: #fff;
+}
+.admin-chip code {
+  color: var(--gold-l);
+  font-family: monospace;
+}
+</style>
+</head>
+<body>
+<div class="auth">
+
+  <aside class="side admin-side">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z" fill="#2d4627"/><path d="M12 21V9" stroke="#f4f1e2" stroke-width="1.3" stroke-linecap="round"/></svg>
+      AgroLens Ops
+    </a>
+    <div>
+      <span class="admin-badge">🛡️ Internal Console</span>
+      <h2>Operations &amp; Model <em>Staging.</em></h2>
+      <p class="lede">Restricted control center for model retraining, human-in-the-loop candidate curation, and edge weight deployment.</p>
+
+      <div class="admin-chip">
+        <span>🔒 Primary Admin:</span>
+        <code>mugiwarayaluffy185@gmail.com</code>
+      </div>
+    </div>
+    <div class="proofs">
+      <div class="proof"><div class="n">Active</div><div class="l">Data Pool Staging</div></div>
+      <div class="proof"><div class="n">Frozen</div><div class="l">Backbone Weights</div></div>
+      <div class="proof"><div class="n">RBAC</div><div class="l">Admin Privilege Guard</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="auth-top-actions">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <a class="back" href="index.html">← Back to AgroLens</a>
+    </div>
+
+    <div class="form-wrap">
+      <span class="eyebrow" style="color:var(--gold);">Restricted Admin Access</span>
+      <h1>Admin Portal.</h1>
+      <p class="sub">Sign in with authorized administrator credentials to review user images and manage continuous learning.</p>
+
+      <form id="adminLoginForm" novalidate>
+        <div class="banner" id="banner" role="alert" aria-live="assertive"></div>
+
+        <div class="field">
+          <label for="adminEmail">Admin Email</label>
+          <div class="inp">
+            <input id="adminEmail" name="email" type="email" autocomplete="username" value="mugiwarayaluffy185@gmail.com" required autofocus>
+          </div>
+          <div class="ferr"></div>
+        </div>
+
+        <div class="field">
+          <label for="adminPassword">Admin Password</label>
+          <div class="inp has-eye">
+            <input id="adminPassword" name="password" type="password" autocomplete="current-password" placeholder="Admin password" required>
+            <button type="button" class="eye" aria-label="Show or hide password" aria-pressed="false">Show</button>
+          </div>
+          <div class="ferr"></div>
+        </div>
+
+        <button class="btn submit" type="submit" style="background:linear-gradient(110deg,#c19c40 0%,#2d4627 60%,#1f3320 100%);">
+          <span class="spin"></span>
+          <span>Access Admin Console 🛡️</span>
+        </button>
+      </form>
+
+      <p class="alt" style="margin-top:20px;font-size:.85rem;color:var(--muted);">
+        Looking for crop diagnosis? <a href="login.html" style="color:var(--green);">Farmer Portal</a>
+      </p>
+    </div>
+  </main>
+
+</div>
+
+<script>
+(function() {
+  const form = document.getElementById("adminLoginForm");
+  const banner = document.getElementById("banner");
+  const eye = document.querySelector(".eye");
+  const pw = document.getElementById("adminPassword");
+
+  if (eye && pw) {
+    eye.addEventListener("click", () => {
+      const isPw = pw.type === "password";
+      pw.type = isPw ? "text" : "password";
+      eye.textContent = isPw ? "Hide" : "Show";
+    });
+  }
+
+  function showBanner(msg) {
+    banner.textContent = msg;
+    banner.classList.add("show");
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    banner.classList.remove("show");
+
+    const email = form.elements.email.value.trim();
+    const password = form.elements.password.value;
+    const btn = form.querySelector(".submit");
+
+    if (!email || !password) {
+      showBanner("Please enter both admin email and password.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add("busy");
+
+    try {
+      if (email.toLowerCase() !== "mugiwarayaluffy185@gmail.com") {
+        showBanner("Access denied: Not an authorized administrator account.");
+        btn.disabled = false;
+        btn.classList.remove("busy");
+        return;
+      }
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        location.href = "admin.html";
+      } else {
+        showBanner(data.error || "Invalid administrator credentials or unauthorized account.");
+      }
+    } catch (err) {
+      showBanner("Failed to connect to backend server. Please verify the service is running.");
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("busy");
+    }
+  });
+})();
+</script>
+</body>
+</html>

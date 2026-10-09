@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgroLens — Diagnosis Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="stage.css">
+<link rel="stylesheet" href="dashboard.css">
+<script src="theme.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z" fill="#2d4627"/><path d="M12 21V9" stroke="#f4f1e2" stroke-width="1.3" stroke-linecap="round"/></svg>
+      AgroLens
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">🏠 Home</a>
+      <a href="dashboard.html" class="nav-link active">🌱 Dashboard</a>
+      <a href="history.html" class="nav-link" id="navHistory">📚 History &amp; Profile</a>
+    </div>
+    <div class="userbox">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <a class="signout-btn" id="navSignIn" href="login.html?next=dashboard.html" style="display:inline-flex;text-decoration:none;">Sign in</a>
+      <span class="user-pill" id="userPill" style="display:none;">Farmer: <b id="userName">…</b></span>
+      <button class="signout-btn" id="signout" style="display:none;" type="button">Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <!-- ── STEP 1: CROP SELECTION SCREEN ────────────────────── -->
+  <div id="cropSelectorScreen">
+    <div class="crop-selector-header">
+      <span class="eyebrow">AgroLens · Step 1 of 2</span>
+      <h2>Select Your Crop</h2>
+      <p id="cropSelHeaderSub">Which crop are you scanning today? Select from the list below.</p>
+    </div>
+
+    <!-- Language selector for crop names -->
+    <div class="crop-lang-row">
+      <span class="lang-lbl" id="cropLangLbl">🌐 Crop names in:</span>
+      <div class="lang-pills" style="display:inline-flex;gap:5px;background:rgba(0,0,0,.06);padding:3px;border-radius:99px;">
+        <button type="button" class="lang-pill active" data-clang="en">English</button>
+        <button type="button" class="lang-pill" data-clang="ta">தமிழ்</button>
+        <button type="button" class="lang-pill" data-clang="hi">हिन्दी</button>
+      </div>
+    </div>
+
+    <!-- Crop tiles grid (rendered by JS) -->
+    <div class="crop-grid" id="cropGrid"></div>
+
+    <!-- Others: custom crop input -->
+    <div id="othersInputBox">
+      <label id="othersInputLabel">Enter your crop name (in any language):</label>
+      <input type="text" id="othersCropInput" placeholder="e.g. Wheat, गेहूं, கோதுமை…" autocomplete="off">
+      <div id="othersTranslateStatus"></div>
+    </div>
+
+    <button type="button" id="cropProceedBtn" disabled>
+      <span>🌿</span> <span id="cropProceedLabel">Proceed to Diagnosis →</span>
+    </button>
+  </div>
+
+  <!-- ── STEP 2: DIAGNOSIS SCREEN (hidden until crop selected) ── -->
+  <div id="diagnosisScreen" style="display:none;">
+
+    <!-- Selected crop chip (click to change) -->
+    <button type="button" id="selectedCropChip">
+      <span>🌾</span> <span id="selectedCropChipLabel">Cotton</span>
+      <span style="font-size:.72rem;font-weight:500;color:var(--muted);margin-left:4px;">✕ Change</span>
+    </button>
+
+    <!-- LEFT PANEL: UPLOAD & ACTIVE LEAF -->
+    <div class="panel">
+      <!-- Diagnostic Mode Switcher: Disease vs Growth Stage -->
+      <div class="diagnostic-mode-bar">
+        <button type="button" class="mode-btn active" id="modeBtnDisease" data-mode="disease">
+          <span>🦠</span> <span id="lblModeDisease">Crop Disease</span>
+        </button>
+        <button type="button" class="mode-btn" id="modeBtnStage" data-mode="stage">
+          <span>🌱</span> <span id="lblModeStage">Growth Stage</span>
+        </button>
+      </div>
+
+      <span class="eyebrow" id="scannerEyebrow">AI Agricultural Intelligence</span>
+      <h2 id="scannerHeading">Upload Plant Photo</h2>
+      <p class="sub" id="uploadHelpTxt">Upload a clear, close-up photo of the affected leaf (JPEG/PNG).</p>
+
+      <!-- Dropzone -->
+      <div class="drop" id="drop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2d4627" stroke-width="1.4"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p><b>Click to choose</b> or drop leaf photos here</p>
+        <p style="font-size:.8rem;opacity:.7">Single photo or batch upload · JPG or PNG</p>
+      </div>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+
+      <!-- Active Preview Card with 'X' at top-right -->
+      <div class="preview-card" id="previewCard">
+        <button class="preview-btn close" id="previewCloseBtn" title="Remove this photo" type="button">✕</button>
+        <img id="previewImg" alt="Selected leaf">
+        <div class="scanfx"></div>
+        <div class="preview-meta" id="previewMeta">leaf_scan.jpg</div>
+      </div>
+
+      <!-- Batch Thumbnails Queue -->
+      <div class="batch-section" id="batchSection">
+        <div class="batch-header">
+          <span>Batch Queue (<span class="count" id="batchCount">0</span>)</span>
+          <span style="font-size:.78rem;color:var(--muted)">Click any thumbnail to inspect</span>
+        </div>
+        <div class="batch-grid" id="batchGrid"></div>
+      </div>
+
+      <div class="controls">
+        <div class="actions">
+          <button class="btn primary" id="run" disabled style="flex:1;">🌱 Run Diagnosis →</button>
+          <button class="btn" id="reset" style="flex:0 0 auto;">Clear All</button>
+        </div>
+      </div>
+
+      <div class="status load" id="status"><span class="led"></span><span id="statusTxt">Loading model…</span></div>
+
+      <!-- Grad-CAM Heatmap -->
+      <div id="gradcamBox" style="display:none;margin-top:22px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:700;color:var(--rust);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">
+          <span>🔥</span> Grad-CAM Heatmap
+        </div>
+        <div style="border-radius:12px;overflow:hidden;background:#000;position:relative;">
+          <canvas id="gradcamCanvas" style="width:100%;max-height:260px;object-fit:contain;display:block;"></canvas>
+        </div>
+        <p style="font-size:.76rem;color:var(--muted);margin-top:8px;text-align:center;">Red areas indicate regions the model focused on for diagnosis</p>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: DIAGNOSIS RESULTS -->
+    <div>
+      <div class="empty" id="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1b2114" stroke-width="1.2"><path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7zM12 21V9" stroke-linecap="round"/></svg>
+        <p>Results will appear here once you run a leaf photo through the model.</p>
+      </div>
+
+      <!-- Non-Crop Error Banner (Zero-shot CLIP Gate) -->
+      <div id="cropGateAlert" style="display:none;background:rgba(176,85,46,.12);border:1.5px solid var(--rust);border-radius:var(--r);padding:22px;margin-top:20px;">
+        <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;font-weight:700;color:var(--rust);text-transform:uppercase;letter-spacing:.6px;">
+          <span>🚫</span> Non-Crop Image Detected
+        </div>
+        <p id="cropGateAlertMsg" style="font-size:.92rem;color:var(--ink);margin-top:8px;line-height:1.5;">
+          The AI Zero-Shot Crop Gate evaluated this image and determined it is not a plant or crop foliage.
+        </p>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:8px;">
+          🌿 AgroLens is designed specifically for crop pathology. Please upload a clear photo of an agricultural plant leaf or crop foliage.
+        </p>
+      </div>
+
+      <div class="result" id="result">
+        <!-- Multilingual Language Selector Bar -->
+        <div id="languageSelectorBar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:8px 16px;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:700;color:var(--ink);">
+            <span style="font-size:1.15rem;">🌐</span>
+            <span id="lblLangSelect">Language / மொழி / भाषा:</span>
+          </div>
+          <div class="lang-pills" style="display:inline-flex;gap:5px;background:rgba(0,0,0,.06);padding:3px;border-radius:99px;">
+            <button type="button" class="lang-pill active" data-lang="en">English</button>
+            <button type="button" class="lang-pill" data-lang="ta">தமிழ்</button>
+            <button type="button" class="lang-pill" data-lang="hi">हिन्दी</button>
+          </div>
+        </div>
+
+        <!-- Disease Diagnostic View -->
+        <div id="diseaseResultSection">
+          <!-- Diagnosis Verdict Banner -->
+          <div class="verdict" id="verdict">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <span class="tagr" id="vtag">Diagnosis Result</span>
+              <button type="button" class="voice-btn voice-btn-banner" id="voiceBtnVerdict" title="Listen aloud"><span>🔊</span></button>
+            </div>
+            <h3 id="vname">—</h3>
+            <p class="crop" id="vcrop">—</p>
+            <div class="confwrap">
+              <div class="tr"><i id="vbar"></i></div>
+              <div class="cl"><span id="vconf">—</span></div>
+            </div>
+          </div>
+
+          <!-- Teacher Model Escalation Banner (when student confidence < 80%) -->
+          <div id="teacherCard" style="display:none;margin-top:16px;background:linear-gradient(135deg,rgba(79,70,229,.07),rgba(124,58,237,.1));border:1.5px solid rgba(124,58,237,.35);border-radius:var(--r);padding:16px 20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;color:#6d28d9;text-transform:uppercase;letter-spacing:.6px;">
+                <span>🎓</span> <span id="lblTeacherTitle">Teacher Model Verified (Amazon Nova Lite)</span>
+              </div>
+              <span id="lblTeacherBadge" style="font-size:.74rem;font-weight:700;padding:2px 10px;border-radius:99px;background:#6d28d9;color:#fff;">Escalation Triggered (&lt; 80% Conf)</span>
+            </div>
+            <p id="lblTeacherDesc" style="font-size:.88rem;color:var(--ink);margin-top:8px;line-height:1.45;">
+              Mobile model confidence was <b id="teacherStudentConf" style="color:var(--rust);">68.2%</b> (below 80% threshold). Automatically escalated to the <b>Amazon Nova Lite Teacher Model (AWS Bedrock)</b> for definitive multimodal pathology diagnosis.
+            </p>
+            <div id="teacherReasoningWrap" style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(124,58,237,.25);font-size:.84rem;color:var(--ink);display:flex;gap:6px;">
+              <span id="lblTeacherReasoningTitle" style="font-weight:600;color:#6d28d9;flex:none;">Pathologist Reasoning:</span>
+              <span id="teacherReasoningTxt" style="font-style:italic;"></span>
+            </div>
+          </div>
+
+          <div class="guide">
+            <span class="lbl" id="lblFarmerGuidance">Farmer Guidance &amp; Severity Assessment</span>
+            <div id="guideTxt" style="font-size:.9rem;line-height:1.6;color:var(--ink);">—</div>
+          </div>
+
+          <!-- Advisory Details Card -->
+          <div id="advisoryBox" style="margin-top:20px;display:grid;gap:12px;">
+            <div style="background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="lblSeverity" style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;">Severity</span>
+                <span id="advSeverity" style="font-size:.78rem;font-weight:700;padding:3px 14px;border-radius:99px;background:rgba(176,85,46,.15);color:var(--rust);">High</span>
+              </div>
+              <span id="advSourceBadge" style="font-size:.74rem;font-weight:700;padding:3px 12px;border-radius:99px;background:rgba(45,70,39,.12);color:var(--green);border:1px solid rgba(45,70,39,.2);display:inline-flex;align-items:center;gap:4px;">🌿 Ground-Truth Advisory</span>
+            </div>
+            <div style="background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div id="lblSymptoms" style="font-size:.78rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.6px;">🔍 Symptoms &amp; Diagnosis</div>
+                <button type="button" class="voice-btn" data-voice-target="advDiagnosis" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div id="advDiagnosis" style="font-size:.88rem;color:var(--ink);line-height:1.5;">—</div>
+            </div>
+            <div style="background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div id="lblTreatment" style="font-size:.78rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;">💡 Treatment Recommendations</div>
+                <button type="button" class="voice-btn" data-voice-target="advTreatment" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div id="advTreatment" style="font-size:.88rem;color:var(--ink);line-height:1.5;">—</div>
+            </div>
+            <div style="background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div id="lblFertilizer" style="font-size:.78rem;font-weight:700;color:var(--green-l);text-transform:uppercase;letter-spacing:.6px;">🌱 Fertilizer &amp; Soil Nutrition</div>
+                <button type="button" class="voice-btn" data-voice-target="advFertilizer" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div id="advFertilizer" style="font-size:.88rem;color:var(--ink);line-height:1.5;">—</div>
+            </div>
+            <div id="advOrganicWrap" style="background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:none;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div id="lblOrganic" style="font-size:.78rem;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.6px;">🌿 Eco / Organic Remedy</div>
+                <button type="button" class="voice-btn" data-voice-target="advOrganic" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div id="advOrganic" style="font-size:.88rem;color:var(--ink);line-height:1.5;">—</div>
+            </div>
+          </div>
+
+          <!-- Save to History & Advisory Export Actions -->
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+            <button class="btn primary" id="saveHistoryBtn" type="button" style="width:100%;padding:14px 20px;font-size:1rem;background:linear-gradient(135deg,#7c3aed,#9333ea);border-color:#7c3aed;color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span id="saveBtnIcon">💾</span> <span id="saveBtnTxt">Save to History</span>
+            </button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <button class="btn whatsapp-btn" id="shareWhatsAppBtn" type="button" style="padding:11px 16px;font-size:.88rem;background:#25D366;border-color:#20bd5a;color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(37,211,102,.25);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;transition:all .2s;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.34C9.36 7.34 9.09 7.4 8.87 7.65C8.65 7.89 8.02 8.48 8.02 9.68C8.02 10.88 8.9 12.04 9.02 12.2C9.14 12.37 10.74 14.84 13.2 15.9C13.78 16.15 14.24 16.31 14.6 16.42C15.18 16.61 15.71 16.58 16.13 16.52C16.6 16.45 17.58 15.93 17.78 15.35C17.99 14.77 17.99 14.28 17.93 14.17C17.87 14.07 17.72 14.01 17.5 13.9C17.27 13.79 16.17 13.25 15.96 13.17C15.76 13.1 15.61 13.06 15.46 13.29C15.31 13.52 14.88 14.01 14.75 14.17C14.63 14.32 14.5 14.34 14.28 14.23C14.06 14.12 13.34 13.88 12.5 13.13C11.84 12.54 11.39 11.81 11.27 11.6C11.14 11.38 11.25 11.26 11.36 11.15C11.46 11.05 11.58 10.89 11.7 10.76C11.81 10.62 11.85 10.52 11.93 10.37C12 10.21 11.96 10.08 11.9 9.97C11.85 9.86 11.4 8.76 11.21 8.31C11.03 7.87 10.84 7.93 10.7 7.93C10.56 7.93 10.41 7.93 10.26 7.93C10.11 7.93 9.87 7.99 9.67 8.2C9.47 8.41 8.92 8.92 8.92 9.97C8.92 11.02 9.69 12.03 9.8 12.18L9.53 7.34Z"/></svg>
+                <span id="lblShareWhatsApp">WhatsApp</span>
+              </button>
+              <button class="btn pdf-btn" id="exportPdfBtn" type="button" style="padding:11px 16px;font-size:.88rem;background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;transition:all .2s;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span id="lblExportPdf">Export PDF</span>
+              </button>
+            </div>
+            <button class="btn" id="reportDiagnosisBtn" type="button" style="width:100%;padding:10px 16px;font-size:.86rem;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;">
+              <span>⚠️</span> <span>Report Inaccurate Diagnosis (Send to Admin Staging)</span>
+            </button>
+            <div id="saveMsg" style="font-size:.85rem;text-align:center;font-weight:600;display:none;"></div>
+            <div id="reportMsg" style="font-size:.85rem;text-align:center;font-weight:600;display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Growth Stage Diagnostic View -->
+        <div id="stageResultSection" style="display:none;">
+          <!-- Stage Verdict Banner -->
+          <div class="stage-verdict" id="stageVerdict">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <span class="tagr" id="stageModelTag">🎓 Identified by Amazon Nova Lite (Vision Teacher)</span>
+              <button type="button" class="voice-btn voice-btn-banner" id="voiceBtnStageVerdict" title="Listen aloud"><span>🔊</span></button>
+            </div>
+            <h3 id="stageCropName">—</h3>
+            <p class="sub-stage-txt" id="stagePhaseTitle">—</p>
+            <div style="font-size:.85rem;color:#d1fae5;" id="stageConf">—</div>
+          </div>
+
+          <!-- 3-Phase Visual Stepper Progress Bar -->
+          <div class="stage-stepper" id="stageStepper">
+            <div class="stage-step" id="stepVeg">
+              <span class="step-icon">🌱</span>
+              <span class="step-num">Phase 1</span>
+              <span class="step-title">1. Vegetative</span>
+            </div>
+            <div class="stage-step" id="stepRep">
+              <span class="step-icon">🌸</span>
+              <span class="step-num">Phase 2</span>
+              <span class="step-title">2. Reproductive</span>
+            </div>
+            <div class="stage-step" id="stepRip">
+              <span class="step-icon">🌾</span>
+              <span class="step-num">Phase 3</span>
+              <span class="step-title">3. Ripening / Harvest</span>
+            </div>
+          </div>
+
+          <!-- Harvest Countdown Highlight Card -->
+          <div class="harvest-countdown-card" style="margin-bottom:14px;">
+            <div>
+              <span id="lblStageCountdown" style="font-size:.78rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.6px;">⏳ Expected Days to Harvest</span>
+              <div id="stageDaysToHarvest" class="harvest-countdown-val">—</div>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:99px;background:#fef3c7;color:#b45309;border:1px solid rgba(234,179,8,.3);">Phenology Forecast</span>
+          </div>
+
+          <!-- Stage Advisory Cards -->
+          <div class="stage-advisory-grid">
+            <div class="stage-card">
+              <div class="stage-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                <span id="lblStageVisualClues" style="color:var(--green);">🔍 Visual Phenology Indicators</span>
+                <button type="button" class="voice-btn" data-voice-target="stageVisualClues" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div class="stage-card-content" id="stageVisualClues">—</div>
+            </div>
+            <div class="stage-card">
+              <div class="stage-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                <span id="lblStageIrrigation" style="color:#0284c7;">💧 Water &amp; Irrigation Schedule</span>
+                <button type="button" class="voice-btn" data-voice-target="stageIrrigation" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div class="stage-card-content" id="stageIrrigation">—</div>
+            </div>
+            <div class="stage-card">
+              <div class="stage-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                <span id="lblStageFertilizer" style="color:#16a34a;">🌱 Stage Nutrition &amp; Fertilizer</span>
+                <button type="button" class="voice-btn" data-voice-target="stageFertilizer" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div class="stage-card-content" id="stageFertilizer">—</div>
+            </div>
+            <div class="stage-card">
+              <div class="stage-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                <span id="lblStagePestAlert" style="color:var(--rust);">🛡️ Vulnerable Pest &amp; Disease Watch</span>
+                <button type="button" class="voice-btn" data-voice-target="stagePestAlert" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div class="stage-card-content" id="stagePestAlert">—</div>
+            </div>
+            <div class="stage-card" style="border-left:4px solid #16a34a;">
+              <div class="stage-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                <span id="lblStagePriority" style="color:#15803d;">⚡ Priority Action for Farmer</span>
+                <button type="button" class="voice-btn" data-voice-target="stagePriorityAction" title="Listen aloud"><span>🔊</span></button>
+              </div>
+              <div class="stage-card-content" id="stagePriorityAction" style="font-weight:600;">—</div>
+            </div>
+          </div>
+
+          <!-- Save Stage to History & Advisory Export Actions -->
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+            <button class="btn primary" id="saveStageHistoryBtn" type="button" style="width:100%;padding:14px 20px;font-size:1rem;background:linear-gradient(135deg,#15803d,#16a34a);border-color:#15803d;color:#fff;box-shadow:0 8px 24px rgba(22,163,74,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span>💾</span> <span id="saveStageBtnTxt">Save Stage to History</span>
+            </button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <button class="btn whatsapp-btn" id="shareStageWhatsAppBtn" type="button" style="padding:11px 16px;font-size:.88rem;background:#25D366;border-color:#20bd5a;color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(37,211,102,.25);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;transition:all .2s;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.34C9.36 7.34 9.09 7.4 8.87 7.65C8.65 7.89 8.02 8.48 8.02 9.68C8.02 10.88 8.9 12.04 9.02 12.2C9.14 12.37 10.74 14.84 13.2 15.9C13.78 16.15 14.24 16.31 14.6 16.42C15.18 16.61 15.71 16.58 16.13 16.52C16.6 16.45 17.58 15.93 17.78 15.35C17.99 14.77 17.99 14.28 17.93 14.17C17.87 14.07 17.72 14.01 17.5 13.9C17.27 13.79 16.17 13.25 15.96 13.17C15.76 13.1 15.61 13.06 15.46 13.29C15.31 13.52 14.88 14.01 14.75 14.17C14.63 14.32 14.5 14.34 14.28 14.23C14.06 14.12 13.34 13.88 12.5 13.13C11.84 12.54 11.39 11.81 11.27 11.6C11.14 11.38 11.25 11.26 11.36 11.15C11.46 11.05 11.58 10.89 11.7 10.76C11.81 10.62 11.85 10.52 11.93 10.37C12 10.21 11.96 10.08 11.9 9.97C11.85 9.86 11.4 8.76 11.21 8.31C11.03 7.87 10.84 7.93 10.7 7.93C10.56 7.93 10.41 7.93 10.26 7.93C10.11 7.93 9.87 7.99 9.67 8.2C9.47 8.41 8.92 8.92 8.92 9.97C8.92 11.02 9.69 12.03 9.8 12.18L9.53 7.34Z"/></svg>
+                <span id="lblShareStageWhatsApp">WhatsApp</span>
+              </button>
+              <button class="btn pdf-btn" id="exportStagePdfBtn" type="button" style="padding:11px 16px;font-size:.88rem;background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;transition:all .2s;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span id="lblExportStagePdf">Export PDF</span>
+              </button>
+            </div>
+            <div id="saveStageMsg" style="font-size:.85rem;margin-top:4px;text-align:center;font-weight:600;display:none;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<script src="ort/ort.wasm.min.js"></script>
+<script src="voice_reader.js"></script>
+<script src="advisory_export.js"></script>
+<script src="dashboard.js"></script>
+<script src="dashboard_stage.js"></script>
+</body>
+</html>

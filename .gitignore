@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Build outputs & frontend dist
+frontend/dist/
+
+# Test screenshots & temporary logs
+test_screenshots/
+verify_*.png
+crop_grid_*.png
+clerk_modal_open.png
+direct_google_redirect.png
+*.log
+
+# Training pool images (keep directory)
+training_pool/pending/*
+training_pool/approved/*
+training_pool/rejected/*
+!training_pool/pending/.gitkeep
+!training_pool/approved/.gitkeep
+!training_pool/rejected/.gitkeep
+
+# IDE / System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

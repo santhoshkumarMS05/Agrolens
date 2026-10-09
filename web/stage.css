@@ -1,0 +1,288 @@
+/* ==========================================================================
+   AgroLens — Crop Growth Stage Detection & Phenology Styling
+   ========================================================================== */
+
+/* Mode Toggle Bar (Disease vs Growth Stage) */
+.diagnostic-mode-bar {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  border-radius: 99px;
+  gap: 4px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 9px 16px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mode-btn:hover {
+  color: var(--ink);
+}
+
+.mode-btn.active {
+  background: var(--paper);
+  color: var(--green);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mode-btn[data-mode="disease"].active {
+  color: #b0552e;
+}
+
+.mode-btn[data-mode="stage"].active {
+  color: #15803d;
+}
+
+/* Stage Visual Stepper (3 Major Phases) */
+.stage-stepper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 18px;
+}
+
+.stage-step {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-step .step-icon {
+  font-size: 1.25rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stage-step .step-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  display: block;
+}
+
+.stage-step .step-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+/* Active Stage Step Highlight */
+.stage-step.active {
+  border-color: #16a34a;
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(34, 197, 94, 0.05));
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.18);
+  transform: translateY(-2px);
+}
+
+.stage-step.active .step-num {
+  color: #16a34a;
+}
+
+.stage-step.active .step-title {
+  color: #15803d;
+}
+
+.stage-step.active::after {
+  content: "CURRENT";
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: #16a34a;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+/* Past Completed Phase */
+.stage-step.completed {
+  border-color: rgba(22, 163, 74, 0.3);
+  background: rgba(22, 163, 74, 0.04);
+}
+
+.stage-step.completed .step-title {
+  color: var(--muted);
+}
+
+/* Stage Verdict Banner */
+.stage-verdict {
+  background: linear-gradient(135deg, #1b3d22, #2d5a37);
+  color: #f4f1e2;
+  border-radius: var(--r);
+  padding: 22px 26px;
+  box-shadow: 0 8px 24px rgba(27, 61, 34, 0.25);
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-verdict::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.stage-verdict .tagr {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #d1fae5;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.stage-verdict h3 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  line-height: 1.25;
+  color: #ffffff;
+}
+
+.stage-verdict .sub-stage-txt {
+  font-size: 0.95rem;
+  color: #a7f3d0;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+/* Stage Advisory Details Grid */
+.stage-advisory-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.stage-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 18px;
+  transition: all 0.2s ease;
+}
+
+.stage-card:hover {
+  border-color: rgba(22, 163, 74, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.stage-card-header {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stage-card-content {
+  font-size: 0.88rem;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+/* Harvest Countdown Callout Card */
+.harvest-countdown-card {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(245, 158, 11, 0.05));
+  border: 1.5px solid rgba(234, 179, 8, 0.35);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.harvest-countdown-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #b45309;
+}
+
+/* ── Dark Theme Growth Stage Enhancements ─────────────────── */
+[data-theme="dark"] .diagnostic-mode-bar {
+  background: var(--paper-3);
+  border-color: var(--line);
+}
+[data-theme="dark"] .mode-btn {
+  color: var(--muted);
+}
+[data-theme="dark"] .mode-btn:hover {
+  color: var(--ink);
+}
+[data-theme="dark"] .mode-btn.active {
+  background: var(--paper-2);
+  color: var(--green);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+[data-theme="dark"] .stage-step {
+  background: var(--paper-2);
+  border-color: var(--line);
+}
+[data-theme="dark"] .stage-step.active {
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.16), rgba(34, 197, 94, 0.08));
+  border-color: var(--green);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .stage-step.active .step-num {
+  color: var(--green);
+}
+[data-theme="dark"] .stage-step.active .step-title {
+  color: #fff;
+}
+[data-theme="dark"] .stage-verdict {
+  background: linear-gradient(135deg, #132f18, #1c4523);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .stage-card {
+  background: var(--paper-2);
+  border-color: var(--line);
+}
+[data-theme="dark"] .harvest-countdown-card {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.06));
+  border-color: rgba(251, 191, 36, 0.3);
+}
+[data-theme="dark"] .harvest-countdown-val {
+  color: var(--gold);
+}
+

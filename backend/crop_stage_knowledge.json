@@ -1,0 +1,418 @@
+{
+  "Rice": {
+    "crop_name": "Rice (Paddy)",
+    "local_names": {
+      "ta": "நெல்",
+      "hi": "चावल / धान"
+    },
+    "duration_days": "105 - 135 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Vegetative Phase",
+        "sub_stages": ["Seedling Stage", "Active Tillering", "Stem Elongation"],
+        "local_names": {
+          "ta": "வளரும் பருவம் (Vegetative)",
+          "hi": "वानस्पतिक अवस्था (Vegetative)"
+        },
+        "visual_clues": "Green lush foliage with upright leafy tillers; no swollen boot or emerged flower panicles visible in canopy.",
+        "irrigation": "Maintain a shallow water layer of 2 - 3 cm in the field. Avoid deep submergence or drying during active tillering.",
+        "fertilizer": "Apply the recommended top-dressing dose of Nitrogen (Urea) in 2 splits. Ensure Zinc Sulfate is applied if deficiency chlorosis appears.",
+        "pest_disease_watch": "Watch for Rice Leaf Folder, Green Leafhopper, and early Bacterial Leaf Blight or Blast.",
+        "days_to_harvest": "65 - 85 days",
+        "priority_action": "Promote tiller development with shallow water and scheduled split application of Urea."
+      },
+      "Reproductive": {
+        "phase_name": "Reproductive Phase",
+        "sub_stages": ["Panicle Initiation", "Booting Stage", "Heading / Flowering (Anthesis)"],
+        "local_names": {
+          "ta": "இனப்பெருக்கப் பருவம் / பூக்கும் நிலை (Reproductive)",
+          "hi": "प्रजनन / फूल आने की अवस्था (Reproductive)"
+        },
+        "visual_clues": "Swollen flag leaf sheath (booting) or fully emerged panicles with delicate white flowering florets shedding pollen.",
+        "irrigation": "Critical water stage: maintain 5 cm standing water continuously. Moisture stress now will cause sterile empty spikelets (chaffy grain).",
+        "fertilizer": "Apply Muriate of Potash (MOP) at panicle initiation to boost grain filling. Avoid high Nitrogen which invites fungal diseases.",
+        "pest_disease_watch": "High susceptibility to Neck Blast, Sheath Blight, Stem Borer, and Brown Planthopper (BPH).",
+        "days_to_harvest": "30 - 45 days",
+        "priority_action": "Ensure uninterrupted irrigation and scout daily for Neck Blast and Brown Planthopper."
+      },
+      "Ripening": {
+        "phase_name": "Ripening / Maturation Phase",
+        "sub_stages": ["Milk Stage", "Dough Stage", "Golden Mature Grain"],
+        "local_names": {
+          "ta": "முதிர்ச்சி / அறுவடைப் பருவம் (Ripening)",
+          "hi": "परिपक्वता / कटाई अवस्था (Ripening)"
+        },
+        "visual_clues": "Panicles bend gracefully under grain weight; foliage turns from green to golden yellow; grains harden and dry.",
+        "irrigation": "Keep soil moist during dough stage, then drain all standing water 10 - 14 days prior to expected harvest.",
+        "fertilizer": "No soil fertilizer needed. Optional foliar 1% Potassium Nitrate if late grain filling needs support.",
+        "pest_disease_watch": "Watch for False Smut, Earhead Bug (Gundhi bug), and bird damage.",
+        "days_to_harvest": "7 - 15 days",
+        "priority_action": "Drain field water 10 days before harvest to facilitate uniform grain drying and easy combine/manual harvesting."
+      }
+    }
+  },
+  "Corn": {
+    "crop_name": "Corn (Maize)",
+    "local_names": {
+      "ta": "மக்காச்சோளம்",
+      "hi": "मक्का"
+    },
+    "duration_days": "90 - 115 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Vegetative Phase",
+        "sub_stages": ["Seedling (VE-V3)", "Knee-High (V6-V8)", "Pre-Tassel (V12-VT)"],
+        "local_names": {
+          "ta": "வளரும் பருவம் (Vegetative)",
+          "hi": "वानस्पतिक अवस्था (Vegetative)"
+        },
+        "visual_clues": "Stout green stalks with broad arching leaves; no visible tassels at crown or silk emergence on ear shoots.",
+        "irrigation": "Irrigate at knee-high stage (V6-V8). Maize cannot tolerate waterlogging; ensure ridge-and-furrow drainage.",
+        "fertilizer": "Side-dress Nitrogen (Urea) at knee-high stage (30-35 DAS). Apply Zinc if white bud deficiency appears.",
+        "pest_disease_watch": "Scout aggressively for Fall Armyworm (FAW) inside leaf whorls and Common Rust.",
+        "days_to_harvest": "55 - 75 days",
+        "priority_action": "Side-dress Urea and apply targeted biological or registered control for Fall Armyworm in the central whorl."
+      },
+      "Reproductive": {
+        "phase_name": "Reproductive Phase",
+        "sub_stages": ["Tasseling (VT)", "Silking (R1)", "Blister & Pollination (R2)"],
+        "local_names": {
+          "ta": "பூக்கும் / கருவுறும் பருவம் (Reproductive)",
+          "hi": "फूल / परागण अवस्था (Reproductive)"
+        },
+        "visual_clues": "Crown tassels actively shedding pollen; ears develop moist cream-to-pink silks ready for fertilization.",
+        "irrigation": "Most moisture-critical phase in maize life. Water deficit during silking causes severe pollination failure and barren cobs.",
+        "fertilizer": "Apply final split of Potash and light Nitrogen if soil fertility is low. Avoid foliar burn during hot hours.",
+        "pest_disease_watch": "Corn Earworm, Turcicum Leaf Blight, and Southern Rust.",
+        "days_to_harvest": "30 - 45 days",
+        "priority_action": "Maintain soil moisture at 70-80% field capacity to ensure complete silk pollination and full kernel set."
+      },
+      "Ripening": {
+        "phase_name": "Ripening / Maturation Phase",
+        "sub_stages": ["Milk Stage (R3)", "Dough Stage (R4)", "Dent & Black Layer (R5-R6)"],
+        "local_names": {
+          "ta": "முதிர்ச்சி / அறுவடைப் பருவம் (Ripening)",
+          "hi": "परिपक्वता अवस्था (Ripening)"
+        },
+        "visual_clues": "Husk leaves turn dry and straw-colored; silks brown and brittle; kernels dent and develop a black physiological abscission layer.",
+        "irrigation": "Taper off irrigation. Stop watering completely 10-14 days before harvest.",
+        "fertilizer": "None required. Allow natural dry-down.",
+        "pest_disease_watch": "Stalk Rots and kernel rots if unseasonable rains occur.",
+        "days_to_harvest": "10 - 20 days",
+        "priority_action": "Monitor kernel moisture; harvest when husks are paper-dry and grain moisture drops below 20%."
+      }
+    }
+  },
+  "Cotton": {
+    "crop_name": "Cotton",
+    "local_names": {
+      "ta": "பருத்தி",
+      "hi": "कपास"
+    },
+    "duration_days": "150 - 180 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Vegetative Phase",
+        "sub_stages": ["Seedling Emergence", "Early Monopodial Branching", "Squaring (Bud formation)"],
+        "local_names": {
+          "ta": "வளரும் பருவம் (Vegetative)",
+          "hi": "वानस्पतिक अवस्था (Vegetative)"
+        },
+        "visual_clues": "Dark green lobed leaves forming a pyramidal bush; small triangular flower buds (squares) starting to emerge.",
+        "irrigation": "Light, controlled irrigation. Excessive moisture at this stage causes excessive vegetative rank growth rather than fruiting.",
+        "fertilizer": "Apply first top-dressing of Nitrogen + Potash at 35-45 DAS. Foliar Magnesium Sulfate if interveinal reddening appears.",
+        "pest_disease_watch": "Sucking pests: Whitefly, Jassids, Thrips, and Aphids; Bacterial Blight.",
+        "days_to_harvest": "90 - 120 days",
+        "priority_action": "Control sucking pests early to protect young squares from shedding and avoid excessive vegetative growth."
+      },
+      "Reproductive": {
+        "phase_name": "Reproductive Phase",
+        "sub_stages": ["Flowering (White/Pink)", "Peak Boll Formation", "Boll Enlargement"],
+        "local_names": {
+          "ta": "பூக்கும் & காய் பிடிக்கும் பருவம் (Reproductive)",
+          "hi": "फूल एवं गूलर (Boll) बनने की अवस्था (Reproductive)"
+        },
+        "visual_clues": "Canopy shows creamy white and reddish-pink flowers alongside expanding green round bolls.",
+        "irrigation": "Peak water requirement. Irrigate every 8-12 days depending on soil texture. Water stress causes heavy square and young boll drop.",
+        "fertilizer": "Foliar spray of 1% Potassium Nitrate (KNO3) or 2% DAP every 15 days to nourish developing bolls and prevent dropping.",
+        "pest_disease_watch": "Bollworms (Spotted, American, and Pink Bollworm), Alternaria Leaf Spot, and Grey Mildew.",
+        "days_to_harvest": "45 - 60 days",
+        "priority_action": "Spray 1% Potassium Nitrate to reduce boll shedding and deploy pheromone traps for Pink Bollworm monitoring."
+      },
+      "Ripening": {
+        "phase_name": "Ripening / Maturation Phase",
+        "sub_stages": ["Boll Cracking", "Fluff Opening", "Harvest / Picking"],
+        "local_names": {
+          "ta": "பஞ்சு வெடிக்கும் / அறுவடைப் பருவம் (Ripening)",
+          "hi": "गूलर फटने एवं चुनाई अवस्था (Ripening)"
+        },
+        "visual_clues": "Lower and middle green bolls split wide open into 4-5 carpels revealing clean, dry, fluffy white lint.",
+        "irrigation": "Cease irrigation completely to avoid staining lint and allow uniform boll bursting.",
+        "fertilizer": "None required.",
+        "pest_disease_watch": "Staining fungi if untimely rain hits; Pink Bollworm inside unburst bolls.",
+        "days_to_harvest": "10 - 25 days",
+        "priority_action": "Pick clean white cotton on dry, sunny mornings without leaf trash or bract debris."
+      }
+    }
+  },
+  "Sugarcane": {
+    "crop_name": "Sugarcane",
+    "local_names": {
+      "ta": "கரும்பு",
+      "hi": "गन्ना"
+    },
+    "duration_days": "300 - 365 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Formative / Tillering Phase",
+        "sub_stages": ["Sett Sprouting", "Tillering Stage", "Early Jointing"],
+        "local_names": {
+          "ta": "முளைக்கும் மற்றும் தூர்கட்டும் பருவம் (Formative)",
+          "hi": "अंकुरण एवं कल्ले फूटने की अवस्था (Tillering)"
+        },
+        "visual_clues": "Young leafy shoots forming clumps of tillers; short green stems with thin early internodes; canopy closing.",
+        "irrigation": "Irrigate at 7-10 day intervals. Critical for establishing high tiller count per clump.",
+        "fertilizer": "Apply Nitrogen and Potash in partial splits at 30, 60, and 90 days. Perform partial earthing-up to anchor tillers.",
+        "pest_disease_watch": "Early Shoot Borer (causes dead hearts), Termites, and Red Rot.",
+        "days_to_harvest": "200 - 260 days",
+        "priority_action": "Carry out weeding, split Nitrogen application, and earthing up to protect against Early Shoot Borer."
+      },
+      "Reproductive": {
+        "phase_name": "Grand Growth Phase",
+        "sub_stages": ["Rapid Cane Elongation", "Stalk Thickening", "Canopy Arching"],
+        "local_names": {
+          "ta": "தீவிர தண்டு வளர்ச்சிப் பருவம் (Grand Growth)",
+          "hi": "मुख्य तना वृद्धि अवस्था (Grand Growth)"
+        },
+        "visual_clues": "Dense tall jungle-like canopy over 2-3 meters high; thick solid canes with visible nodes and internodes.",
+        "irrigation": "Water requirement is maximum. Irrigate every 6-8 days. Trash mulching in furrows preserves moisture.",
+        "fertilizer": "Final application of Nitrogen and full remaining Potash (critical for sucrose synthesis). Detrash lower dry leaves.",
+        "pest_disease_watch": "Internode Borer, Top Shoot Borer, Rust, and Yellow Leaf Disease.",
+        "days_to_harvest": "90 - 150 days",
+        "priority_action": "Trash-mulch furrows to conserve water, tie adjacent canes together (propping) to avoid lodging during monsoon winds."
+      },
+      "Ripening": {
+        "phase_name": "Maturity & Sugar Ripening Phase",
+        "sub_stages": ["Sucrose Accumulation", "Leaf Drying", "Harvest Maturity"],
+        "local_names": {
+          "ta": "முதிர்ச்சி / சர்க்கரை திரளும் பருவம் (Ripening)",
+          "hi": "परिपक्वता एवं रस भराव अवस्था (Ripening)"
+        },
+        "visual_clues": "Lower foliage dries and sheds naturally; stalk rind turns yellowish, waxy, and brittle; hand refractometer brix exceeds 18-20%.",
+        "irrigation": "Stop irrigation 20 to 25 days before harvest to stress the cane and concentrate sucrose juice in stalks.",
+        "fertilizer": "Strictly do not apply Nitrogen as it causes sugar inversion and low sucrose recovery.",
+        "pest_disease_watch": "Rats, wild boars, and Red Rot in mature stalks.",
+        "days_to_harvest": "15 - 30 days",
+        "priority_action": "Withhold irrigation 3 weeks prior to cutting and cut canes flush with the ground for maximum sugar yield."
+      }
+    }
+  },
+  "Groundnut": {
+    "crop_name": "Groundnut (Peanut)",
+    "local_names": {
+      "ta": "வேர்க்கடலை / நிலக்கடலை",
+      "hi": "मूंगफली"
+    },
+    "duration_days": "100 - 125 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Vegetative Phase",
+        "sub_stages": ["Seedling Emergence", "Main Stem Growth", "Lateral Branching"],
+        "local_names": {
+          "ta": "வளரும் பருவம் (Vegetative)",
+          "hi": "वानस्पतिक अवस्था (Vegetative)"
+        },
+        "visual_clues": "Low-growing bushy green foliage with four-parted leaflets; no yellow flowers or underground pegs yet.",
+        "irrigation": "Light irrigation after sowing and weeding. Avoid excessive soil wetness to prevent collar rot.",
+        "fertilizer": "Ensure basal application of single superphosphate (SSP) and Rhizobium biofertilizer. Nitrogen should be moderate.",
+        "pest_disease_watch": "Collar Rot, Root Rot, Thrips, and Aphids.",
+        "days_to_harvest": "70 - 90 days",
+        "priority_action": "Complete hoeing and weeding before flowering; do not disturb soil after pegs start entering ground."
+      },
+      "Reproductive": {
+        "phase_name": "Reproductive Phase",
+        "sub_stages": ["Flowering (Yellow blossoms)", "Peg Penetration (Pegging)", "Early Pod Formation"],
+        "local_names": {
+          "ta": "பூக்கும் & விழுது இறங்கும் பருவம் (Pegging)",
+          "hi": "फूल एवं सुइयां (Pegs) बनने की अवस्था (Pegging)"
+        },
+        "visual_clues": "Small golden-yellow flowers open at base of leaf axils; needle-like pegs (gynophores) elongate downward and plunge into topsoil.",
+        "irrigation": "Critical: Keep topsoil moist and soft so pegs can easily penetrate. Hard crusty soil prevents peg entry and causes severe yield loss.",
+        "fertilizer": "Apply Gypsum @ 400 kg/ha at 40-45 DAS around plant base. Calcium in gypsum is mandatory for shell hardening and pod filling.",
+        "pest_disease_watch": "Tikka Leaf Spot (Early & Late Leaf Spot), Groundnut Rust, and Tobacco Caterpillar.",
+        "days_to_harvest": "35 - 50 days",
+        "priority_action": "Apply Gypsum into soil immediately at flowering and maintain soft topsoil moisture for smooth peg penetration."
+      },
+      "Ripening": {
+        "phase_name": "Ripening / Maturation Phase",
+        "sub_stages": ["Pod Filling", "Shell Hardening", "Harvest Maturity"],
+        "local_names": {
+          "ta": "முதிர்ச்சி / திரட்சிப் பருவம் (Ripening)",
+          "hi": "परिपक्वता अवस्था (Ripening)"
+        },
+        "visual_clues": "Foliage turns yellowish and starts shedding lower leaves; pulled test pods show prominent reticulate shell veins and dark brown inner pod lining.",
+        "irrigation": "Give one light pre-harvest irrigation 2-3 days before pulling if soil is hard, ensuring pods do not snap off underground.",
+        "fertilizer": "None required.",
+        "pest_disease_watch": "Termites and white grubs attacking subterranean pods.",
+        "days_to_harvest": "7 - 15 days",
+        "priority_action": "Pull sample plants; harvest when 75-80% of test pods show dark brownish inner shell lining."
+      }
+    }
+  },
+  "Sorghum": {
+    "crop_name": "Sorghum (Jowar)",
+    "local_names": {
+      "ta": "சோளம்",
+      "hi": "ज्वार"
+    },
+    "duration_days": "95 - 115 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Vegetative Phase",
+        "sub_stages": ["Seedling Whorl", "Stem Elongation", "Flag Leaf Expansion"],
+        "local_names": {
+          "ta": "வளரும் பருவம் (Vegetative)",
+          "hi": "वानस्पतिक अवस्था (Vegetative)"
+        },
+        "visual_clues": "Upright maize-like stalks with thick waxy leaves showing a prominent central white midrib; no seed head emerged.",
+        "irrigation": "Drought tolerant, but responds well to irrigation at 30-35 DAS. Drain excess standing rain water.",
+        "fertilizer": "Side-dress Nitrogen (Urea) at 30-35 DAS. Avoid over-application on dry soils.",
+        "pest_disease_watch": "Sorghum Shoot Fly (causes dead hearts in first 4 weeks) and Stem Borer.",
+        "days_to_harvest": "55 - 75 days",
+        "priority_action": "Manage Shoot Fly early and side-dress Urea around the 30-day mark before flag leaf emergence."
+      },
+      "Reproductive": {
+        "phase_name": "Reproductive Phase",
+        "sub_stages": ["Booting Stage", "Panicle Heading", "Flowering / Pollination"],
+        "local_names": {
+          "ta": "கதிர் வெளிவரும் & பூக்கும் பருவம் (Reproductive)",
+          "hi": "बाली निकलने एवं फूलने की अवस्था (Reproductive)"
+        },
+        "visual_clues": "Dense head/panicle bursts open from top sheath; tiny yellow anthers shed pollen across the panicle florets.",
+        "irrigation": "Most sensitive water stage. Drought now leads to poor panicle emergence and blank florets.",
+        "fertilizer": "Ensure adequate soil Potassium. Foliar micro-nutrient spray if deficiency is evident.",
+        "pest_disease_watch": "Sorghum Midge (damages developing ovaries), Head Bug, Anthracnose, and Rust.",
+        "days_to_harvest": "30 - 45 days",
+        "priority_action": "Scout during morning hours for Sorghum Midge and protect emerged panicles from sucking head bugs."
+      },
+      "Ripening": {
+        "phase_name": "Ripening / Maturation Phase",
+        "sub_stages": ["Milk Stage", "Hard Dough", "Black Layer Maturity"],
+        "local_names": {
+          "ta": "முதிர்ச்சி / தானியம் முதிரும் பருவம் (Ripening)",
+          "hi": "परिपक्वता अवस्था (Ripening)"
+        },
+        "visual_clues": "Panicles turn cream, red, or golden-brown; individual grains become rock hard; small black layer forms at grain attachment point.",
+        "irrigation": "Discontinue irrigation completely.",
+        "fertilizer": "None required.",
+        "pest_disease_watch": "Grain Molds (if late rains fall on mature panicles) and bird damage.",
+        "days_to_harvest": "10 - 20 days",
+        "priority_action": "Protect panicles from birds and harvest promptly when grains reach hard dough stage to prevent grain mold."
+      }
+    }
+  },
+  "Cassava": {
+    "crop_name": "Cassava (Tapioca)",
+    "local_names": {
+      "ta": "மரவள்ளிக்கிழங்கு",
+      "hi": "कसावा"
+    },
+    "duration_days": "240 - 300 days",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Sprouting & Canopy Establishment",
+        "sub_stages": ["Sett Sprouting", "Leaf Canopy Development", "Storage Root Initiation"],
+        "local_names": {
+          "ta": "முளைக்கும் & கிளைக்கும் பருவம் (Vegetative)",
+          "hi": "अंकुरण एवं शाखा विकास अवस्था (Vegetative)"
+        },
+        "visual_clues": "Slender woody stems sprouting palmate, star-like leaves with green or reddish petioles; canopy spreading.",
+        "irrigation": "Irrigate immediately after planting setts and maintain moderate moisture for initial root development.",
+        "fertilizer": "Apply basal NPK along with Farmyard Manure. Top-dress first split of Nitrogen and Potash at 60 DAP.",
+        "pest_disease_watch": "Cassava Mosaic Disease (spread by Whiteflies) and Red Spider Mites.",
+        "days_to_harvest": "160 - 220 days",
+        "priority_action": "Rogue out any virus-infected mosaic shoots immediately and spray for whitefly vector control."
+      },
+      "Reproductive": {
+        "phase_name": "Tuber Bulking Phase",
+        "sub_stages": ["Canopy Climax", "Active Root Swelling", "Starch Deposition"],
+        "local_names": {
+          "ta": "கிழங்கு பருக்கும் பருவம் (Tuber Bulking)",
+          "hi": "कंद फुलाव अवस्था (Tuber Bulking)"
+        },
+        "visual_clues": "Dense tall bushy canopy (1.5-2m); ground around base shows soil cracking as subterranean tubers expand.",
+        "irrigation": "Provide regular irrigation at 10-15 day intervals. Flooding or waterlogging causes severe tuber rot.",
+        "fertilizer": "Potash is paramount! Apply second heavy dose of Muriate of Potash (MOP) at 90-100 DAP to maximize starch conversion.",
+        "pest_disease_watch": "Root Rot (Phytophthora / Fusarium in wet soils) and Spiralling Whitefly.",
+        "days_to_harvest": "70 - 120 days",
+        "priority_action": "Apply high Potash fertilizer and earth-up soil around plant base to prevent tubers from sun-greening."
+      },
+      "Ripening": {
+        "phase_name": "Maturity & Starch Ripening Phase",
+        "sub_stages": ["Foliage Senescence", "Peak Starch Concentration", "Harvest Maturity"],
+        "local_names": {
+          "ta": "கிழங்கு முதிர்ச்சி / அறுவடைப் பருவம் (Ripening)",
+          "hi": "कंद परिपक्वता अवस्था (Ripening)"
+        },
+        "visual_clues": "Lower and middle leaves naturally yellow and drop off; stems look bare with a small top tuft; tuber skin peels easily revealing white starch flesh.",
+        "irrigation": "Withhold irrigation 10-15 days prior to harvest so tubers remain firm and starch content is maximum.",
+        "fertilizer": "None required.",
+        "pest_disease_watch": "Rodents and subterranean pests.",
+        "days_to_harvest": "15 - 30 days",
+        "priority_action": "Stop irrigation 2 weeks before harvest to prevent watery tubers and achieve peak starch market value."
+      }
+    }
+  },
+  "Coconut": {
+    "crop_name": "Coconut Palm",
+    "local_names": {
+      "ta": "தென்னை",
+      "hi": "नारियल"
+    },
+    "duration_days": "Perennial (Monthly harvest cycle)",
+    "phases": {
+      "Vegetative": {
+        "phase_name": "Young Palm / Frond Development Phase",
+        "sub_stages": ["Crown Expansion", "Frond Emergence", "Trunk Extension"],
+        "local_names": {
+          "ta": "வளரும் இளம்கன்று பருவம் (Vegetative)",
+          "hi": "तरुण वृक्ष विकास अवस्था (Vegetative)"
+        },
+        "visual_clues": "Vigorous crown of dark green radiating fronds with no flower spathes or bearing nuts on trunk axils.",
+        "irrigation": "Irrigate young palms regularly (25-40 liters every 2-3 days). Mulch around ring basin with coconut husk.",
+        "fertilizer": "Apply NPK fertilizer in circular basin 1.5 meters away from trunk. Add Borax (50g) and Magnesium Sulfate (500g).",
+        "pest_disease_watch": "Rhinoceros Beetle (V-shaped leaf cuts), Red Palm Weevil, and Bud Rot.",
+        "days_to_harvest": "Ongoing perennial (Bearing starts year 4-5)",
+        "priority_action": "Check top spear leaf regularly for Rhinoceros beetle attacks and maintain husk mulch in circular basin."
+      },
+      "Reproductive": {
+        "phase_name": "Flowering & Button Setting Phase",
+        "sub_stages": ["Inflorescence (Spadix) Opening", "Pollination", "Button Setting"],
+        "local_names": {
+          "ta": "பூம்பாளை & குரும்பை பிடிக்கும் பருவம் (Reproductive)",
+          "hi": "पुष्पन एवं बटन (फूल) बनने की अवस्था (Reproductive)"
+        },
+        "visual_clues": "Creamy-yellow branched spadix emerges from leaf axils shedding pollen; tiny marble-sized green buttons (female flowers) set on spikes.",
+        "irrigation": "Crucial: Bearing palms need 40 - 50 liters water daily through drip/basin. Moisture stress causes massive button dropping.",
+        "fertilizer": "Apply standard annual dose of 1.3 kg Urea, 2 kg SSP, and 2 kg MOP split into pre-monsoon and post-monsoon doses.",
+        "pest_disease_watch": "Eriophyid Mite (triangular yellow-brown markings on buttons), Button Shedding, and Tanjore Wilt.",
+        "days_to_harvest": "8 - 11 months for nut maturity",
+        "priority_action": "Spray 2% Urea + DAP or planofix to minimize premature button drop; ensure daily drip irrigation."
+      },
+      "Ripening": {
+        "phase_name": "Nut Maturation & Harvest Phase",
+        "sub_stages": ["Tender Coconut (7 mo)", "Mature Green Nut (9-10 mo)", "Dry Copra Nut (11-12 mo)"],
+        "local_names": {
+          "ta": "தேங்காய் முதிர்ச்சி / அறுவடைப் பருவம் (Ripening)",
+          "hi": "नारियल परिपक्वता एवं कटाई अवस्था (Ripening)"
+        },
+        "visual_clues": "Lower frond bunches carry large heavy nuts; husk turns from green to yellowish-brown; tapping gives a metallic ringing sound indicating solid copra.",
+        "irrigation": "Maintain standard palm watering schedule.",
+        "fertilizer": "Maintain continuous cyclic basin nutrition.",
+        "pest_disease_watch": "Rats and squirrel damage to mature bunches.",
+        "days_to_harvest": "10 - 25 days (Harvest every 30-45 days)",
+        "priority_action": "Harvest mature bunches on a 35-45 day cycle when the outer husk turns brownish-green."
+      }
+    }
+  }
+}

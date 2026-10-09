@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgroLens — History & Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<script src="theme.js"></script>
+<style>
+@view-transition { navigation: auto; }
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 32px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: pageFadeIn .25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* navbar links matching application font */
+.nav-links{display:flex;align-items:center;gap:10px}
+.nav-link{
+  font-family:"Space Grotesk",sans-serif;
+  font-size:.92rem;
+  font-weight:600;
+  color:var(--muted);
+  text-decoration:none;
+  padding:8px 18px;
+  border-radius:99px;
+  transition:all .2s var(--ease);
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.nav-link::after,
+.nav-link:hover::after,
+.nav-link.active::after{
+  display:none!important;
+  content:none!important;
+}
+.nav-link:hover{color:var(--ink);background:var(--paper-2)}
+.nav-link.active{
+  color:var(--green);
+  background:var(--paper-2);
+  border:1.5px solid var(--green);
+  box-shadow:0 3px 10px rgba(45,70,39,.12);
+  font-weight:700;
+}
+
+/* User auth box in navbar */
+.userbox{display:flex;align-items:center;gap:10px}
+.user-pill{
+  font-family:"Space Grotesk",sans-serif;
+  font-size:.86rem;
+  font-weight:600;
+  color:var(--ink);
+  background:var(--paper-2);
+  border:1px solid var(--line);
+  padding:7px 16px;
+  border-radius:99px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+}
+.user-pill b{color:var(--green);font-weight:700}
+.signout-btn{
+  font-family:"Space Grotesk",sans-serif;
+  font-size:.86rem;
+  font-weight:600;
+  color:var(--muted);
+  background:transparent;
+  border:1px solid var(--line);
+  padding:7px 16px;
+  border-radius:99px;
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  display:inline-flex;
+  align-items:center;
+}
+.signout-btn:hover{
+  border-color:var(--rust);
+  color:var(--rust);
+  background:rgba(176,85,46,.08);
+}
+@media(max-width:640px){.userbox .user-pill{display:none}}
+
+/* Page Header Banner */
+.page-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.page-title h1 {
+  font-size: clamp(2rem, 3.8vw, 2.7rem);
+}
+.page-title h1 em {
+  font-style: italic;
+  color: var(--green);
+}
+.page-title p {
+  color: var(--muted);
+  margin-top: 6px;
+  font-size: 1rem;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  padding: 8px 18px;
+  border-radius: 99px;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--green);
+}
+.hero-badge .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green-l);
+  box-shadow: 0 0 0 3px rgba(92,122,74,.25);
+}
+
+/* Tab Switcher */
+.tab-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+.tab-pills {
+  display: inline-flex;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 5px;
+  gap: 4px;
+}
+.tab-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: .92rem;
+  font-weight: 600;
+  padding: 9px 24px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .25s var(--ease);
+}
+.tab-btn.active {
+  background: var(--green);
+  color: var(--paper);
+  box-shadow: 0 4px 14px rgba(45,70,39,.22);
+}
+
+/* Panels */
+.panel {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--gold) 70%, var(--rust));
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+@media (max-width: 960px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+.stat-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: transform .25s var(--ease), border-color .25s var(--ease);
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--green);
+}
+.stat-num {
+  font-family: "Fraunces", serif;
+  font-size: 2.8rem;
+  font-weight: 600;
+  line-height: 1;
+  margin: 10px 0 6px;
+  color: var(--ink);
+}
+.stat-card.green .stat-num { color: var(--green); }
+.stat-card.rust .stat-num { color: var(--rust); }
+.stat-card.gold .stat-num { color: var(--gold); }
+.stat-label {
+  font-size: .84rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+}
+
+/* Account Details Box */
+.detail-item {
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  transition: all .2s var(--ease);
+}
+.detail-item:hover {
+  border-color: var(--green);
+  background: var(--paper-3);
+  transform: translateX(4px);
+}
+.detail-icon {
+  font-size: 1.5rem;
+  flex: none;
+}
+.detail-meta .lbl {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--green);
+}
+.detail-meta .val {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 2px;
+}
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.filter-pills {
+  display: inline-flex;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 4px;
+  gap: 4px;
+}
+.filter-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: .86rem;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s var(--ease);
+}
+.filter-btn.active {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(27,33,20,.1);
+}
+.filter-btn.active.green { color: var(--green); }
+.filter-btn.active.rust { color: var(--rust); }
+
+/* History Grid */
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 22px;
+}
+.scan-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.scan-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--green);
+  box-shadow: 0 16px 36px -12px rgba(27,33,20,.18);
+}
+.scan-card.healthy { border-left: 4px solid var(--green); }
+.scan-card.diseased { border-left: 4px solid var(--rust); }
+.scan-card.stage { border-left: 4px solid #16a34a; }
+
+.card-media {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  background: var(--ink);
+  overflow: hidden;
+}
+.card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.card-media .placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 54px;
+  background: var(--paper-3);
+}
+.delete-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(27,33,20,.65);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  backdrop-filter: blur(6px);
+  transition: all .2s var(--ease);
+}
+.delete-chip:hover {
+  background: var(--rust);
+  transform: scale(1.1);
+}
+.severity-tag {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: .74rem;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+.severity-tag.green {
+  background: rgba(45,70,39,.9);
+  color: var(--paper);
+}
+.severity-tag.amber {
+  background: rgba(193,156,64,.9);
+  color: var(--paper);
+}
+.severity-tag.red {
+  background: rgba(176,85,46,.9);
+  color: var(--paper);
+}
+.stage-tag {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: .74rem;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+  background: rgba(22,163,74,.92);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-content {
+  padding: 18px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.card-disease {
+  font-family: "Fraunces", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.card-date {
+  font-size: .78rem;
+  color: var(--muted);
+}
+.card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+.conf-pill {
+  font-size: .76rem;
+  font-weight: 600;
+  background: var(--paper-3);
+  color: var(--green);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.view-link {
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--green);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  background: var(--paper-2);
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+}
+.empty-state .icon {
+  font-size: 3rem;
+  margin-bottom: 14px;
+}
+.empty-state h3 {
+  font-size: 1.35rem;
+  margin-bottom: 6px;
+}
+.empty-state p {
+  color: var(--muted);
+  margin-bottom: 20px;
+  font-size: .95rem;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(27,33,20,.65);
+  backdrop-filter: blur(10px);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn .25s var(--ease);
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-box {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  max-width: 860px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 28px 70px -18px rgba(27,33,20,.45);
+  display: flex;
+  flex-direction: column;
+}
+.modal-head {
+  padding: 20px 28px;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-head h3 {
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-close {
+  background: var(--paper-3);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s var(--ease);
+}
+.modal-close:hover {
+  background: var(--line);
+}
+.modal-scroll {
+  padding: 28px;
+  overflow-y: auto;
+}
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 26px;
+}
+@media (max-width: 780px) {
+  .modal-grid { grid-template-columns: 1fr; }
+}
+
+.advice-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.advice-card .title {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 4px;
+}
+.advice-card .title.green { color: var(--green); }
+.advice-card .title.gold { color: var(--gold); }
+.advice-card .title.rust { color: var(--rust); }
+.advice-card p {
+  font-size: .88rem;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.whatsapp-btn:hover {
+  background: #20bd5a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37,211,102,.3);
+}
+.pdf-btn:hover {
+  background: var(--line) !important;
+  transform: translateY(-1px);
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation Bar matching AgroLens system -->
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z" fill="#2d4627"/><path d="M12 21V9" stroke="#f4f1e2" stroke-width="1.3" stroke-linecap="round"/></svg>
+      AgroLens
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">🏠 Home</a>
+      <a href="dashboard.html" class="nav-link">🌱 Dashboard</a>
+      <a href="history.html" class="nav-link active">📚 History &amp; Profile</a>
+    </div>
+    <div class="userbox">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <span class="user-pill" id="userPill">Farmer: <b id="userName">…</b></span>
+      <button class="signout-btn" id="logoutBtn" type="button">Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <!-- Header Banner -->
+  <div class="page-hero">
+    <div class="page-title">
+      <span class="eyebrow">Farmer Account</span>
+      <h1 style="margin-top:10px;">Diagnosis &amp; Stage <em>History</em></h1>
+      <p>Review past crop scans, disease severities, growth stage evaluations, and treatment recommendations.</p>
+    </div>
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Active Account
+    </div>
+  </div>
+
+  <!-- Tab Switcher -->
+  <div class="tab-wrap">
+    <div class="tab-pills">
+      <button class="tab-btn active" id="tabProfileBtn" type="button">📝 Farmer Profile</button>
+      <button class="tab-btn" id="tabHistoryBtn" type="button">📚 Scan History (<span id="totalBadge">0</span>)</button>
+    </div>
+  </div>
+
+  <!-- PROFILE SECTION -->
+  <div id="profileSection" style="display:flex;flex-direction:column;gap:24px;">
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <div style="font-size:1.8rem;">📊</div>
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">Total Scans</div>
+      </div>
+      <div class="stat-card rust">
+        <div style="font-size:1.8rem;">🦠</div>
+        <div class="stat-num" id="statDiseased">0</div>
+        <div class="stat-label">Disease Cases</div>
+      </div>
+      <div class="stat-card green" style="border-color:rgba(22,163,74,.35);">
+        <div style="font-size:1.8rem;">🌱</div>
+        <div class="stat-num" id="statStage">0</div>
+        <div class="stat-label">Growth Stages</div>
+      </div>
+      <div class="stat-card green">
+        <div style="font-size:1.8rem;">🌿</div>
+        <div class="stat-num" id="statHealthy">0</div>
+        <div class="stat-label">Healthy Crops</div>
+      </div>
+    </div>
+
+    <!-- Account Details Panel -->
+    <div class="panel">
+      <h2 style="font-size:1.4rem;margin-bottom:18px;">Account Details</h2>
+      <div class="detail-item">
+        <span class="detail-icon">👤</span>
+        <div class="detail-meta">
+          <div class="lbl">Registered Farmer Name</div>
+          <div class="val" id="profileName">—</div>
+        </div>
+      </div>
+      <div class="detail-item">
+        <span class="detail-icon">📧</span>
+        <div class="detail-meta">
+          <div class="lbl">Registered Email Address</div>
+          <div class="val" id="profileEmail">—</div>
+        </div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:14px;flex-wrap:wrap;">
+        <a class="btn primary" href="dashboard.html">Run New Diagnosis →</a>
+        <a class="btn" href="index.html">View Technology Overview</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY SECTION -->
+  <div id="historySection" style="display:none;flex-direction:column;gap:22px;">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-pills">
+        <button class="filter-btn active" id="filtAll" type="button">All (<span id="countAll">0</span>)</button>
+        <button class="filter-btn rust" id="filtDiseased" type="button">🦠 Disease (<span id="countDiseased">0</span>)</button>
+        <button class="filter-btn green" id="filtStage" type="button">🌱 Growth Stage (<span id="countStage">0</span>)</button>
+        <button class="filter-btn" id="filtHealthy" type="button">🌿 Healthy (<span id="countHealthy">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="icon">📭</div>
+      <h3>No crop scans found</h3>
+      <p id="emptyMsg">Start analyzing leaf photos to build your diagnosis history.</p>
+      <a class="btn primary" href="dashboard.html">Analyze Leaf Now →</a>
+    </div>
+
+    <!-- Grid of Cards -->
+    <div class="history-grid" id="historyGrid"></div>
+  </div>
+
+</div>
+
+<!-- DETAILED MODAL -->
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>
+        <span id="modalIcon">🌱</span>
+        <span id="modalTitle">Diagnosis Details</span>
+      </h3>
+      <button class="modal-close" id="modalCloseX" type="button">✕</button>
+    </div>
+    <div class="modal-scroll">
+      <div class="modal-grid">
+        <!-- Left Side: Leaf Photo & Grad-CAM -->
+        <div>
+          <div id="lblModalLeafPhoto" style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:8px;">Leaf Photo</div>
+          <div style="border-radius:var(--r);overflow:hidden;background:var(--ink);border:1px solid var(--line);margin-bottom:12px;">
+            <img id="modalImg" src="" alt="Analyzed leaf" style="width:100%;max-height:260px;object-fit:contain;display:block;">
+          </div>
+          <div style="font-size:.8rem;color:var(--muted);margin-bottom:18px;">
+            <b><span id="lblModalFile">File:</span></b> <span id="modalFileName">—</span>
+          </div>
+
+          <!-- Grad-CAM Section -->
+          <div id="gradcamBox" style="display:none;">
+            <div id="lblModalGradcam" style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--rust);margin-bottom:8px;">Grad-CAM Attention Heatmap</div>
+            <div style="border-radius:var(--r);overflow:hidden;background:var(--ink);border:1px solid var(--line);margin-bottom:6px;">
+              <img id="modalGradcamImg" src="" alt="Grad-CAM heatmap" style="width:100%;max-height:220px;object-fit:contain;display:block;">
+            </div>
+            <p id="lblModalGradcamDesc" style="font-size:.75rem;color:var(--muted);">Red areas highlight leaf regions the model focused on for diagnosis.</p>
+          </div>
+        </div>
+
+        <!-- Right Side: Details & Actions -->
+        <div>
+          <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div style="font-family:'Fraunces',serif;font-size:1.35rem;font-weight:600;color:var(--ink);" id="modalDiseaseName">—</div>
+              <button type="button" class="voice-btn" data-voice-modal="modalDiseaseName" title="Listen aloud"><span>🔊</span></button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+              <span class="conf-pill" id="modalConf">—</span>
+              <span class="severity-tag" style="position:static;" id="modalSevTag">—</span>
+              <span class="stage-tag" style="position:static;display:none;" id="modalStageTag">🌱 Growth Stage</span>
+            </div>
+            <div style="font-size:.76rem;color:var(--muted);margin-top:8px;" id="modalDate">—</div>
+          </div>
+
+          <div class="advice-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <div class="title green" id="modalAdv1Title">🔍 Symptoms &amp; Diagnosis</div>
+              <button type="button" class="voice-btn" data-voice-modal="modalDiagnosis" title="Listen aloud"><span>🔊</span></button>
+            </div>
+            <p id="modalDiagnosis">—</p>
+          </div>
+
+          <div class="advice-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <div class="title gold" id="modalAdv2Title">💡 Treatment &amp; Action Plan</div>
+              <button type="button" class="voice-btn" data-voice-modal="modalTreatment" title="Listen aloud"><span>🔊</span></button>
+            </div>
+            <p id="modalTreatment">—</p>
+          </div>
+
+          <div class="advice-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <div class="title green" id="modalAdv3Title">🌱 Fertilizer &amp; Soil Nutrition</div>
+              <button type="button" class="voice-btn" data-voice-modal="modalFertilizer" title="Listen aloud"><span>🔊</span></button>
+            </div>
+            <p id="modalFertilizer">—</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+            <button class="btn whatsapp-btn" id="modalShareWhatsAppBtn" type="button" style="padding:10px 14px;font-size:.85rem;background:#25D366;border-color:#20bd5a;color:#fff;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;transition:all .2s;">
+              <span>💬</span> <span>WhatsApp</span>
+            </button>
+            <button class="btn pdf-btn" id="modalExportPdfBtn" type="button" style="padding:10px 14px;font-size:.85rem;background:var(--paper-3);border:1.5px solid var(--line);color:var(--ink);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;transition:all .2s;">
+              <span>📄</span> <span>Export PDF</span>
+            </button>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:12px;">
+            <button class="btn" id="modalDeleteBtn" type="button" style="flex:1;background:var(--rust);color:var(--paper);border-color:var(--rust);">🗑️ Delete Record</button>
+            <button class="btn" id="modalCloseBtn" type="button" style="flex:1;">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="voice_reader.js"></script>
+<script src="advisory_export.js"></script>
+<script>
+let currentUser = null;
+let historyItems = [];
+let currentFilter = "all";
+let selectedItem = null;
+
+const $ = id => document.getElementById(id);
+
+function isStage(item) {
+  if (!item) return false;
+  if (item.severity === "Growth Stage") return true;
+  const name = (item.predicted_disease || "").toLowerCase();
+  const diag = (item.diagnosis || "").toLowerCase();
+  return name.includes("phase") || diag.includes("identified phase") || diag.includes("priority action");
+}
+
+function isHealthy(item) {
+  if (isStage(item)) return false;
+  const name = typeof item === "string" ? item : (item.predicted_disease || "");
+  return name.toLowerCase().includes("healthy");
+}
+
+function isDisease(item) {
+  return !isStage(item) && !isHealthy(item);
+}
+
+function getEmoji(name) {
+  const l = (name || "").toLowerCase();
+  if (l.includes("rice")) return "🌾";
+  if (l.includes("corn") || l.includes("maize")) return "🌽";
+  if (l.includes("cotton")) return "☁️";
+  if (l.includes("sugarcane")) return "🎋";
+  if (l.includes("cassava")) return "🥔";
+  if (l.includes("coconut")) return "🥥";
+  if (l.includes("groundnut") || l.includes("peanut")) return "🥜";
+  if (l.includes("sorghum")) return "🌾";
+  if (l.includes("tomato")) return "🍅";
+  if (l.includes("potato")) return "🥔";
+  if (l.includes("healthy")) return "🌿";
+  return "🌱";
+}
+
+function getSeverityDetails(item) {
+  // STAGES DO NOT HAVE SEVERITY - REMOVE SEVERITY BOX FOR STAGES
+  if (isStage(item)) return null;
+
+  if (isHealthy(item)) return { label: "Healthy", colorClass: "green" };
+  const conf = item.confidence || 0;
+  const c = conf > 1 ? conf / 100 : conf;
+  if (c >= 0.8) return { label: "High Severity", colorClass: "red" };
+  if (c >= 0.6) return { label: "Moderate Severity", colorClass: "amber" };
+  return { label: "Low Severity", colorClass: "amber" };
+}
+
+function formatDate(ts) {
+  if (!ts) return "—";
+  return new Date(ts).toLocaleString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
+}
+
+async function init() {
+  try {
+    const res = await fetch("/api/history", { credentials: "same-origin" });
+    if (res.status === 401) {
+      window.location.href = "login.html?next=history.html";
+      return;
+    }
+    const data = await res.json();
+    if (data.ok) {
+      currentUser = data.user;
+      $("profileName").textContent = currentUser.name || "AgroLens Farmer";
+      $("profileEmail").textContent = currentUser.email || "";
+      $("userName").textContent = currentUser.name || (currentUser.role === "admin" ? "Admin" : "Farmer");
+      if (currentUser.role === "admin" && $("navAdmin")) {
+        $("navAdmin").style.display = "inline-flex";
+      }
+
+      historyItems = data.history || [];
+      updateCounts();
+      renderHistory();
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function updateCounts() {
+  const total = historyItems.length;
+  const stage = historyItems.filter(isStage).length;
+  const healthy = historyItems.filter(isHealthy).length;
+  const diseased = historyItems.filter(isDisease).length;
+
+  $("countAll").textContent = total;
+  $("countHealthy").textContent = healthy;
+  $("countDiseased").textContent = diseased;
+  const countStageEl = $("countStage");
+  if (countStageEl) countStageEl.textContent = stage;
+
+  $("statTotal").textContent = total;
+  $("statHealthy").textContent = healthy;
+  $("statDiseased").textContent = diseased;
+  const statStageEl = $("statStage");
+  if (statStageEl) statStageEl.textContent = stage;
+
+  $("totalBadge").textContent = total;
+}
+
+function renderHistory() {
+  const grid = $("historyGrid");
+  grid.innerHTML = "";
+
+  const filtered = historyItems.filter(item => {
+    if (currentFilter === "all") return true;
+    if (currentFilter === "stage") return isStage(item);
+    if (currentFilter === "diseased") return isDisease(item);
+    if (currentFilter === "healthy") return isHealthy(item);
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    $("emptyState").style.display = "block";
+    const filterLabels = {
+      all: "crop scans or stage evaluations",
+      stage: "crop growth stage records",
+      diseased: "crop disease diagnosis records",
+      healthy: "healthy crop records"
+    };
+    $("emptyMsg").textContent = `No ${filterLabels[currentFilter] || currentFilter} found in your history.`;
+    return;
+  }
+
+  $("emptyState").style.display = "none";
+
+  filtered.forEach(item => {
+    const stage = isStage(item);
+    const healthy = isHealthy(item);
+    const sev = getSeverityDetails(item);
+    const confVal = item.confidence > 1 ? item.confidence : (item.confidence * 100);
+
+    const card = document.createElement("div");
+    card.className = "scan-card " + (stage ? "stage" : (healthy ? "healthy" : "diseased"));
+
+    // For stage: NO SEVERITY BOX! Show only a clean stage badge
+    const badgeHtml = stage
+      ? `<span class="stage-tag">🌱 Growth Stage</span>`
+      : `<span class="severity-tag ${sev ? sev.colorClass : 'green'}">${sev ? sev.label : 'Evaluated'}</span>`;
+
+    card.innerHTML = `
+      <div class="card-media">
+        ${item.image_path
+          ? `<img src="${item.image_path}" alt="Crop scan">`
+          : `<div class="placeholder">${getEmoji(item.predicted_disease)}</div>`
+        }
+        <button class="delete-chip" title="Delete record" data-id="${item.id}">🗑️</button>
+        ${badgeHtml}
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-title-line">
+            <span style="font-size:1.4rem;">${getEmoji(item.predicted_disease)}</span>
+            <div class="card-disease">${item.predicted_disease}</div>
+          </div>
+          <div class="card-date">${stage ? "🌱 Growth Stage Record" : formatDate(item.created_at)}</div>
+        </div>
+        <div class="card-bottom">
+          <span class="conf-pill">${confVal.toFixed(1)}% confidence</span>
+          <span class="view-link">View Details →</span>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener("click", e => {
+      if (e.target.closest(".delete-chip")) return;
+      openModal(item);
+    });
+
+    card.querySelector(".delete-chip").addEventListener("click", e => {
+      e.stopPropagation();
+      deleteItem(item.id, item.predicted_disease);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function detectItemLanguage(item) {
+  if (!item) return "en";
+  const sample = (item.predicted_disease || "") + " " + (item.diagnosis || "") + " " + (item.treatment || "") + " " + (item.fertilizer || "");
+  if (/[\u0B80-\u0BFF]/.test(sample)) return "ta";
+  if (/[\u0900-\u097F]/.test(sample)) return "hi";
+  return "en";
+}
+
+const MODAL_LANG_STRINGS = {
+  en: {
+    diagTitle: "Diagnosis Details",
+    stageTitle: "Crop Growth Stage Details",
+    confSuffix: "confidence",
+    leafPhoto: "Leaf Photo",
+    plantPhoto: "Field Canopy Photo",
+    fileLbl: "File:",
+    gradcamTitle: "Grad-CAM Attention Heatmap",
+    gradcamDesc: "Red areas highlight leaf regions the model focused on for diagnosis.",
+    symptoms: "🔍 Symptoms & Diagnosis",
+    treatment: "💡 Treatment & Action Plan",
+    fertilizer: "🌱 Fertilizer & Soil Nutrition",
+    stagePhase: "🌱 Growth Phase & Observations",
+    stageIrrigation: "💧 Water & Irrigation Schedule",
+    stageFertilizer: "🌱 Stage Nutrition & Fertilizer",
+    diagDate: "Diagnosed on: ",
+    stageDate: "Evaluated on: ",
+    stageTag: "🌱 Growth Stage",
+    closeBtn: "Close",
+    deleteBtn: "🗑️ Delete Record",
+    sevHigh: "High Severity",
+    sevMedium: "Medium Severity",
+    sevLow: "Low Severity",
+    healthy: "Healthy"
+  },
+  ta: {
+    diagTitle: "கண்டறிதல் விவரங்கள்",
+    stageTitle: "பயிர் வளர்ச்சி பருவ விவரங்கள்",
+    confSuffix: "துல்லியம் (Confidence)",
+    leafPhoto: "இலை புகைப்படம்",
+    plantPhoto: "முழு பயிர் புகைப்படம்",
+    fileLbl: "கோப்பு:",
+    gradcamTitle: "Grad-CAM வெப்ப வரைபடம்",
+    gradcamDesc: "சிவப்பு பகுதிகள் மாதிரி கவனம் செலுத்திய இடங்களைக் காட்டுகின்றன.",
+    symptoms: "🔍 அறிகுறிகள் & நோய் கண்டறிதல்",
+    treatment: "💡 சிகிச்சை & செயல் திட்டம்",
+    fertilizer: "🌱 உர மேலாண்மை & மண் ஊட்டச்சத்து",
+    stagePhase: "🌱 வளர்ச்சிப் பருவம் & களக் குறிப்புகள்",
+    stageIrrigation: "💧 நீர் மேலாண்மை & பாசன அட்டவணை",
+    stageFertilizer: "🌱 இப்பருவத்திற்கான உர மேலாண்மை",
+    diagDate: "கண்டறியப்பட்ட தேதி: ",
+    stageDate: "மதிப்பிடப்பட்ட தேதி: ",
+    stageTag: "🌱 வளர்ச்சிப் பருவம்",
+    closeBtn: "மூடு",
+    deleteBtn: "🗑️ பதிவை நீக்கு",
+    sevHigh: "அதிக பாதிப்பு (High)",
+    sevMedium: "நடுத்தர பாதிப்பு (Medium)",
+    sevLow: "குறைந்த பாதிப்பு (Low)",
+    healthy: "ஆரோக்கியமானது (Healthy)"
+  },
+  hi: {
+    diagTitle: "रोग निदान विवरण",
+    stageTitle: "फसल वृद्धि अवस्था विवरण",
+    confSuffix: "कॉन्फिडेंस",
+    leafPhoto: "पत्ती फोटो",
+    plantPhoto: "फसल फोटो",
+    fileLbl: "फ़ाइल:",
+    gradcamTitle: "Grad-CAM ध्यान हीटमैप",
+    gradcamDesc: "लाल क्षेत्र पत्ती के उन हिस्सों को दर्शाते हैं जिन पर मॉडल ने ध्यान केंद्रित किया।",
+    symptoms: "🔍 लक्षण और रोग निदान",
+    treatment: "💡 उपचार और कार्य योजना",
+    fertilizer: "🌱 उर्वरक एवं मृदा पोषण",
+    stagePhase: "🌱 वृद्धि अवस्था एवं अवलोकन",
+    stageIrrigation: "💧 सिंचाई एवं जल प्रबंधन समय सारिणी",
+    stageFertilizer: "🌱 इस अवस्था हेतु खाद एवं उर्वरक",
+    diagDate: "निदान दिनांक: ",
+    stageDate: "मूल्यांकन दिनांक: ",
+    stageTag: "🌱 वृद्धि अवस्था",
+    closeBtn: "बंद करें",
+    deleteBtn: "🗑️ रिकॉर्ड हटाएं",
+    sevHigh: "उच्च गंभीरता (High)",
+    sevMedium: "मध्यम गंभीरता (Medium)",
+    sevLow: "कम गंभीरता (Low)",
+    healthy: "स्वस्थ (Healthy)"
+  }
+};
+
+function openModal(item) {
+  selectedItem = item;
+  const stage = isStage(item);
+  const healthy = isHealthy(item);
+  const sev = getSeverityDetails(item);
+  const confVal = item.confidence > 1 ? item.confidence : (item.confidence * 100);
+
+  const lang = detectItemLanguage(item);
+  const t = MODAL_LANG_STRINGS[lang] || MODAL_LANG_STRINGS.en;
+
+  $("modalIcon").textContent = getEmoji(item.predicted_disease);
+  $("modalTitle").textContent = stage ? t.stageTitle : t.diagTitle;
+  $("modalDiseaseName").textContent = item.predicted_disease;
+  $("modalConf").textContent = `${confVal.toFixed(1)}% ${t.confSuffix}`;
+
+  if ($("lblModalLeafPhoto")) $("lblModalLeafPhoto").textContent = stage ? t.plantPhoto : t.leafPhoto;
+  if ($("lblModalFile")) $("lblModalFile").textContent = t.fileLbl;
+  if ($("lblModalGradcam")) $("lblModalGradcam").textContent = t.gradcamTitle;
+  if ($("lblModalGradcamDesc")) $("lblModalGradcamDesc").textContent = t.gradcamDesc;
+  if ($("modalCloseBtn")) $("modalCloseBtn").textContent = t.closeBtn;
+  if ($("modalDeleteBtn")) $("modalDeleteBtn").textContent = t.deleteBtn;
+
+  const sevTag = $("modalSevTag");
+  const stageTag = $("modalStageTag");
+
+  if (stage) {
+    if (sevTag) sevTag.style.display = "none";
+    if (stageTag) {
+      stageTag.style.display = "inline-flex";
+      stageTag.textContent = t.stageTag;
+    }
+    if ($("modalAdv1Title")) $("modalAdv1Title").textContent = t.stagePhase;
+    if ($("modalAdv2Title")) $("modalAdv2Title").textContent = t.stageIrrigation;
+    if ($("modalAdv3Title")) $("modalAdv3Title").textContent = t.stageFertilizer;
+    $("modalDate").textContent = t.stageDate + formatDate(item.created_at);
+  } else {
+    if (stageTag) stageTag.style.display = "none";
+    if (sevTag) {
+      sevTag.style.display = "inline-block";
+      sevTag.className = "severity-tag " + (sev ? sev.colorClass : "green");
+      let sevLabel = sev ? sev.label : "Healthy";
+      if (lang === "ta") {
+        sevLabel = (sev?.label?.includes("High") || sev?.label?.includes("Severe")) ? t.sevHigh : (sev?.label?.includes("Medium") ? t.sevMedium : (sev?.label?.includes("Low") ? t.sevLow : t.healthy));
+      } else if (lang === "hi") {
+        sevLabel = (sev?.label?.includes("High") || sev?.label?.includes("Severe")) ? t.sevHigh : (sev?.label?.includes("Medium") ? t.sevMedium : (sev?.label?.includes("Low") ? t.sevLow : t.healthy));
+      }
+      sevTag.textContent = sevLabel;
+    }
+    if ($("modalAdv1Title")) $("modalAdv1Title").textContent = t.symptoms;
+    if ($("modalAdv2Title")) $("modalAdv2Title").textContent = t.treatment;
+    if ($("modalAdv3Title")) $("modalAdv3Title").textContent = t.fertilizer;
+    $("modalDate").textContent = t.diagDate + formatDate(item.created_at);
+  }
+
+  $("modalFileName").textContent = item.image_name || "leaf_photo.jpg";
+  $("modalImg").src = item.image_path || "";
+
+  if (item.gradcam_image && !stage) {
+    $("gradcamBox").style.display = "block";
+    $("modalGradcamImg").src = item.gradcam_image;
+  } else {
+    $("gradcamBox").style.display = "none";
+  }
+
+  $("modalDiagnosis").textContent = item.diagnosis || (stage ? "Vegetative canopy growth observed." : "No specific symptoms recorded.");
+  $("modalTreatment").textContent = item.treatment || (stage ? "Maintain recommended soil moisture." : "Keep monitoring crop health regularly.");
+  $("modalFertilizer").textContent = item.fertilizer || "Maintain balanced soil nutrition.";
+
+  // Pre-fetch modal audio in background for instant (0ms) click playback
+  if (window.VoiceReader && window.VoiceReader.prefetch) {
+    setTimeout(() => {
+      const dTitle = $("modalAdv1Title") ? ($("modalAdv1Title").textContent || $("modalAdv1Title").innerText) : "";
+      window.VoiceReader.prefetch($("modalDiagnosis").textContent, lang, dTitle);
+
+      const tTitle = $("modalAdv2Title") ? ($("modalAdv2Title").textContent || $("modalAdv2Title").innerText) : "";
+      window.VoiceReader.prefetch($("modalTreatment").textContent, lang, tTitle);
+
+      const fTitle = $("modalAdv3Title") ? ($("modalAdv3Title").textContent || $("modalAdv3Title").innerText) : "";
+      window.VoiceReader.prefetch($("modalFertilizer").textContent, lang, fTitle);
+    }, 300);
+  }
+
+  $("modalOverlay").style.display = "flex";
+}
+
+function closeModal() {
+  if (window.VoiceReader) {
+    window.VoiceReader.stopSpeaking();
+  }
+  $("modalOverlay").style.display = "none";
+  selectedItem = null;
+}
+
+$("modalCloseX").addEventListener("click", closeModal);
+$("modalCloseBtn").addEventListener("click", closeModal);
+$("modalOverlay").addEventListener("click", e => {
+  if (e.target === $("modalOverlay")) closeModal();
+});
+
+// Modal Voice Reader Delegation
+const HIST_VOICE_TITLE_MAP = {
+  modalDiagnosis: "modalAdv1Title",
+  modalTreatment: "modalAdv2Title",
+  modalFertilizer: "modalAdv3Title"
+};
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".voice-btn[data-voice-modal]");
+  if (!btn || !window.VoiceReader || !selectedItem) return;
+  const targetId = btn.dataset.voiceModal;
+  if (targetId && $(targetId)) {
+    const text = $(targetId).innerText;
+    let title = "";
+    if (targetId === "modalDiseaseName") {
+      title = selectedItem.crop || "";
+    } else if (HIST_VOICE_TITLE_MAP[targetId] && $(HIST_VOICE_TITLE_MAP[targetId])) {
+      const el = $(HIST_VOICE_TITLE_MAP[targetId]);
+      title = el.textContent || el.innerText;
+    } else if (btn.parentElement) {
+      const lbl = btn.parentElement.querySelector(".title, div, span, h3, h4");
+      if (lbl && lbl !== btn) title = lbl.textContent || lbl.innerText;
+    }
+    const lang = detectItemLanguage(selectedItem);
+    window.VoiceReader.speakText(text, lang, btn, title);
+  }
+});
+
+$("modalShareWhatsAppBtn").addEventListener("click", () => {
+  if (!selectedItem || !window.AdvisoryExport) return;
+  const stage = isStage(selectedItem);
+  const lang = detectItemLanguage(selectedItem);
+  const payload = {
+    isStage: stage,
+    language: lang,
+    crop: selectedItem.crop || "Crop",
+    condition: selectedItem.predicted_disease || "Condition",
+    severity: stage ? "" : (getSeverityDetails(selectedItem)?.label || selectedItem.severity || "Evaluated"),
+    diagnosis: selectedItem.diagnosis || "",
+    treatment: stage ? "" : (selectedItem.treatment || ""),
+    irrigation: stage ? (selectedItem.treatment || "") : "",
+    fertilizer: selectedItem.fertilizer || "",
+    imageSrc: selectedItem.image_path || "",
+    gradcamSrc: selectedItem.gradcam_image || "",
+    dateStr: formatDate(selectedItem.created_at),
+    farmerName: (currentUser && currentUser.username) || "AgroLens Farmer"
+  };
+  window.AdvisoryExport.shareToWhatsApp(payload);
+});
+
+$("modalExportPdfBtn").addEventListener("click", () => {
+  if (!selectedItem || !window.AdvisoryExport) return;
+  const stage = isStage(selectedItem);
+  const lang = detectItemLanguage(selectedItem);
+  const payload = {
+    isStage: stage,
+    language: lang,
+    crop: selectedItem.crop || "Crop",
+    condition: selectedItem.predicted_disease || "Condition",
+    severity: stage ? "" : (getSeverityDetails(selectedItem)?.label || selectedItem.severity || "Evaluated"),
+    diagnosis: selectedItem.diagnosis || "",
+    treatment: stage ? "" : (selectedItem.treatment || ""),
+    irrigation: stage ? (selectedItem.treatment || "") : "",
+    fertilizer: selectedItem.fertilizer || "",
+    imageSrc: selectedItem.image_path || "",
+    gradcamSrc: selectedItem.gradcam_image || "",
+    dateStr: formatDate(selectedItem.created_at),
+    farmerName: (currentUser && currentUser.username) || "AgroLens Farmer"
+  };
+  window.AdvisoryExport.exportToPdf(payload);
+});
+
+$("modalDeleteBtn").addEventListener("click", () => {
+  if (selectedItem) {
+    deleteItem(selectedItem.id, selectedItem.predicted_disease);
+    closeModal();
+  }
+});
+
+async function deleteItem(id, name) {
+  if (!confirm(`Delete record for "${name}"?`)) return;
+  try {
+    const res = await fetch(`/api/history/${id}`, {
+      method: "DELETE",
+      credentials: "same-origin"
+    });
+    if (res.ok) {
+      historyItems = historyItems.filter(h => h.id !== id);
+      updateCounts();
+      renderHistory();
+    } else {
+      alert("Failed to delete record.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting record.");
+  }
+}
+
+// Tab Switching
+$("tabProfileBtn").addEventListener("click", () => {
+  $("tabProfileBtn").classList.add("active");
+  $("tabHistoryBtn").classList.remove("active");
+  $("profileSection").style.display = "flex";
+  $("historySection").style.display = "none";
+});
+
+$("tabHistoryBtn").addEventListener("click", () => {
+  $("tabHistoryBtn").classList.add("active");
+  $("tabProfileBtn").classList.remove("active");
+  $("profileSection").style.display = "none";
+  $("historySection").style.display = "flex";
+});
+
+// Filters
+const filterMap = {
+  all: $("filtAll"),
+  diseased: $("filtDiseased"),
+  stage: $("filtStage"),
+  healthy: $("filtHealthy")
+};
+Object.keys(filterMap).forEach(key => {
+  const btn = filterMap[key];
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    Object.values(filterMap).forEach(b => b && b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFilter = key;
+    renderHistory();
+  });
+});
+
+// Logout
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    await fetch("/api/logout", { method: "POST", credentials: "same-origin" });
+  } catch (err) {}
+  window.location.href = "login.html";
+});
+
+init();
+</script>
+</body>
+</html>

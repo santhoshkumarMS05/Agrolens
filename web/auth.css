@@ -1,0 +1,166 @@
+/* AgroLens — sign in / sign up */
+body{background-image:none;min-height:100vh}
+.auth{display:grid;grid-template-columns:1.05fr 1fr;min-height:100vh}
+
+/* ---------- left: brand panel ---------- */
+.side{
+  position:relative;overflow:hidden;color:#ffffff;
+  padding:44px 56px;display:flex;flex-direction:column;justify-content:space-between;
+  background:linear-gradient(130deg,var(--green-d),var(--green) 40%,#3d6133 70%,var(--green-d));
+  background-size:220% 220%;animation:drift 16s ease-in-out infinite;
+}
+@keyframes drift{0%,100%{background-position:0% 40%}50%{background-position:100% 60%}}
+.side::before,.side::after{
+  content:"";position:absolute;border-radius:50%;pointer-events:none;filter:blur(2px);
+}
+.side::before{width:520px;height:520px;right:-190px;bottom:-190px;
+  background:radial-gradient(circle at 35% 35%,rgba(221,185,92,.36),rgba(193,156,64,0) 68%);
+  animation:float 11s ease-in-out infinite}
+.side::after{width:340px;height:340px;left:-120px;top:32%;
+  background:radial-gradient(circle at 60% 40%,rgba(120,160,95,.42),rgba(92,122,74,0) 70%);
+  animation:float 14s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(-26px,-22px)}}
+.side>*{position:relative;z-index:1}
+.side .brand{color:#ffffff}
+.side .brand svg path:first-child{fill:var(--gold-l)}
+.side .brand svg path:last-child{stroke:var(--green-d)}
+.side h2{font-size:clamp(2rem,3.4vw,2.9rem);color:#ffffff;max-width:14ch}
+.side h2 em{font-style:italic;color:var(--gold-l)}
+.side .lede{margin-top:20px;max-width:38ch;color:rgba(255,255,255,.88);font-size:1rem}
+.proofs{display:flex;gap:34px;flex-wrap:wrap;padding-top:26px;border-top:1px solid rgba(255,255,255,.22)}
+.proof .n{font-family:"Fraunces",serif;font-size:1.6rem;font-weight:600;line-height:1;color:#ffffff}
+.proof .l{font-size:.78rem;color:rgba(255,255,255,.78);margin-top:5px}
+
+/* ---------- right: form ---------- */
+.main{display:flex;align-items:center;justify-content:center;padding:44px 32px;position:relative}
+.main .back{font-size:.88rem;color:var(--muted);text-decoration:none;transition:color .25s var(--ease)}
+.main .back:hover{color:var(--green)}
+.auth-top-actions{position:absolute;top:24px;right:34px;display:flex;align-items:center;gap:14px;z-index:20}
+.form-wrap{width:100%;max-width:400px}
+.form-wrap h1{font-size:2rem;margin-top:16px}
+.form-wrap .sub{margin-top:10px;color:var(--muted);font-size:.95rem}
+
+form{margin-top:30px;display:grid;gap:20px}
+.field{position:relative}
+.field label{display:block;font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;transition:color .25s var(--ease)}
+.field:focus-within label{color:var(--green)}
+.inp{position:relative}
+.inp input{
+  width:100%;font:inherit;font-size:1rem;color:var(--ink);
+  background:var(--paper-2);border:1px solid var(--line);border-radius:12px;
+  padding:13px 15px;outline:none;
+  transition:border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);
+}
+.inp input::placeholder{color:rgba(107,106,86,.55)}
+.inp input:hover{border-color:rgba(45,70,39,.35)}
+.inp input:focus{background:var(--paper-3);border-color:var(--green);box-shadow:0 0 0 4px rgba(45,70,39,.1)}
+/* gradient underline that sweeps in on focus */
+.inp::after{
+  content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,var(--green-l),var(--gold),var(--rust));
+  transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease);
+}
+.inp:focus-within::after{transform:scaleX(1)}
+.field.bad input{border-color:var(--rust);background:rgba(176,85,46,.05)}
+.field.bad label{color:var(--rust)}
+.ferr{display:none;margin-top:7px;font-size:.84rem;color:var(--rust)}
+.field.bad .ferr{display:block}
+
+.eye{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  border:none;background:transparent;cursor:pointer;padding:8px 10px;border-radius:8px;
+  font:inherit;font-size:.78rem;font-weight:600;color:var(--muted);transition:color .2s var(--ease);
+}
+.eye:hover{color:var(--green)}
+.inp.has-eye input{padding-right:64px}
+
+/* strength meter */
+.meter{margin-top:9px;display:flex;align-items:center;gap:10px}
+.meter .bars{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.meter .bars i{height:4px;border-radius:99px;background:var(--paper-3);transition:background .35s var(--ease)}
+.meter .txt{font-size:.78rem;color:var(--muted);min-width:64px;text-align:right}
+.meter[data-s="1"] .bars i:nth-child(-n+1){background:var(--rust)}
+.meter[data-s="2"] .bars i:nth-child(-n+2){background:var(--gold)}
+.meter[data-s="3"] .bars i:nth-child(-n+3){background:var(--green-l)}
+.meter[data-s="4"] .bars i:nth-child(-n+4){background:var(--green)}
+
+.banner{display:none;padding:13px 16px;border-radius:12px;font-size:.9rem;background:rgba(176,85,46,.1);border:1px solid rgba(176,85,46,.3);color:#7d3d1f}
+.banner.show{display:block;animation:rise .4s var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+.submit{
+  position:relative;overflow:hidden;width:100%;justify-content:center;margin-top:4px;
+  border:none;padding:15px 26px;font-size:1rem;color:var(--paper);
+  background:linear-gradient(110deg,var(--green) 0%,var(--green-d) 45%,#3d6133 100%);
+  background-size:200% 100%;background-position:0 0;
+  transition:background-position .6s var(--ease),transform .25s var(--ease),box-shadow .3s var(--ease);
+}
+.submit:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 14px 26px -14px rgba(31,51,32,.75)}
+.submit .spin{display:none;width:15px;height:15px;border:2px solid rgba(244,241,226,.35);border-top-color:var(--paper);border-radius:50%;animation:spin .7s linear infinite}
+.submit.busy .spin{display:inline-block}
+.submit.busy{pointer-events:none;opacity:.85}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.alt{margin-top:26px;font-size:.93rem;color:var(--muted);text-align:center}
+.alt a{color:var(--green);font-weight:600;text-decoration:none;background:linear-gradient(var(--gold),var(--gold)) 0 100%/0 2px no-repeat;transition:background-size .35s var(--ease)}
+.alt a:hover{background-size:100% 2px}
+.fine{margin-top:22px;font-size:.78rem;color:var(--muted);text-align:center;line-height:1.5}
+
+/* staggered entrance */
+.form-wrap>*,form>*{animation:rise .7s var(--ease) both}
+.form-wrap>*:nth-child(1){animation-delay:.05s}.form-wrap>*:nth-child(2){animation-delay:.12s}
+.form-wrap>*:nth-child(3){animation-delay:.18s}.form-wrap>*:nth-child(4){animation-delay:.24s}
+form>*:nth-child(1){animation-delay:.2s}form>*:nth-child(2){animation-delay:.27s}
+form>*:nth-child(3){animation-delay:.34s}form>*:nth-child(4){animation-delay:.41s}
+form>*:nth-child(5){animation-delay:.48s}
+
+@media(max-width:900px){
+  .auth{grid-template-columns:1fr}
+  .side{padding:28px 28px 34px;min-height:0}
+  .side h2{font-size:1.9rem}
+  .proofs,.side .lede{display:none}
+  .main{padding:34px 24px 50px;align-items:flex-start}
+  .main .back{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .side,.side::before,.side::after{animation:none}
+}
+
+/* Dark mode auth styling */
+[data-theme="dark"] .side {
+  background: linear-gradient(130deg, #0d1e11, #16361a 40%, #1e4523 70%, #0d1e11);
+  color: #ffffff !important;
+}
+[data-theme="dark"] .side .brand,
+[data-theme="dark"] .side h2,
+[data-theme="dark"] .side .proof .n {
+  color: #ffffff !important;
+}
+[data-theme="dark"] .side .lede {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+[data-theme="dark"] .side .proof .l {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+[data-theme="dark"] .submit {
+  background: linear-gradient(110deg, #15803d 0%, #166534 45%, #14532d 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
+[data-theme="dark"] .submit:hover {
+  background: linear-gradient(110deg, #22c55e 0%, #16a34a 45%, #15803d 100%);
+  color: #051508;
+  box-shadow: 0 10px 24px -6px rgba(34, 197, 94, .45);
+}
+[data-theme="dark"] .banner {
+  background: rgba(251, 113, 133, 0.15);
+  border-color: rgba(251, 113, 133, 0.35);
+  color: #fca5a5;
+}
+[data-theme="dark"] .eye {
+  color: var(--muted);
+}
+[data-theme="dark"] .eye:hover {
+  color: var(--green);
+}
+

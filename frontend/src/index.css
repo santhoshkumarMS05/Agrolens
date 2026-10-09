@@ -1,0 +1,7 @@
+/* AgroLens Global Botanical Stylesheets */
+@import "./styles/app.css";
+@import "./styles/auth.css";
+@import "./styles/dashboard.css";
+@import "./styles/stage.css";
+@import "./styles/history.css";
+@import "./styles/admin.css";
