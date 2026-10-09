@@ -1544,7 +1544,12 @@ export const AdminPage = () => {
 
       {/* FULLSCREEN HIGH-RES LIGHTBOX MODAL */}
       {lightbox && (
-        <div className="lightbox-modal open" id="lightboxModal" onClick={() => setLightbox(null)}>
+        <div
+          className="lightbox-modal open"
+          id="lightboxModal"
+          style={{ zIndex: 99999, opacity: 1, pointerEvents: "auto" }}
+          onClick={() => setLightbox(null)}
+        >
           <button
             type="button"
             className="modal-close"

@@ -14,6 +14,8 @@ export const HistoryPage = () => {
   const [historyItems, setHistoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
   const [selectedItem, setSelectedItem] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -288,6 +290,11 @@ export const HistoryPage = () => {
     return true;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   const selectedItemStage = selectedItem ? isStage(selectedItem) : false;
   const selectedItemSev = selectedItem ? getSeverityDetails(selectedItem) : null;
   const selectedLang = selectedItem ? detectItemLanguage(selectedItem) : "en";
@@ -442,7 +449,10 @@ export const HistoryPage = () => {
                   className={`filter-btn ${currentFilter === "all" ? "active" : ""}`}
                   id="filtAll"
                   type="button"
-                  onClick={() => setCurrentFilter("all")}
+                  onClick={() => {
+                    setCurrentFilter("all");
+                    setCurrentPage(1);
+                  }}
                 >
                   All (<span id="countAll">{totalCount}</span>)
                 </button>
@@ -450,7 +460,10 @@ export const HistoryPage = () => {
                   className={`filter-btn rust ${currentFilter === "diseased" ? "active rust" : ""}`}
                   id="filtDiseased"
                   type="button"
-                  onClick={() => setCurrentFilter("diseased")}
+                  onClick={() => {
+                    setCurrentFilter("diseased");
+                    setCurrentPage(1);
+                  }}
                 >
                   🦠 Disease (<span id="countDiseased">{diseasedCount}</span>)
                 </button>
@@ -458,7 +471,10 @@ export const HistoryPage = () => {
                   className={`filter-btn green ${currentFilter === "stage" ? "active green" : ""}`}
                   id="filtStage"
                   type="button"
-                  onClick={() => setCurrentFilter("stage")}
+                  onClick={() => {
+                    setCurrentFilter("stage");
+                    setCurrentPage(1);
+                  }}
                 >
                   🌱 Growth Stage (<span id="countStage">{stageCount}</span>)
                 </button>
@@ -466,7 +482,10 @@ export const HistoryPage = () => {
                   className={`filter-btn ${currentFilter === "healthy" ? "active" : ""}`}
                   id="filtHealthy"
                   type="button"
-                  onClick={() => setCurrentFilter("healthy")}
+                  onClick={() => {
+                    setCurrentFilter("healthy");
+                    setCurrentPage(1);
+                  }}
                 >
                   🌿 Healthy (<span id="countHealthy">{healthyCount}</span>)
                 </button>
@@ -503,7 +522,7 @@ export const HistoryPage = () => {
 
             {/* Grid of Cards */}
             <div className="history-grid" id="historyGrid">
-              {filteredItems.map((item) => {
+              {paginatedItems.map((item) => {
                 const stage = isStage(item);
                 const healthy = isHealthy(item);
                 const sev = getSeverityDetails(item);
@@ -565,8 +584,103 @@ export const HistoryPage = () => {
                 );
               })}
             </div>
+
+            {/* Pagination Controls Bar */}
+            {totalPages > 1 && (
+              <div
+                className="history-pagination"
+                id="historyPagination"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
+                  marginTop: "32px",
+                  marginBottom: "24px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={safeCurrentPage <= 1}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.max(1, p - 1));
+                    document.getElementById("historyGrid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: ".86rem",
+                    borderRadius: "99px",
+                    opacity: safeCurrentPage <= 1 ? 0.35 : 1,
+                    cursor: safeCurrentPage <= 1 ? "not-allowed" : "pointer",
+                    background: "var(--paper-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  ← Previous
+                </button>
+
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+                    <button
+                      key={pg}
+                      type="button"
+                      className={`btn ${pg === safeCurrentPage ? "primary" : ""}`}
+                      onClick={() => {
+                        setCurrentPage(pg);
+                        document.getElementById("historyGrid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                      style={{
+                        minWidth: "36px",
+                        height: "36px",
+                        padding: "0 10px",
+                        borderRadius: "50%",
+                        fontSize: ".86rem",
+                        fontWeight: pg === safeCurrentPage ? 700 : 500,
+                        background: pg === safeCurrentPage ? "var(--green)" : "var(--paper-2)",
+                        color: pg === safeCurrentPage ? "#fff" : "var(--ink)",
+                        borderColor: pg === safeCurrentPage ? "var(--green)" : "var(--line)",
+                        cursor: "pointer",
+                        transition: "all .2s ease",
+                      }}
+                    >
+                      {pg}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={safeCurrentPage >= totalPages}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    document.getElementById("historyGrid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: ".86rem",
+                    borderRadius: "99px",
+                    opacity: safeCurrentPage >= totalPages ? 0.35 : 1,
+                    cursor: safeCurrentPage >= totalPages ? "not-allowed" : "pointer",
+                    background: "var(--paper-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  Next →
+                </button>
+
+                <span style={{ fontSize: ".82rem", color: "var(--muted)", marginLeft: "8px" }}>
+                  Showing {startIndex + 1}–{Math.min(startIndex + ITEMS_PER_PAGE, filteredItems.length)} of {filteredItems.length}
+                </span>
+              </div>
+            )}
           </div>
         )}
+
       </div>
 
       {/* DETAILED MODAL */}

@@ -260,6 +260,7 @@ export const DashboardPage = () => {
   const [batchFiles, setBatchFiles] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const fileInputRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Status & Diagnosis Results
   const [statusText, setStatusText] = useState("Model ready — ConvNeXt-Tiny (96.7% Accuracy, 25 Classes).");
@@ -301,12 +302,17 @@ export const DashboardPage = () => {
       reader.readAsDataURL(file);
     });
 
-  const handleFileSelect = async (e) => {
-    const rawFiles = Array.from(e.target.files || []);
-    if (!rawFiles.length) return;
+  const processFiles = async (rawFiles) => {
+    if (!rawFiles || !rawFiles.length) return;
+
+    const imageFiles = Array.from(rawFiles).filter((f) => f.type.startsWith("image/"));
+    if (!imageFiles.length) {
+      alert("Please upload image files (JPG, PNG, WebP).");
+      return;
+    }
 
     const newItems = await Promise.all(
-      rawFiles.map(async (file) => {
+      imageFiles.map(async (file) => {
         const url = URL.createObjectURL(file);
         const dataUrl = await fileToDataUrl(file);
         return {
@@ -338,8 +344,40 @@ export const DashboardPage = () => {
     setStatusText(
       newItems.length > 1 || batchFiles.length > 0
         ? `${batchFiles.length + newItems.length} photos in batch queue — press Run Diagnosis.`
-        : "Photo ready — press Run Diagnosis."
+        : "Photo ready — select crop or press Run Diagnosis."
     );
+  };
+
+  const handleFileSelect = async (e) => {
+    const rawFiles = Array.from(e.target.files || []);
+    await processFiles(rawFiles);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = "copy";
+    }
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const dt = e.dataTransfer;
+    const files = dt ? Array.from(dt.files || []) : [];
+    if (files.length > 0) {
+      await processFiles(files);
+    }
   };
 
   const handleRemoveFile = (idx, e) => {
@@ -1048,9 +1086,13 @@ export const DashboardPage = () => {
                 {/* Dropzone */}
                 {!activeItem ? (
                   <div
-                    className="drop"
+                    className={`drop ${isDragging ? "hot" : ""}`}
                     id="drop"
                     onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="#2d4627" strokeWidth="1.4">
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v13" strokeLinecap="round" strokeLinejoin="round" />
@@ -1060,7 +1102,14 @@ export const DashboardPage = () => {
                   </div>
                 ) : (
                   /* Active Preview Card */
-                  <div className={`preview-card show ${loading ? "busy" : ""}`} id="previewCard">
+                  <div
+                    className={`preview-card show ${loading ? "busy" : ""} ${isDragging ? "hot" : ""}`}
+                    id="previewCard"
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
                     <button
                       className="preview-btn close"
                       id="previewCloseBtn"
@@ -1272,8 +1321,8 @@ export const DashboardPage = () => {
                               <span>🔊</span>
                             </button>
                           </div>
-                          <h3 id="vname">{p.healthy ? `${p.crop} · Healthy` : p.cond}</h3>
-                          <p className="crop" id="vcrop">{p.crop} · {currentResult.raw}</p>
+                          <h3 id="vname" style={{ color: "#ffffff", fontFamily: "'Fraunces', serif" }}>{p.healthy ? `${p.crop} · Healthy` : p.cond}</h3>
+                          <p className="crop" id="vcrop" style={{ color: "rgba(255, 255, 255, 0.9)" }}>{p.crop} · {currentResult.raw}</p>
                           <div className="confwrap">
                             <div className="tr">
                               <i id="vbar" style={{ width: `${(currentResult.conf * 100).toFixed(1)}%` }}></i>

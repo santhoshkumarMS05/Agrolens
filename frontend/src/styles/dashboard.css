@@ -107,6 +107,7 @@ a.nav-link.active,
   display:none;
 }
 .preview-card.show{display:block}
+.preview-card.hot{outline:2.5px dashed var(--green);outline-offset:-4px}
 .preview-card img{
   width:100%;
   display:block;
@@ -248,11 +249,11 @@ a.nav-link.active,
 /* right result panel */
 .result{opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
 .result.show{opacity:1;transform:none}
-.verdict{border-radius:var(--r);padding:26px;background:linear-gradient(145deg,var(--green),var(--green-d));color:var(--paper);position:relative;overflow:hidden}
+.verdict{border-radius:var(--r);padding:26px;background:linear-gradient(145deg,var(--green),var(--green-d));color:#ffffff;position:relative;overflow:hidden}
 .verdict.healthy{background:linear-gradient(145deg,#3c6b34,#24471f)}
 .verdict .tagr{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(244,241,226,.16);color:var(--gold-l);padding:4px 12px;border-radius:99px}
-.verdict h3{font-family:"Fraunces",serif;font-size:1.85rem;margin-top:14px;color:var(--paper)}
-.verdict .crop{font-size:.95rem;color:rgba(244,241,226,.8);margin-top:6px}
+.verdict h3{font-family:"Fraunces",serif;font-size:1.85rem;margin-top:14px;color:#ffffff !important}
+.verdict .crop{font-size:.95rem;color:rgba(255,255,255,.9) !important;margin-top:6px}
 .confwrap{margin-top:18px}
 .confwrap .tr{height:10px;border-radius:99px;background:rgba(244,241,226,.2);overflow:hidden}
 .confwrap .tr i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--gold-l));transition:width 1s var(--ease)}
@@ -588,6 +589,15 @@ a.nav-link.active,
   background: linear-gradient(145deg, #16361a, #0e2412);
   border: 1px solid rgba(74, 222, 128, 0.25);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  color: #ffffff !important;
+}
+[data-theme="dark"] .verdict h3,
+[data-theme="dark"] #vname {
+  color: #ffffff !important;
+}
+[data-theme="dark"] .verdict .crop,
+[data-theme="dark"] #vcrop {
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 [data-theme="dark"] .verdict.healthy {
   background: linear-gradient(145deg, #1b4522, #102d15);

@@ -875,21 +875,22 @@ a.nav-link.active,
 .lightbox-modal {
   position: fixed;
   inset: 0;
-  background: rgba(10,14,9,.92);
-  backdrop-filter: blur(10px);
+  background: rgba(10,14,9,.94);
+  backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 1200;
+  z-index: 99999 !important;
   opacity: 0;
   pointer-events: none;
   transition: opacity .25s var(--ease);
 }
 .lightbox-modal.open {
-  opacity: 1;
-  pointer-events: auto;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 99999 !important;
 }
 .lightbox-img-wrap {
   max-width: 85vw;
