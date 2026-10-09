@@ -468,16 +468,19 @@
 }
 
 /* Modal */
-.modal-overlay {
+.modal-overlay,
+.modal-overlay.open {
   position: fixed;
   inset: 0;
   background: rgba(27,33,20,.65);
   backdrop-filter: blur(10px);
-  z-index: 90;
-  display: flex;
+  z-index: 10000 !important;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  opacity: 1 !important;
+  pointer-events: auto !important;
   animation: fadeIn .25s var(--ease);
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

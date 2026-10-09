@@ -549,7 +549,16 @@ export const HistoryPage = () => {
                       </div>
                       <div className="card-bottom">
                         <span className="conf-pill">{confVal.toFixed(1)}% confidence</span>
-                        <span className="view-link">View Details →</span>
+                        <span
+                          className="view-link"
+                          style={{ cursor: "pointer" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal(item);
+                          }}
+                        >
+                          View Details →
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -563,12 +572,28 @@ export const HistoryPage = () => {
       {/* DETAILED MODAL */}
       {selectedItem && (
         <div
-          className="modal-overlay"
+          className="modal-overlay open"
           id="modalOverlay"
-          style={{ display: "flex" }}
+          style={{
+            display: "flex",
+            position: "fixed",
+            inset: 0,
+            opacity: 1,
+            visibility: "visible",
+            pointerEvents: "auto",
+            zIndex: 10000,
+          }}
           onClick={closeModal}
         >
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-box"
+            style={{
+              position: "relative",
+              zIndex: 10001,
+              pointerEvents: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-head">
               <h3>
                 <span id="modalIcon">{getEmoji(selectedItem.predicted_disease)}</span>{" "}
