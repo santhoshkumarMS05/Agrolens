@@ -248,6 +248,30 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
 [data-theme="dark"] .readout .tagp { background: var(--paper-3); color: var(--green); }
 [data-theme="dark"] .mnote { background: var(--paper-2); color: var(--ink); }
 [data-theme="dark"] .step.in .dot i { background: var(--green); border-color: var(--green); box-shadow: 0 0 0 5px rgba(74,222,128,.18); }
+
+/* Landing Page Mobile Refinements */
+@media(max-width:768px){
+  .hero{padding:40px 20px 60px;gap:36px}
+  .hero h1{font-size:2.4rem}
+  .hero .lede{font-size:0.96rem;margin-top:16px}
+  .hero .facts{gap:20px;margin-top:30px;padding-top:20px}
+  .fact .n{font-size:1.4rem}
+  .hero .ctas{flex-direction:column}
+  .hero .ctas .btn{width:100%;justify-content:center}
+  .sec{padding:60px 0}
+  .split>div{padding:26px 20px}
+  .split h3{font-size:1.2rem}
+  .card{padding:16px 18px}
+  .scell{padding:20px 18px}
+  .mcard{padding:18px 16px}
+}
+@media(max-width:480px){
+  .hero{padding:30px 16px 50px}
+  .hero h1{font-size:2.05rem}
+  .phone-stage{min-height:360px}
+  .phone{width:220px}
+  .sec-head h2{font-size:1.75rem}
+}
       `}</style>
 
       {/* Navigation */}

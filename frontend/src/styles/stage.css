@@ -286,3 +286,53 @@
   color: var(--gold);
 }
 
+/* ── Mobile Responsive Refinements (Growth Stage) ── */
+@media (max-width: 640px) {
+  .diagnostic-mode-bar {
+    padding: 3px;
+  }
+  .mode-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    gap: 5px;
+  }
+  .stage-stepper {
+    gap: 6px;
+  }
+  .stage-step {
+    padding: 8px 6px;
+  }
+  .stage-step .step-icon {
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+  }
+  .stage-step .step-num {
+    font-size: 0.62rem;
+  }
+  .stage-step .step-title {
+    font-size: 0.72rem;
+  }
+  .stage-step.active::after {
+    font-size: 0.5rem;
+    padding: 1px 4px;
+    top: 2px;
+    right: 4px;
+  }
+  .stage-verdict {
+    padding: 18px 16px;
+  }
+  .stage-verdict h3 {
+    font-size: 1.3rem;
+  }
+  .stage-verdict .sub-stage-txt {
+    font-size: 0.86rem;
+  }
+  .harvest-countdown-card {
+    padding: 12px 14px;
+  }
+  .harvest-countdown-val {
+    font-size: 1rem;
+  }
+}
+
+

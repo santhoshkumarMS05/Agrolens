@@ -572,3 +572,87 @@
   background: var(--line) !important;
   transform: translateY(-1px);
 }
+
+/* ── Mobile Responsive Refinements (History & Profile) ── */
+@media (max-width: 768px) {
+  .shell {
+    padding: 20px 16px 80px;
+    gap: 20px;
+  }
+  .page-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 18px;
+  }
+  .page-title h1 {
+    font-size: 1.8rem;
+  }
+  .tab-pills {
+    width: 100%;
+    display: flex;
+  }
+  .tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  .history-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .modal-overlay {
+    padding: 10px;
+  }
+  .modal-box {
+    max-height: 94vh;
+    border-radius: 16px;
+  }
+  .modal-head {
+    padding: 16px 18px;
+  }
+  .modal-head h3 {
+    font-size: 1.1rem;
+  }
+  .modal-scroll {
+    padding: 16px;
+  }
+  .filter-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .shell {
+    padding: 16px 12px 70px;
+  }
+  .page-title h1 {
+    font-size: 1.55rem;
+  }
+  .page-title p {
+    font-size: 0.88rem;
+  }
+  .filter-pills {
+    width: 100%;
+    display: flex;
+  }
+  .filter-btn {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    text-align: center;
+  }
+  .card-media {
+    height: 160px;
+  }
+  .card-disease {
+    font-size: 1.05rem;
+  }
+  .stat-num {
+    font-size: 2.2rem;
+  }
+}
+
