@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { shareToWhatsApp, exportToPdf } from "../utils/advisoryExport";
 import voiceReader from "../utils/voiceReader";
+import { loadOfflineModel, runClientOnnxInference } from "../utils/onnxOfflineEngine";
 
 const CROPS_LIST = [
   { id: "Cotton", icon: "🌱", en: "Cotton", ta: "பருத்தி", hi: "कपास" },
@@ -281,6 +282,13 @@ export const DashboardPage = () => {
     navigate("/login");
   };
 
+  // Preload Offline ONNX model in background on dashboard load
+  useEffect(() => {
+    loadOfflineModel((status) => {
+      console.log("[AgroLens Engine]", status);
+    }).catch((e) => console.warn("ONNX background load:", e));
+  }, []);
+
   const handleSelectCrop = (id) => {
     setSelectedCropId(id);
     if (id !== "Others") {
@@ -533,44 +541,98 @@ export const DashboardPage = () => {
             : "Running deep vision diagnosis…"
         );
         try {
-          const res = await fetch("/api/predict", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              image: item.dataUrl || item.url,
-              selected_crop: selectedCropName
-            })
-          });
-          const predData = await res.json();
+          let predData = null;
+          let isOfflineFallback = false;
 
-          if (!res.ok && predData.is_crop === false) {
-            item.isNonCrop = true;
-            item.nonCropError = predData.error || "Non-crop image detected.";
-            item.cropScore = predData.crop_score || 0;
-            setBatchFiles([...batchFiles]);
-            continue;
+          // 1. Try Online Server Inference (PyTorch + Amazon Nova Lite)
+          try {
+            const res = await fetch("/api/predict", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                image: item.dataUrl || item.url,
+                selected_crop: selectedCropName
+              })
+            });
+
+            const data = await res.json();
+            if (!res.ok && data.is_crop === false) {
+              item.isNonCrop = true;
+              item.nonCropError = data.error || "Non-crop image detected.";
+              item.cropScore = data.crop_score || 0;
+              setBatchFiles([...batchFiles]);
+              continue;
+            }
+            if (res.ok && data.ok) {
+              predData = data;
+            }
+          } catch (netErr) {
+            console.warn("Online /api/predict unavailable or network error, falling back to offline ONNX:", netErr);
           }
 
-          if (res.ok && predData.ok) {
+          // 2. Offline Fallback: If offline or server unreachable, run client-side ONNX + Canvas preprocessing
+          if (!predData) {
+            try {
+              setStatusText("Running offline in-browser neural diagnosis...");
+              const imgElement = new Image();
+              imgElement.crossOrigin = "anonymous";
+              await new Promise((resolve, reject) => {
+                imgElement.onload = resolve;
+                imgElement.onerror = reject;
+                imgElement.src = item.dataUrl || item.url;
+              });
+
+              const offlineResult = await runClientOnnxInference(imgElement);
+              predData = {
+                ok: true,
+                class_name: offlineResult.class_name,
+                confidence: offlineResult.confidence,
+                gradcam_image: offlineResult.gradcam_image,
+                top_predictions: offlineResult.top_predictions,
+                offline_mode: true,
+                offline_advisory: offlineResult.offline_advisory
+              };
+              isOfflineFallback = true;
+            } catch (onnxErr) {
+              console.error("Offline ONNX engine error:", onnxErr);
+            }
+          }
+
+          if (predData && predData.ok) {
             const raw = predData.class_name || "Crop Foliage";
             const conf = predData.confidence / 100;
             const gradcamDataUrl = predData.gradcam_image;
 
             let advData = null;
-            try {
-              const advRes = await fetch("/api/advisory", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  class_name: raw,
-                  confidence: +(conf * 100).toFixed(1),
-                  language: activeLang
-                })
-              });
-              if (advRes.ok) advData = await advRes.json();
-            } catch (e) {
-              console.warn("Disease advisory fetch error:", e);
+            if (isOfflineFallback && predData.offline_advisory) {
+              // Offline advisory from local JSON knowledge base
+              advData = {
+                crop: predData.offline_advisory.crop || selectedCropName,
+                disease: predData.offline_advisory.condition || raw,
+                healthy: Boolean(predData.offline_advisory.healthy || raw.toLowerCase().includes("healthy")),
+                severity: predData.offline_advisory.severity || "Standard Assessment",
+                diagnosis: predData.offline_advisory.symptoms || "Diagnosed via on-device offline neural engine.",
+                treatment: predData.offline_advisory.treatment || "Inspect foliage and refer to local agricultural extension guidelines.",
+                fertilizer: predData.offline_advisory.fertilizer || "Maintain balanced NPK nutrition.",
+                organic_tip: predData.offline_advisory.organic_tip || "",
+                summary: predData.offline_advisory.symptoms || ""
+              };
+            } else {
+              try {
+                const advRes = await fetch("/api/advisory", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    class_name: raw,
+                    confidence: +(conf * 100).toFixed(1),
+                    language: activeLang
+                  })
+                });
+                if (advRes.ok) advData = await advRes.json();
+              } catch (e) {
+                console.warn("Disease advisory fetch error:", e);
+              }
             }
 
             const isH = Boolean(advData?.healthy || raw.toLowerCase().includes("healthy"));
@@ -597,6 +659,7 @@ export const DashboardPage = () => {
               studentConfidence: predData.student_confidence,
               studentClass: predData.student_class,
               isOpenWorld: Boolean(predData.is_open_world),
+              isOffline: isOfflineFallback,
               p
             };
             setBatchFiles([...batchFiles]);
@@ -1301,13 +1364,17 @@ export const DashboardPage = () => {
                               className="tagr"
                               id="vtag"
                               style={{
-                                background: currentResult.teacherModelUsed
+                                background: currentResult.isOffline
+                                  ? "linear-gradient(135deg, #059669, #10b981)"
+                                  : currentResult.teacherModelUsed
                                   ? (currentResult.isOpenWorld ? "linear-gradient(135deg, #0284c7, #2563eb)" : "linear-gradient(135deg, #4f46e5, #7c3aed)")
                                   : "rgba(244,241,226,.16)",
-                                color: currentResult.teacherModelUsed ? "#fff" : "var(--gold-l)"
+                                color: currentResult.isOffline || currentResult.teacherModelUsed ? "#fff" : "var(--gold-l)"
                               }}
                             >
-                              {currentResult.teacherModelUsed
+                              {currentResult.isOffline
+                                ? "⚡ Offline On-Device Neural Engine"
+                                : currentResult.teacherModelUsed
                                 ? (currentResult.isOpenWorld ? ui.tagOpenWorld : ui.tagTeacher)
                                 : (p.healthy ? ui.tagHealthy : ui.tagDisease)}
                             </span>
