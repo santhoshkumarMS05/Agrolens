@@ -1,0 +1,40 @@
+name: Automated Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            echo "==== 1. Pulling latest code from GitHub ===="
+            cd /home/ubuntu/agrolens
+            git pull origin main
+            git lfs pull
+
+            echo "==== 2. Building Frontend ===="
+            cd /home/ubuntu/agrolens/frontend
+            npm install
+            npm run build
+
+            echo "==== 3. Updating Backend Dependencies ===="
+            cd /home/ubuntu/agrolens/backend
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            echo "==== 4. Restarting AgroLens Service ===="
+            sudo systemctl restart agrolens
+
+            echo "==== Deployment Completed Successfully! ===="
