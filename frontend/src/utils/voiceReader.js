@@ -132,25 +132,34 @@ export function speakText(rawText, langPreference, buttonElement, titleText) {
 
   if (buttonElement) {
     activeBtn = buttonElement;
-    buttonElement.classList.add("speaking");
-    buttonElement.innerHTML = `<span>⏹️</span>`;
-    buttonElement.title = "Click to stop listening";
+    buttonElement.classList.add("speaking", "loading");
+    buttonElement.innerHTML = `<span>⏳</span>`;
+    buttonElement.title = "Starting voice guidance...";
   }
 
   const sessionId = ++playSessionId;
+
+  const onStartPlaying = () => {
+    if (sessionId === playSessionId && buttonElement) {
+      buttonElement.classList.remove("loading");
+      buttonElement.innerHTML = `<span>⏹️</span>`;
+      buttonElement.title = "Click to stop listening";
+    }
+  };
 
   // 1. If full audio was already prefetched or cached, play immediately
   if (AUDIO_CACHE.has(fullUrl)) {
     const cached = AUDIO_CACHE.get(fullUrl);
     currentAudio = cached;
     cached.currentTime = 0;
+    cached.onplaying = onStartPlaying;
     cached.onended = () => {
       if (sessionId === playSessionId) stopSpeaking();
     };
     cached.onerror = () => {
       if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
     };
-    cached.play().catch(() => {
+    cached.play().then(onStartPlaying).catch(() => {
       if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
     });
     return;
@@ -162,19 +171,20 @@ export function speakText(rawText, langPreference, buttonElement, titleText) {
     const audio = new Audio(getAudioUrl(segments[0], langCode));
     currentAudio = audio;
     AUDIO_CACHE.set(fullUrl, audio);
+    audio.onplaying = onStartPlaying;
     audio.onended = () => {
       if (sessionId === playSessionId) stopSpeaking();
     };
     audio.onerror = () => {
       if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
     };
-    audio.play().catch(() => {
+    audio.play().then(onStartPlaying).catch(() => {
       if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
     });
     return;
   }
 
-  // Multiple segments
+  // Multiple segments: chunk 1 starts playing immediately while chunk 2 streams
   const chunk1Url = getAudioUrl(segments[0], langCode);
   const chunk2Url = getAudioUrl(segments[1], langCode);
 
@@ -183,10 +193,12 @@ export function speakText(rawText, langPreference, buttonElement, titleText) {
   audio2.preload = "auto";
 
   currentAudio = audio1;
+  audio1.onplaying = onStartPlaying;
 
   audio1.onended = () => {
     if (sessionId !== playSessionId) return;
     currentAudio = audio2;
+    audio2.onplaying = onStartPlaying;
     audio2.onended = () => {
       if (sessionId === playSessionId) stopSpeaking();
     };
@@ -202,7 +214,7 @@ export function speakText(rawText, langPreference, buttonElement, titleText) {
     if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
   };
 
-  audio1.play().catch(() => {
+  audio1.play().then(onStartPlaying).catch(() => {
     if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
   });
 }

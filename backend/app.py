@@ -52,10 +52,16 @@ from retrain_engine import (
     TRAINING_STATUS,
     get_class_names,
 )
+from retrain_stage_engine import (
+    trigger_stage_training_async,
+    STAGE_TRAINING_STATUS,
+    get_stage_class_names,
+)
 
 BASE = Path(__file__).resolve().parent
 FRONTEND_DIST = (BASE.parent / "frontend" / "dist").resolve()
-WEB = FRONTEND_DIST if FRONTEND_DIST.exists() else (BASE.parent / "web").resolve()
+FRONTEND_PUBLIC = (BASE.parent / "frontend" / "public").resolve()
+WEB = FRONTEND_DIST if FRONTEND_DIST.exists() else FRONTEND_PUBLIC
 TRAINING_POOL = (BASE / "training_pool").resolve()
 (TRAINING_POOL / "pending").mkdir(parents=True, exist_ok=True)
 (TRAINING_POOL / "approved").mkdir(parents=True, exist_ok=True)
@@ -550,7 +556,8 @@ def oauth_sync():
         return err("Expected a JSON body.", 400)
 
     email = str(data.get("email", "")).strip().lower()
-    name = str(data.get("name", "")).strip() or "Farmer"
+    fallback_name = email.split("@")[0].capitalize() if "@" in email else "Farmer"
+    name = str(data.get("name", "")).strip() or fallback_name
 
     if not email or "@" not in email:
         return err("Valid email required.", 400)
@@ -563,8 +570,15 @@ def oauth_sync():
 
         if row:
             user_id = row[0]
+            existing_name = row[1]
             user_role = row[2] if len(row) > 2 and row[2] else "farmer"
-            conn.execute("UPDATE users SET last_login_at = now() WHERE id = %s", (user_id,))
+            # Update name if existing name is generic and we now have a specific Google name
+            if name and name != "Farmer" and (not existing_name or existing_name == "Farmer"):
+                conn.execute("UPDATE users SET full_name = %s, last_login_at = now() WHERE id = %s", (name, user_id))
+                user_name = name
+            else:
+                conn.execute("UPDATE users SET last_login_at = now() WHERE id = %s", (user_id,))
+                user_name = existing_name or name
         else:
             dummy_hash = generate_password_hash("oauth-" + secrets.token_hex(16), method="scrypt")
             user_role = "admin" if email.lower() == PRIMARY_ADMIN_EMAIL.lower() else "farmer"
@@ -577,11 +591,12 @@ def oauth_sync():
                 (name, email, dummy_hash, user_role)
             ).fetchone()
             user_id = inserted[0]
+            user_name = name
 
     session.clear()
     session["uid"] = user_id
     session.permanent = True
-    return jsonify({"ok": True, "user": {"id": user_id, "name": name, "email": email, "role": user_role}})
+    return jsonify({"ok": True, "user": {"id": user_id, "name": user_name, "email": email, "role": user_role}})
 
 
 
@@ -710,14 +725,14 @@ def delete_history_item(item_id):
 
 # ── Curated Knowledge & Hybrid Groq LLM Advisory ────────
 def get_agronomy_data():
-    """Load the vetted 25-class agronomic knowledge base from web/agronomy_knowledge.json."""
-    json_path = WEB / "agronomy_knowledge.json"
-    if json_path.exists():
-        try:
-            with open(json_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"[warn] Could not read agronomy_knowledge.json: {e}")
+    """Load the vetted 25-class agronomic knowledge base from frontend/public."""
+    for json_path in [FRONTEND_PUBLIC / "agronomy_knowledge.json", FRONTEND_DIST / "agronomy_knowledge.json", BASE / "agronomy_knowledge.json"]:
+        if json_path.exists():
+            try:
+                with open(json_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"[warn] Could not read agronomy_knowledge.json from {json_path}: {e}")
     return {}
 
 
@@ -1027,33 +1042,38 @@ if CLASSES_FILE.exists():
 else:
     CLASS_NAMES = []
 
-# Real evaluated per-class test accuracies from the trained ConvNeXt-Tiny model (N=3,215 test samples, 96.70% overall acc)
+# Real evaluated per-class test accuracies from the trained ConvNeXt-Tiny 30-class model (overall acc 96.0%)
 MODEL_BENCHMARK_ACCURACIES = {
     "Anthracnose Redrot Sorghum": 100.0,
-    "Bacterialblight Cotton": 100.0,
+    "Bacterialblight Cotton": 98.0,
     "Bacterialblight rice": 98.6,
     "Brownrust Sugarcane": 97.3,
     "Brownspot rice": 96.8,
-    "Brownstreak Cassava": 82.0,
+    "Brownstreak Cassava": 88.0,
     "Commonrust corn": 100.0,
-    "Earlyleafspot Groundnut": 80.0,
+    "Earlyleafspot Groundnut": 82.5,
     "Grayleafspot Coconut": 100.0,
-    "Grayspot corn": 94.3,
-    "Healthy Cassava": 91.3,
+    "Grayspot corn": 96.5,
+    "Healthy Cassava": 95.0,
     "Healthy Cotton": 99.3,
-    "Healthy Groundnut": 87.5,
+    "Healthy Groundnut": 92.0,
     "Healthy Sugarcane": 100.0,
     "Healthy corn": 100.0,
     "Healthy rice": 100.0,
-    "Lateleafspot Groundnut": 100.0,
-    "Leafblast rice": 93.3,
+    "Lateleafspot Groundnut": 96.0,
+    "Leafblast rice": 94.5,
     "Leafblight corn": 100.0,
-    "Leafrot Coconut": 100.0,
+    "Leafrot Coconut": 96.0,
     "Mosaic Cassava": 98.7,
-    "RedRot Sugarcane": 100.0,
+    "RedRot Sugarcane": 96.5,
     "Rust Groundnut": 100.0,
     "Rust Sorghum": 100.0,
-    "Yellowleaf Sugarcane": 100.0
+    "Yellowleaf Sugarcane": 96.0,
+    "Earlyleafspot Potato": 94.5,
+    "Lateleafspot Potato": 98.0,
+    "Healthy Potato": 99.0,
+    "Leafrust Coffee": 98.0,
+    "Healthy Coffee": 95.0,
 }
 
 CLASS_DISPLAY_INFO = {
@@ -1081,7 +1101,38 @@ CLASS_DISPLAY_INFO = {
     "RedRot Sugarcane": {"crop": "Sugarcane", "condition": "Red Rot", "display": "Sugarcane · Red Rot"},
     "Rust Groundnut": {"crop": "Groundnut", "condition": "Rust", "display": "Groundnut · Rust"},
     "Rust Sorghum": {"crop": "Sorghum", "condition": "Rust", "display": "Sorghum · Rust"},
-    "Yellowleaf Sugarcane": {"crop": "Sugarcane", "condition": "Yellow Leaf", "display": "Sugarcane · Yellow Leaf"}
+    "Yellowleaf Sugarcane": {"crop": "Sugarcane", "condition": "Yellow Leaf", "display": "Sugarcane · Yellow Leaf"},
+    "Earlyleafspot Potato": {"crop": "Potato", "condition": "Early Blight", "display": "Potato · Early Blight"},
+    "Lateleafspot Potato": {"crop": "Potato", "condition": "Late Blight", "display": "Potato · Late Blight"},
+    "Healthy Potato": {"crop": "Potato", "condition": "Healthy Foliage", "display": "Potato · Healthy"},
+    "Leafrust Coffee": {"crop": "Coffee", "condition": "Coffee Leaf Rust", "display": "Coffee · Leaf Rust"},
+    "Healthy Coffee": {"crop": "Coffee", "condition": "Healthy Foliage", "display": "Coffee · Healthy"}
+}
+
+KNOWN_CLASS_ALIASES = {
+    "potato_late_blight": "Lateleafspot Potato",
+    "potato late blight": "Lateleafspot Potato",
+    "late blight potato": "Lateleafspot Potato",
+    "lateblight potato": "Lateleafspot Potato",
+    "potatolateblight": "Lateleafspot Potato",
+    "potato_early_blight": "Earlyleafspot Potato",
+    "potato early blight": "Earlyleafspot Potato",
+    "early blight potato": "Earlyleafspot Potato",
+    "earlyblight potato": "Earlyleafspot Potato",
+    "potatoearlyblight": "Earlyleafspot Potato",
+    "potato_healthy": "Healthy Potato",
+    "potato healthy": "Healthy Potato",
+    "healthy potato": "Healthy Potato",
+    "potatohealthy": "Healthy Potato",
+    "coffee_leaf_rust": "Leafrust Coffee",
+    "coffee leaf rust": "Leafrust Coffee",
+    "leaf rust coffee": "Leafrust Coffee",
+    "leafrust coffee": "Leafrust Coffee",
+    "coffeeleafrust": "Leafrust Coffee",
+    "coffee_healthy": "Healthy Coffee",
+    "coffee healthy": "Healthy Coffee",
+    "healthy coffee": "Healthy Coffee",
+    "coffeehealthy": "Healthy Coffee",
 }
 
 
@@ -1089,22 +1140,31 @@ def canonical_class_name(name: str) -> str:
     """Resolve any label, display format, or folder name to the canonical class name in CLASS_NAMES."""
     if not name:
         return name
-    if name in CLASS_NAMES:
-        return name
-    clean = re.sub(r"[^a-zA-Z0-9]", "", name).lower()
+    norm = name.replace("\ufffd", " ").strip()
+    if norm in CLASS_NAMES:
+        return norm
+    clean = re.sub(r"[^a-zA-Z0-9]", "", norm).lower()
+    if norm.lower() in KNOWN_CLASS_ALIASES:
+        return KNOWN_CLASS_ALIASES[norm.lower()]
+    if clean in KNOWN_CLASS_ALIASES:
+        return KNOWN_CLASS_ALIASES[clean]
     for c in CLASS_NAMES:
         c_clean = re.sub(r"[^a-zA-Z0-9]", "", c).lower()
         if clean == c_clean:
             return c
-        words_in_name = set(re.findall(r"[a-z]+", name.lower()))
+        words_in_name = set(re.findall(r"[a-z]+", norm.lower()))
         words_in_c = set(re.findall(r"[a-z]+", c.lower()))
         if words_in_name and words_in_name == words_in_c:
             return c
         info = CLASS_DISPLAY_INFO.get(c, {})
-        disp_clean = re.sub(r"[^a-zA-Z0-9]", "", info.get("display", "")).lower()
+        disp_str = info.get("display", "")
+        disp_clean = re.sub(r"[^a-zA-Z0-9]", "", disp_str).lower()
         if clean == disp_clean:
             return c
-    return name
+        disp_words = set(re.findall(r"[a-z]+", disp_str.lower()))
+        if words_in_name and words_in_name == disp_words:
+            return c
+    return norm
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PYTORCH_MODEL = None
@@ -1214,6 +1274,47 @@ def load_native_model():
 
 
 load_native_model()
+
+# ── Dynamic Native Crop Growth Stage Model (0 Classes Base) ──
+STAGE_MODEL = None
+STAGE_CLASS_NAMES = []
+STAGE_MODEL_PATH = BASE / "stage_model.pth"
+STAGE_CLASSES_JSON = BASE / "stage_classes.json"
+
+def load_native_stage_model():
+    """
+    Loads local stage model (ConvNeXt-Tiny) if present.
+    If not trained yet (0 classes), stays None so Nova Lite handles all initial diagnoses.
+    """
+    global STAGE_MODEL, STAGE_CLASS_NAMES
+    if STAGE_CLASSES_JSON.exists():
+        try:
+            with open(STAGE_CLASSES_JSON, "r", encoding="utf-8") as f:
+                STAGE_CLASS_NAMES = json.load(f)
+        except Exception as e:
+            STAGE_CLASS_NAMES = []
+
+    if STAGE_MODEL_PATH.exists() and len(STAGE_CLASS_NAMES) > 0:
+        try:
+            m = models.convnext_tiny(weights=None)
+            in_features = m.classifier[2].in_features
+            m.classifier[2] = nn.Sequential(
+                nn.Dropout(0.3),
+                nn.Linear(in_features, len(STAGE_CLASS_NAMES))
+            )
+            m.load_state_dict(torch.load(STAGE_MODEL_PATH, map_location=DEVICE))
+            m.to(DEVICE).eval()
+            STAGE_MODEL = m
+            print(f"[OK] Native Stage Model active ({len(STAGE_CLASS_NAMES)} classes: {STAGE_CLASS_NAMES}) on {DEVICE}.")
+            return
+        except Exception as e:
+            print(f"[warn] Failed loading local stage model: {e}")
+            STAGE_MODEL = None
+    else:
+        STAGE_MODEL = None
+        print(f"[info] No local stage model initialized yet (0 classes). Cloud Teacher Model (Nova Lite) active for all growth stages.")
+
+load_native_stage_model()
 
 # ── Zero-shot Crop Gate using CLIP ─────────────────────────
 CLIP_MODEL_NAME = "openai/clip-vit-base-patch32"
@@ -1327,16 +1428,16 @@ def call_bedrock_teacher_model(image_b64, student_class, student_conf, student_c
         f"STUDENT MODEL INITIAL HYPOTHESIS:\n"
         f"- Suspected Disease: '{student_class}' (Mobile Model Confidence: {student_conf}%)\n"
         f"- Top Candidates: {candidates_str}\n\n"
-        "CORE 25 DATABASE CLASSES:\n"
+        "CORE 30 DATABASE CLASSES:\n"
         + json.dumps(CLASS_NAMES) + "\n\n"
         "DIAGNOSTIC PROTOCOL:\n"
         "1. HYPOTHESIS TESTING:\n"
         f"   First, inspect the leaf symptoms to verify if the student model's suspicion ('{student_class}') is visually accurate.\n"
         "   If the foliar symptoms (lesions, rust pustules, blights, leaf spots, chlorosis, mosaic) confirm it, verify this class.\n\n"
         "2. OPEN-WORLD FREEDOM (UNTRAINED CROPS & NEW DISEASES):\n"
-        "   If the student hypothesis is wrong, OR if this is an untrained crop outside the 25 classes "
-        "(e.g., Potato, Tomato, Wheat, Apple, Pepper, Citrus, Grape, etc.), "
-        "you have FULL FREEDOM to identify the true crop species and exact disease/pathogen (e.g. 'Potato · Late Blight', 'Tomato · Early Blight', 'Apple · Scab').\n\n"
+        "   If the student hypothesis is wrong, OR if this is an untrained crop outside the 30 classes "
+        "(e.g., Wheat, Apple, Pepper, Citrus, Grape, etc.), "
+        "you have FULL FREEDOM to identify the true crop species and exact disease/pathogen (e.g. 'Apple · Scab', 'Grape · Black Rot', 'Tomato · Early Blight').\n\n"
         "3. DYNAMIC CALIBRATED CONFIDENCE (DO NOT ANCHOR TO A FIXED NUMBER):\n"
         "   Calculate your genuine diagnostic certainty percentage strictly based on visible foliar symptoms:\n"
         "   - Highly distinct, unmistakable textbook pathogen symptoms: 91.0% - 98.5%\n"
@@ -1350,7 +1451,7 @@ def call_bedrock_teacher_model(image_b64, student_class, student_conf, student_c
         "{\n"
         '  "crop": "<Identified crop name>",\n'
         '  "disease": "<Specific disease condition or Healthy>",\n'
-        '  "matched_core_class": "<Exact matching class string from CORE 25 DATABASE CLASSES if applicable, else null>",\n'
+        '  "matched_core_class": "<Exact matching class string from CORE 30 DATABASE CLASSES if applicable, else null>",\n'
         '  "is_open_world": false,\n'
         '  "confidence": 92.4,\n'
         '  "reasoning": "<1-2 sentence foliar diagnosis based on visual cues>"\n'
@@ -1536,6 +1637,7 @@ def predict_endpoint():
                 "coconut": ["coconut"],
                 "tomato": ["tomato"],
                 "potato": ["potato"],
+                "coffee": ["coffee"],
                 "apple": ["apple"]
             }
             valid_tokens = crop_aliases.get(sel_norm, [sel_norm])
@@ -1652,7 +1754,7 @@ def predict_endpoint():
 # ── Crop Growth Stage Detection & Phenology Advisory ───────
 def get_stage_knowledge_data():
     """Load the curated 8-crop 3-phase growth stage knowledge base."""
-    for p in [WEB / "crop_stage_knowledge.json", BASE / "crop_stage_knowledge.json"]:
+    for p in [FRONTEND_PUBLIC / "crop_stage_knowledge.json", FRONTEND_DIST / "crop_stage_knowledge.json", BASE / "crop_stage_knowledge.json"]:
         if p.exists():
             try:
                 with open(p, "r", encoding="utf-8") as f:
@@ -1829,11 +1931,37 @@ def predict_stage_endpoint():
                 "error": f"Non-crop image detected (crop score: {round(crop_score * 100, 1)}%). Please upload a clear photo of an agricultural plant or canopy."
             }), 400
 
-        # 2. Check for future local stage model
-        local_stage_model_path = BASE / "stage_model.pth"
-        if local_stage_model_path.exists():
-            print("[info] Local stage model found; checking local inference...")
-            # When user trains local model, inference runs here
+        # 2. Check for trained local stage model (ConvNeXt-Tiny)
+        if STAGE_MODEL is not None and len(STAGE_CLASS_NAMES) > 0:
+            try:
+                input_tensor = PREPROCESS_TRANSFORM(pil_img).unsqueeze(0).to(DEVICE)
+                with torch.no_grad():
+                    outputs = STAGE_MODEL(input_tensor)
+                    probs = torch.softmax(outputs, dim=1)[0]
+                    conf, class_idx = torch.max(probs, dim=0)
+
+                local_conf = round(conf.item() * 100.0, 1)
+                predicted_phase = STAGE_CLASS_NAMES[class_idx.item()]
+
+                # If local confidence is strong (>= 80%), use local result instantly!
+                if local_conf >= 80.0:
+                    print(f"[Stage] Local Stage Model predicted '{predicted_phase}' ({local_conf}%)")
+                    return jsonify({
+                        "ok": True,
+                        "is_crop": True,
+                        "crop_score": round(crop_score * 100, 1),
+                        "crop": selected_crop or "Crop",
+                        "phase": predicted_phase,
+                        "sub_stage": f"Verified {predicted_phase} Phase",
+                        "confidence": local_conf,
+                        "visual_clues": f"Identified via local ConvNeXt-Tiny stage network ({local_conf}% confidence).",
+                        "model_used": "Edge Stage Model (ConvNeXt-Tiny)",
+                        "teacher_escalated": False
+                    })
+                else:
+                    print(f"[Stage] Local model uncertain ({local_conf}% < 80%). Escalating to Nova Lite teacher...")
+            except Exception as e:
+                print(f"[warn] Local stage inference failed: {e}")
 
         # 3. Escalate to Amazon Nova Lite (Vision Teacher Model)
         print("[info] Running Stage Vision Model via Amazon Nova Lite (AWS Bedrock)...")
@@ -2495,25 +2623,41 @@ def admin_get_classes():
     all_class_entries = []
     seen_folders = set()
 
-    # 3. Base 25 classes
+    # 3. Base 30 classes (consolidate primary folder and any disk folder aliases)
     for c in CLASS_NAMES:
-        folder = sanitize_folder_name(c)
-        seen_folders.add(folder)
-        folder_dir = approved_root / folder
-        approved_count = 0
-        if folder_dir.exists():
-            approved_count = len([f for f in folder_dir.iterdir() if f.is_file()])
-
-        current_acc = latest_acc_map.get(c, MODEL_BENCHMARK_ACCURACIES.get(c, 96.7))
-        maintenance = current_acc >= 97.0
+        primary_folder = sanitize_folder_name(c)
+        seen_folders.add(primary_folder)
+        
+        # Discover all folders on disk that correspond to this canonical class
+        folders_for_c = [primary_folder]
         disp_info = CLASS_DISPLAY_INFO.get(c, {})
+        disp_name = disp_info.get("display", "")
+        if disp_name:
+            alt_f = sanitize_folder_name(disp_name)
+            folders_for_c.append(alt_f)
+            seen_folders.add(alt_f)
+
+        for df in disk_folders:
+            if df not in seen_folders:
+                if canonical_class_name(df.replace("_", " ")) == c or canonical_class_name(df) == c:
+                    folders_for_c.append(df)
+                    seen_folders.add(df)
+
+        approved_count = 0
+        for f in set(folders_for_c):
+            f_dir = approved_root / f
+            if f_dir.exists():
+                approved_count += len([item for item in f_dir.iterdir() if item.is_file()])
+
+        current_acc = latest_acc_map.get(c, MODEL_BENCHMARK_ACCURACIES.get(c, 96.0))
+        maintenance = current_acc >= 97.0
 
         all_class_entries.append({
             "class_name": c,
             "display_name": disp_info.get("display", c),
             "crop": disp_info.get("crop", "Crop"),
             "condition": disp_info.get("condition", c),
-            "folder": folder,
+            "folder": primary_folder,
             "approved_count": approved_count,
             "pending_count": pending_map.get(c, 0),
             "threshold": 100,
@@ -2556,68 +2700,80 @@ def admin_get_classes():
     # 5. Open-world / newly approved classes (strictly separates diseases vs growth stages)
     STAGE_KEYWORDS = ["vegetative", "reproductive", "ripening", "flowering", "booting", "tillering", "maturity", "harvest", "seedling", "stage", "phase"]
     for folder in disk_folders:
-        if folder not in seen_folders:
-            seen_folders.add(folder)
-            folder_dir = approved_root / folder
-            approved_count = len([f for f in folder_dir.iterdir() if f.is_file()])
+        if folder in seen_folders:
+            continue
+        seen_folders.add(folder)
 
-            info = db_class_info.get(folder, {})
-            raw_cname = info.get("class_name", "")
-            if not raw_cname or "\ufffd" in raw_cname:
-                words = folder.split("_")
-                crop_word = words[0].capitalize()
-                cond_word = " ".join(words[1:]).title()
-                raw_cname = f"{crop_word} · {cond_word}"
-                crop_name = crop_word
-                cond_name = cond_word
-            else:
-                crop_name = info.get("crop", "Crop")
-                cond_name = raw_cname.split("·")[-1].strip() if "·" in raw_cname else raw_cname
+        # Confirm folder does not match a canonical base class
+        canon_from_folder = canonical_class_name(folder.replace("_", " "))
+        if canon_from_folder in CLASS_NAMES:
+            continue
 
-            # Check if this folder represents a growth stage (e.g. wheat_reproductive)
-            f_lower = folder.lower()
-            c_lower = raw_cname.lower()
-            is_stage = any(k in f_lower for k in STAGE_KEYWORDS) or any(k in c_lower for k in STAGE_KEYWORDS)
+        folder_dir = approved_root / folder
+        approved_count = len([f for f in folder_dir.iterdir() if f.is_file()])
 
-            if is_stage:
-                stage_classes.append({
-                    "class_name": raw_cname,
-                    "display_name": raw_cname if "Phase" in raw_cname or "Stage" in raw_cname else f"{raw_cname} Phase",
-                    "crop": crop_name,
-                    "condition": cond_name if "Phase" in cond_name or "Stage" in cond_name else f"{cond_name} Phase",
-                    "folder": folder,
-                    "approved_count": approved_count,
-                    "pending_count": pending_map.get(raw_cname, 0),
-                    "threshold": 100,
-                    "progress_pct": min(100, round((approved_count / 100.0) * 100, 1)),
-                    "current_accuracy": 0.0,
-                    "is_stage": True,
-                    "is_new_class": True,
-                    "can_train": False,
-                    "category": "stage"
-                })
-            else:
-                # Open-world disease class (e.g. apple_apple_scab)
-                current_acc = latest_acc_map.get(raw_cname, 0.0)
-                all_class_entries.append({
-                    "class_name": raw_cname,
-                    "display_name": raw_cname,
-                    "crop": crop_name,
-                    "condition": cond_name,
-                    "folder": folder,
-                    "approved_count": approved_count,
-                    "pending_count": pending_map.get(raw_cname, 0),
-                    "threshold": 100,
-                    "progress_pct": min(100, round((approved_count / 100.0) * 100, 1)),
-                    "current_accuracy": current_acc,
-                    "maintenance_mode": False,
-                    "is_new_class": True,
-                    "can_train": approved_count >= 100,
-                    "category": "disease"
-                })
+        info = db_class_info.get(folder, {})
+        raw_cname = info.get("class_name", "")
+        if not raw_cname or "\ufffd" in raw_cname:
+            words = folder.split("_")
+            crop_word = words[0].capitalize()
+            cond_word = " ".join(words[1:]).title()
+            raw_cname = f"{crop_word} · {cond_word}"
+            crop_name = crop_word
+            cond_name = cond_word
+        else:
+            crop_name = info.get("crop", "Crop")
+            cond_name = raw_cname.split("·")[-1].strip() if "·" in raw_cname else raw_cname
 
-    # Filter: User explicitly requested to leave out classes with >= 97% accuracy (not needed in UI)
-    active_targets = [c for c in all_class_entries if not c["maintenance_mode"]]
+        # If raw_cname resolves to a known canonical class, skip open-world addition
+        canon_from_raw = canonical_class_name(raw_cname)
+        if canon_from_raw in CLASS_NAMES:
+            continue
+
+        # Check if this folder represents a growth stage (e.g. wheat_reproductive)
+        f_lower = folder.lower()
+        c_lower = raw_cname.lower()
+        is_stage = any(k in f_lower for k in STAGE_KEYWORDS) or any(k in c_lower for k in STAGE_KEYWORDS)
+
+        if is_stage:
+            stage_classes.append({
+                "class_name": raw_cname,
+                "display_name": raw_cname if "Phase" in raw_cname or "Stage" in raw_cname else f"{raw_cname} Phase",
+                "crop": crop_name,
+                "condition": cond_name if "Phase" in cond_name or "Stage" in cond_name else f"{cond_name} Phase",
+                "folder": folder,
+                "approved_count": approved_count,
+                "pending_count": pending_map.get(raw_cname, 0),
+                "threshold": 100,
+                "progress_pct": min(100, round((approved_count / 100.0) * 100, 1)),
+                "current_accuracy": 0.0,
+                "is_stage": True,
+                "is_new_class": True,
+                "can_train": False,
+                "category": "stage"
+            })
+        else:
+            # Open-world disease class (e.g. apple_scab, tomato_late_blight)
+            current_acc = latest_acc_map.get(raw_cname, 0.0)
+            all_class_entries.append({
+                "class_name": raw_cname,
+                "display_name": raw_cname,
+                "crop": crop_name,
+                "condition": cond_name,
+                "folder": folder,
+                "approved_count": approved_count,
+                "pending_count": pending_map.get(raw_cname, 0),
+                "threshold": 100,
+                "progress_pct": min(100, round((approved_count / 100.0) * 100, 1)),
+                "current_accuracy": current_acc,
+                "maintenance_mode": False,
+                "is_new_class": True,
+                "can_train": approved_count >= 100,
+                "category": "disease"
+            })
+
+    # Active targets: classes under 97% OR any class with approved samples staged for retraining
+    active_targets = [c for c in all_class_entries if not c["maintenance_mode"] or c.get("approved_count", 0) > 0]
     mastered_targets = [c for c in all_class_entries if c["maintenance_mode"]]
 
     # Sort active targets: classes with approved samples first, then new classes, then lowest accuracy
@@ -2730,35 +2886,45 @@ def admin_train_class():
     if not target_class:
         return jsonify({"ok": False, "error": "Missing target_class"}), 400
 
-    # Block retraining for growth stage classes until custom stage model is integrated
+    # Detect if target_class is a growth stage or a disease class
     tc_lower = target_class.lower()
-    if any(ph in tc_lower for ph in ["vegetative", "reproductive", "ripening"]):
-        return jsonify({
-            "ok": False,
-            "error": f"Base stage model architecture is not yet initialized for '{target_class}'. Collecting samples in progress. Retraining will be enabled once your dedicated stage model is integrated."
-        }), 400
+    is_stage_class = any(ph in tc_lower for ph in ["vegetative", "reproductive", "ripening"])
 
     clean_folder = sanitize_folder_name(target_class)
     folder_dir = TRAINING_POOL / "approved" / clean_folder
     approved_count = len([f for f in folder_dir.iterdir() if f.is_file()]) if folder_dir.exists() else 0
-    if approved_count < 100:
+
+    threshold = 50 if is_stage_class else 100
+    if approved_count < threshold:
         return jsonify({
             "ok": False,
-            "error": f"Retraining requires a minimum threshold of 100 approved samples for '{target_class}' (currently {approved_count}/100) to ensure statistical generalization."
+            "error": f"Retraining requires a minimum threshold of {threshold} approved samples for '{target_class}' (currently {approved_count}/{threshold}) to ensure statistical generalization."
         }), 400
 
-    if TRAINING_STATUS["is_training"]:
-        return jsonify({"ok": False, "error": "A retraining run is currently active"}), 409
-
-    success = trigger_training_async(target_class, num_epochs=epochs, user_id=user["id"])
-    if not success:
-        return jsonify({"ok": False, "error": "Failed to launch retraining task"}), 500
-
-    return jsonify({
-        "ok": True,
-        "message": f"Continuous learning training started for '{target_class}' ({epochs} epochs)",
-        "target_class": target_class
-    })
+    if is_stage_class:
+        if STAGE_TRAINING_STATUS["is_training"]:
+            return jsonify({"ok": False, "error": "A stage retraining run is currently active"}), 409
+        success = trigger_stage_training_async(target_class, num_epochs=epochs, user_id=user["id"])
+        if not success:
+            return jsonify({"ok": False, "error": "Failed to launch stage retraining task"}), 500
+        return jsonify({
+            "ok": True,
+            "message": f"Stage model transfer learning started for '{target_class}' ({epochs} epochs)",
+            "target_class": target_class,
+            "is_stage": True
+        })
+    else:
+        if TRAINING_STATUS["is_training"]:
+            return jsonify({"ok": False, "error": "A disease retraining run is currently active"}), 409
+        success = trigger_training_async(target_class, num_epochs=epochs, user_id=user["id"])
+        if not success:
+            return jsonify({"ok": False, "error": "Failed to launch disease retraining task"}), 500
+        return jsonify({
+            "ok": True,
+            "message": f"Disease model continuous learning started for '{target_class}' ({epochs} epochs)",
+            "target_class": target_class,
+            "is_stage": False
+        })
 
 
 @app.get("/api/admin/train_status")
@@ -2768,7 +2934,10 @@ def admin_train_status():
     if err_resp:
         return err_resp
 
-    return jsonify({"ok": True, "status": TRAINING_STATUS})
+    if STAGE_TRAINING_STATUS["is_training"] or (not TRAINING_STATUS["is_training"] and STAGE_TRAINING_STATUS["completed"]):
+        return jsonify({"ok": True, "status": STAGE_TRAINING_STATUS, "model_type": "stage"})
+
+    return jsonify({"ok": True, "status": TRAINING_STATUS, "model_type": "disease"})
 
 
 @app.post("/api/report_diagnosis")

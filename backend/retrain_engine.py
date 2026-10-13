@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent
 TRAINING_POOL_DIR = BASE_DIR / "training_pool"
 CLASSES_PATH = BASE_DIR / "class_names.json"
 MODEL_PATH = BASE_DIR / "crop_disease_convnext_tiny_20_epoch.pth"
-ONNX_PATH = BASE_DIR.parent / "web" / "leaflet_model.onnx"
+ONNX_PATH = BASE_DIR.parent / "frontend" / "public" / "leaflet_model.onnx"
 FALLBACK_DATASET_DIR = Path(r"D:\Farm AI Dataset Final\Combined")
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -68,12 +68,13 @@ def save_class_names(names: List[str]):
     with open(CLASSES_PATH, "w", encoding="utf-8") as f:
         json.dump(names, f, indent=2)
     
-    web_classes = BASE_DIR.parent / "web" / "class_names.json"
+    frontend_classes = BASE_DIR.parent / "frontend" / "public" / "class_names.json"
     try:
-        with open(web_classes, "w", encoding="utf-8") as f:
+        frontend_classes.parent.mkdir(parents=True, exist_ok=True)
+        with open(frontend_classes, "w", encoding="utf-8") as f:
             json.dump(names, f, indent=2)
     except Exception as e:
-        print(f"[warn] Could not write web/class_names.json: {e}")
+        print(f"[warn] Could not write frontend/public/class_names.json: {e}")
 
 
 class SimpleImageDataset(Dataset):

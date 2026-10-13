@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useUser, useClerk } from "@clerk/react";
+import { googleLogout } from "@react-oauth/google";
 
 const AuthContext = createContext();
 
@@ -7,9 +7,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn: clerkSignedIn } = useUser();
-  const { signOut } = useClerk();
 
   const checkAuth = async () => {
     try {
@@ -35,29 +32,26 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  // Sync Clerk OAuth logins with backend database session
-  useEffect(() => {
-    if (clerkLoaded && clerkSignedIn && clerkUser) {
-      const email = clerkUser.primaryEmailAddress?.emailAddress;
-      const name = clerkUser.fullName || clerkUser.firstName || "Farmer";
-      if (email) {
-        fetch("/api/oauth/sync", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email, name }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.ok && data.user) {
-              setUser(data.user);
-              setIsAdmin(data.user.role === "admin");
-            }
-          })
-          .catch(() => {});
+  const syncGoogleUser = async ({ email, name }) => {
+    if (!email) return null;
+    try {
+      const res = await fetch("/api/oauth/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, name }),
+      });
+      const data = await res.json();
+      if (data.ok && data.user) {
+        setUser(data.user);
+        setIsAdmin(data.user.role === "admin");
+        return data.user;
       }
+    } catch (err) {
+      console.error("[AgroLens] Google OAuth sync error:", err);
     }
-  }, [clerkLoaded, clerkSignedIn, clerkUser]);
+    return null;
+  };
 
   const login = (userData) => {
     setUser(userData);
@@ -67,8 +61,10 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await fetch("/api/logout", { method: "POST", credentials: "include" });
-      if (clerkSignedIn && signOut) {
-        await signOut();
+      try {
+        googleLogout();
+      } catch {
+        // ignore
       }
     } catch {
       // ignore
@@ -79,7 +75,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, checkAuth, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAdmin,
+        loading,
+        checkAuth,
+        login,
+        logout,
+        syncGoogleUser,
+        syncOAuthUser: syncGoogleUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

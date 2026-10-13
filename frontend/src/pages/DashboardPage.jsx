@@ -5,6 +5,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import { shareToWhatsApp, exportToPdf } from "../utils/advisoryExport";
 import voiceReader from "../utils/voiceReader";
 import { loadOfflineModel, runClientOnnxInference } from "../utils/onnxOfflineEngine";
+import WeatherRiskCard from "../components/WeatherRiskCard";
 
 const CROPS_LIST = [
   { id: "Cotton", icon: "🌱", en: "Cotton", ta: "பருத்தி", hi: "कपास" },
@@ -17,7 +18,7 @@ const CROPS_LIST = [
   { id: "Coconut", icon: "🥥", en: "Coconut", ta: "தென்னை", hi: "नारियल" },
   { id: "Tomato", icon: "🍅", en: "Tomato", ta: "தக்காளி", hi: "टमाटर" },
   { id: "Potato", icon: "🥔", en: "Potato", ta: "உருளைக்கிழங்கு", hi: "आलू" },
-  { id: "Apple", icon: "🍎", en: "Apple", ta: "ஆப்பிள்", hi: "सेब" },
+  { id: "Coffee", icon: "☕", en: "Coffee", ta: "காபி", hi: "कॉफ़ी" },
   { id: "Others", icon: "➕", en: "Others (Type Crop)", ta: "பிற பயிர்கள்", hi: "अन्य फसलें", isOthers: true }
 ];
 
@@ -243,6 +244,53 @@ function generateGradcamCanvas(sourceImg, canvas) {
   ctx.globalAlpha = 1.0;
 }
 
+function formatClassDisplay(className) {
+  if (!className) return "";
+  if (className === "Earlyleafspot Potato") return "Potato · Early Blight";
+  if (className === "Lateleafspot Potato") return "Potato · Late Blight";
+  if (className === "Healthy Potato") return "Potato · Healthy";
+  if (className === "Leafrust Coffee") return "Coffee · Leaf Rust";
+  if (className === "Healthy Coffee") return "Coffee · Healthy";
+  return className;
+}
+
+function renderAdvisoryContent(text) {
+  if (!text || typeof text !== "string") return "—";
+  const trimmed = text.trim();
+
+  // 1. Detect and parse numbered lists: "1. ... 2. ..."
+  const items = trimmed.split(/(?:^|\s+)(?=\d+[\.\)]\s+)/).map(s => s.trim()).filter(Boolean);
+  if (items.length > 1) {
+    return (
+      <ol className="advisory-steps">
+        {items.map((item, idx) => {
+          const m = item.match(/^(\d+)[\.\)]\s*(.*)/s);
+          return (
+            <li key={idx}>
+              <span className="step-num">{m ? m[1] : idx + 1}</span>
+              <span className="step-txt">{m ? m[2] : item}</span>
+            </li>
+          );
+        })}
+      </ol>
+    );
+  }
+
+  // 2. Detect newline or bullet separated lists
+  const lines = trimmed.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return (
+      <ul className="advisory-list" style={{ margin: "8px 0 0 0", paddingLeft: "18px", display: "grid", gap: "6px" }}>
+        {lines.map((line, idx) => (
+          <li key={idx}>{line.replace(/^[-•*]\s*/, "")}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  return <p className="advisory-para" style={{ margin: 0 }}>{trimmed}</p>;
+}
+
 export const DashboardPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -261,10 +309,18 @@ export const DashboardPage = () => {
   const [batchFiles, setBatchFiles] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null); // Native camera input for devices
   const [isDragging, setIsDragging] = useState(false);
 
+  // Live Camera Scanner State
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState("environment");
+  const videoRef = useRef(null);
+  const cameraStreamRef = useRef(null);
+
   // Status & Diagnosis Results
-  const [statusText, setStatusText] = useState("Model ready — ConvNeXt-Tiny (96.7% Accuracy, 25 Classes).");
+  const [statusText, setStatusText] = useState("Model ready — ConvNeXt-Tiny (96.7% Accuracy, 30 Classes).");
   const [loading, setLoading] = useState(false);
   const [cropGateError, setCropGateError] = useState(null);
   const [savedMsg, setSavedMsg] = useState("");
@@ -356,6 +412,86 @@ export const DashboardPage = () => {
     );
   };
 
+  const stopCameraStream = () => {
+    if (cameraStreamRef.current) {
+      cameraStreamRef.current.getTracks().forEach((track) => track.stop());
+      cameraStreamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+    setCameraLoading(false);
+  };
+
+  const startCameraStream = async (facing = cameraFacingMode) => {
+    try {
+      setCameraLoading(true);
+      // Stop any existing stream
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      const constraints = {
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      cameraStreamRef.current = stream;
+      setIsCameraActive(true);
+      setCameraLoading(false);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+    } catch (err) {
+      console.warn("Direct webcam access failed or not supported:", err);
+      setCameraLoading(false);
+      setIsCameraActive(false);
+      // Fallback: trigger native device camera input
+      if (cameraInputRef.current) {
+        cameraInputRef.current.click();
+      } else {
+        alert("Camera access denied or unavailable. Please upload a leaf photo directly.");
+      }
+    }
+  };
+
+  const handleFlipCamera = () => {
+    const nextFacing = cameraFacingMode === "environment" ? "user" : "environment";
+    setCameraFacingMode(nextFacing);
+    startCameraStream(nextFacing);
+  };
+
+  const handleSnapPhoto = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], `leaf_snap_${Date.now()}.jpg`, { type: "image/jpeg" });
+      stopCameraStream();
+      await processFiles([file]);
+    }, "image/jpeg", 0.92);
+  };
+
+  // Clean up camera on unmount or mode/step change
+  useEffect(() => {
+    return () => {
+      if (cameraStreamRef.current) {
+        cameraStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
+
   const handleFileSelect = async (e) => {
     const rawFiles = Array.from(e.target.files || []);
     await processFiles(rawFiles);
@@ -418,7 +554,7 @@ export const DashboardPage = () => {
     setCropGateError(null);
     setSavedMsg("");
     setReportMsg("");
-    setStatusText("Model ready — ConvNeXt-Tiny (96.7% Accuracy, 25 Classes).");
+    setStatusText("Model ready — ConvNeXt-Tiny (96.7% Accuracy, 30 Classes).");
     if (fileInputRef.current) fileInputRef.current.value = "";
     voiceReader.stopSpeaking();
   };
@@ -664,14 +800,17 @@ export const DashboardPage = () => {
             };
             setBatchFiles([...batchFiles]);
 
-            // Background prefetch audio
+            // Background prefetch audio so clicking speaker plays instantly
             if (voiceReader.prefetch) {
               setTimeout(() => {
-                voiceReader.prefetch(`${p.crop}. ${p.cond}`, activeLang, "Diagnosis Result");
-                voiceReader.prefetch(p.diagnosis, activeLang, "Symptoms");
-                voiceReader.prefetch(p.treatment, activeLang, "Treatment");
-                voiceReader.prefetch(p.fertilizer, activeLang, "Fertilizer");
-              }, 200);
+                voiceReader.prefetch(`${p.crop}. ${p.cond}`, activeLang, "Verdict");
+                voiceReader.prefetch(p.diagnosis, activeLang, ui.symptoms);
+                voiceReader.prefetch(p.treatment, activeLang, ui.treatment);
+                voiceReader.prefetch(p.fertilizer, activeLang, ui.fertilizer);
+                if (p.organic_tip) {
+                  voiceReader.prefetch(p.organic_tip, activeLang, ui.organic);
+                }
+              }, 50);
             }
           }
         } catch (err) {
@@ -1117,6 +1256,9 @@ export const DashboardPage = () => {
               <span style={{ fontSize: ".72rem", fontWeight: 500, color: "var(--muted)", marginLeft: "4px" }}>✕ Change</span>
             </button>
 
+            {/* Live Microclimate & Outbreak Alert Widget */}
+            <WeatherRiskCard selectedCrop={selectedCropName} activeLang={activeLang} />
+
             <div className="grid">
               {/* LEFT PANEL: UPLOAD & ACTIVE LEAF */}
               <div className="panel">
@@ -1146,22 +1288,84 @@ export const DashboardPage = () => {
                   {mode === "disease" ? stageUi.uploadHelpDisease : stageUi.uploadHelpStage}
                 </p>
 
-                {/* Dropzone */}
-                {!activeItem ? (
-                  <div
-                    className={`drop ${isDragging ? "hot" : ""}`}
-                    id="drop"
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={handleDragOver}
-                    onDragEnter={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#2d4627" strokeWidth="1.4">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v13" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <p><b>Click to choose</b> or drop leaf photos here</p>
-                    <p style={{ fontSize: ".8rem", opacity: .7 }}>Single photo or batch upload · JPG or PNG</p>
+                {/* Live Camera Viewfinder Modal/Card */}
+                {isCameraActive ? (
+                  <div className="camera-viewfinder-card show">
+                    <div className="camera-stream-wrap">
+                      <video
+                        ref={videoRef}
+                        playsInline
+                        muted
+                        autoPlay
+                        className="camera-video-feed"
+                      />
+                      <div className="camera-overlay-reticle">
+                        <div className="reticle-corner top-left"></div>
+                        <div className="reticle-corner top-right"></div>
+                        <div className="reticle-corner bottom-left"></div>
+                        <div className="reticle-corner bottom-right"></div>
+                        <span className="reticle-guide">Center leaf in viewfinder</span>
+                      </div>
+                    </div>
+
+                    <div className="camera-control-bar">
+                      <button
+                        type="button"
+                        className="btn-camera-flip"
+                        onClick={handleFlipCamera}
+                        title="Switch Camera (Front/Rear)"
+                      >
+                        🔄 Flip
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-camera-snap"
+                        onClick={handleSnapPhoto}
+                        title="Snap Leaf Photo"
+                      >
+                        <div className="snap-btn-inner"></div>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-camera-cancel"
+                        onClick={stopCameraStream}
+                        title="Close Camera"
+                      >
+                        ✕ Close
+                      </button>
+                    </div>
+                  </div>
+                ) : !activeItem ? (
+                  <div>
+                    {/* Dropzone */}
+                    <div
+                      className={`drop ${isDragging ? "hot" : ""}`}
+                      id="drop"
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragEnter={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#2d4627" strokeWidth="1.4">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v13" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p><b>Click to choose</b> or drop leaf photos here</p>
+                      <p style={{ fontSize: ".8rem", opacity: .7 }}>Single photo or batch upload · JPG or PNG</p>
+                    </div>
+
+                    {/* Quick Camera Action Pill */}
+                    <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+                      <button
+                        type="button"
+                        className="btn-scanner-action camera-btn"
+                        onClick={() => startCameraStream("environment")}
+                        disabled={cameraLoading}
+                      >
+                        <span style={{ fontSize: "1.1rem" }}>📷</span>
+                        <span>{cameraLoading ? "Starting Camera..." : "Open Camera & Snap Leaf"}</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   /* Active Preview Card */
@@ -1248,6 +1452,15 @@ export const DashboardPage = () => {
                   hidden
                   onChange={handleFileSelect}
                 />
+                <input
+                  type="file"
+                  id="cameraInput"
+                  ref={cameraInputRef}
+                  accept="image/*"
+                  capture="environment"
+                  hidden
+                  onChange={handleFileSelect}
+                />
 
                 {/* Controls */}
                 <div className="controls">
@@ -1261,10 +1474,24 @@ export const DashboardPage = () => {
                     >
                       {loading ? "Analyzing..." : (mode === "disease" ? stageUi.btnRunDisease : stageUi.btnRunStage)}
                     </button>
+                    {activeItem && !isCameraActive && (
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={() => startCameraStream("environment")}
+                        title="Open Camera & Snap Another Leaf"
+                        style={{ flex: "0 0 auto", display: "flex", alignItems: "center", gap: "6px" }}
+                      >
+                        <span>📷</span> Snap Another
+                      </button>
+                    )}
                     <button
                       className="btn"
                       id="reset"
-                      onClick={handleClear}
+                      onClick={() => {
+                        stopCameraStream();
+                        handleClear();
+                      }}
                       style={{ flex: "0 0 auto" }}
                     >
                       Clear All
@@ -1389,7 +1616,9 @@ export const DashboardPage = () => {
                             </button>
                           </div>
                           <h3 id="vname" style={{ color: "#ffffff", fontFamily: "'Fraunces', serif" }}>{p.healthy ? `${p.crop} · Healthy` : p.cond}</h3>
-                          <p className="crop" id="vcrop" style={{ color: "rgba(255, 255, 255, 0.9)" }}>{p.crop} · {currentResult.raw}</p>
+                          <p className="crop" id="vcrop" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
+                            {formatClassDisplay(currentResult.raw)}
+                          </p>
                           <div className="confwrap">
                             <div className="tr">
                               <i id="vbar" style={{ width: `${(currentResult.conf * 100).toFixed(1)}%` }}></i>
@@ -1422,6 +1651,9 @@ export const DashboardPage = () => {
                             )}
                           </div>
                         )}
+
+                        {/* Live Microclimate Disease Risk Alert */}
+                        <WeatherRiskCard selectedCrop={p.crop || selectedCropName} activeLang={activeLang} />
 
                         {/* Farmer Guidance */}
                         <div className="guide">
@@ -1485,7 +1717,7 @@ export const DashboardPage = () => {
                                 </button>
                               </div>
                               <div id="advDiagnosis" style={{ fontSize: ".88rem", color: "var(--ink)", lineHeight: 1.5 }}>
-                                {p.diagnosis}
+                                {renderAdvisoryContent(p.diagnosis)}
                               </div>
                             </div>
                           )}
@@ -1506,7 +1738,7 @@ export const DashboardPage = () => {
                                 </button>
                               </div>
                               <div id="advTreatment" style={{ fontSize: ".88rem", color: "var(--ink)", lineHeight: 1.5 }}>
-                                {p.treatment}
+                                {renderAdvisoryContent(p.treatment)}
                               </div>
                             </div>
                           )}
@@ -1527,7 +1759,7 @@ export const DashboardPage = () => {
                                 </button>
                               </div>
                               <div id="advFertilizer" style={{ fontSize: ".88rem", color: "var(--ink)", lineHeight: 1.5 }}>
-                                {p.fertilizer}
+                                {renderAdvisoryContent(p.fertilizer)}
                               </div>
                             </div>
                           )}
@@ -1548,7 +1780,7 @@ export const DashboardPage = () => {
                                 </button>
                               </div>
                               <div id="advOrganic" style={{ fontSize: ".88rem", color: "var(--ink)", lineHeight: 1.5 }}>
-                                {p.organic_tip}
+                                {renderAdvisoryContent(p.organic_tip)}
                               </div>
                             </div>
                           )}

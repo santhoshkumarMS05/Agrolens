@@ -10,7 +10,6 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
-import SSOCallbackPage from "./pages/SSOCallbackPage";
 
 export const App = () => {
   return (
@@ -21,7 +20,6 @@ export const App = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/sso-callback" element={<SSOCallbackPage />} />
             <Route path="/admin-login" element={<AdminLoginPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryPage />} />

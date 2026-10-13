@@ -1,7 +1,7 @@
 // AgroLens In-Browser ONNX Neural Inference & Canvas Preprocessor Utility
-// Supports offline fallback for ConvNeXt-Tiny (25 Botanical Classes)
+// Supports offline fallback for ConvNeXt-Tiny (30 Botanical Classes)
 
-export const CLASSES_25 = [
+export const CLASSES_30 = [
   "Anthracnose Redrot Sorghum",
   "Bacterialblight Cotton",
   "Bacterialblight rice",
@@ -26,8 +26,15 @@ export const CLASSES_25 = [
   "RedRot Sugarcane",
   "Rust Groundnut",
   "Rust Sorghum",
-  "Yellowleaf Sugarcane"
+  "Yellowleaf Sugarcane",
+  "Earlyleafspot Potato",
+  "Healthy Coffee",
+  "Healthy Potato",
+  "Lateleafspot Potato",
+  "Leafrust Coffee"
 ];
+
+export const CLASSES_25 = CLASSES_30.slice(0, 25);
 
 export const CLASSES_12 = [
   "Bacterialblight rice",
@@ -47,6 +54,7 @@ export const CLASSES_12 = [
 let session = null;
 let sessionLoading = false;
 let agronomyKnowledge = null;
+let cachedClassNames = null;
 
 /**
  * Configure ONNX WebAssembly environment paths
@@ -83,11 +91,23 @@ export async function loadOfflineModel(onStatusChange) {
       }
     }
 
+    // Preload dynamic class names
+    if (!cachedClassNames) {
+      try {
+        const res = await fetch("/class_names.json");
+        if (res.ok) {
+          cachedClassNames = await res.json();
+        }
+      } catch (e) {
+        console.warn("Could not preload /class_names.json:", e);
+      }
+    }
+
     if (window.ort && window.ort.InferenceSession) {
       session = await window.ort.InferenceSession.create("/leaflet_model.onnx", {
         executionProviders: ["wasm"]
       });
-      if (onStatusChange) onStatusChange("Offline ConvNeXt model ready.");
+      if (onStatusChange) onStatusChange("Offline ConvNeXt model ready (30 Classes).");
       return session;
     }
   } catch (err) {
@@ -210,7 +230,14 @@ export async function runClientOnnxInference(imgElement) {
   const idx = probs.indexOf(Math.max(...probs));
   const confidence = probs[idx];
 
-  const classList = logits.length === 25 ? CLASSES_25 : CLASSES_12;
+  const classList =
+    (cachedClassNames && cachedClassNames.length === logits.length)
+      ? cachedClassNames
+      : logits.length === 30
+      ? CLASSES_30
+      : logits.length === 25
+      ? CLASSES_25
+      : CLASSES_12;
   const rawClass = classList[idx] || "Crop Foliage";
 
   // Build top predictions

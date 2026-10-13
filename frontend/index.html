@@ -6,11 +6,30 @@
     <title>AgroLens — Botanical Intelligence &amp; Crop Diagnostics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2d4627" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>
     <script src="/ort/ort.wasm.min.js"></script>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            for (const r of regs) r.unregister();
+          });
+          caches.keys().then((keys) => {
+            for (const k of keys) caches.delete(k);
+          });
+        } else {
+          window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/sw.js").catch(() => {});
+          });
+        }
+      }
+    </script>
   </body>
 </html>

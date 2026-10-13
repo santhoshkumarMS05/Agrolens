@@ -2,8 +2,39 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
-import { shareToWhatsApp, exportToPdf } from "../utils/advisoryExport";
 import voiceReader from "../utils/voiceReader";
+
+function renderAdvisoryContent(text) {
+  if (!text || typeof text !== "string") return "—";
+  const trimmed = text.trim();
+  const items = trimmed.split(/(?:^|\s+)(?=\d+[\.\)]\s+)/).map(s => s.trim()).filter(Boolean);
+  if (items.length > 1) {
+    return (
+      <ol className="advisory-steps" style={{ margin: "8px 0 0 0" }}>
+        {items.map((item, idx) => {
+          const m = item.match(/^(\d+)[\.\)]\s*(.*)/s);
+          return (
+            <li key={idx}>
+              <span className="step-num">{m ? m[1] : idx + 1}</span>
+              <span className="step-txt">{m ? m[2] : item}</span>
+            </li>
+          );
+        })}
+      </ol>
+    );
+  }
+  const lines = trimmed.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return (
+      <ul className="advisory-list" style={{ margin: "8px 0 0 0", paddingLeft: "18px", display: "grid", gap: "6px" }}>
+        {lines.map((line, idx) => (
+          <li key={idx}>{line.replace(/^[-•*]\s*/, "")}</li>
+        ))}
+      </ul>
+    );
+  }
+  return <span style={{ margin: 0 }}>{trimmed}</span>;
+}
 
 export const HistoryPage = () => {
   const { user, loading: authLoading, logout } = useAuth();
@@ -879,10 +910,12 @@ export const HistoryPage = () => {
                         <span>🔊</span>
                       </button>
                     </div>
-                    <p id="modalDiagnosis">
-                      {selectedItem.diagnosis ||
-                        (selectedItemStage ? "Vegetative canopy growth observed." : "No specific symptoms recorded.")}
-                    </p>
+                    <div id="modalDiagnosis">
+                      {renderAdvisoryContent(
+                        selectedItem.diagnosis ||
+                          (selectedItemStage ? "Vegetative canopy growth observed." : "No specific symptoms recorded.")
+                      )}
+                    </div>
                   </div>
 
                   <div className="advice-card">
@@ -907,10 +940,12 @@ export const HistoryPage = () => {
                         <span>🔊</span>
                       </button>
                     </div>
-                    <p id="modalTreatment">
-                      {selectedItem.treatment ||
-                        (selectedItemStage ? "Maintain recommended soil moisture." : "Keep monitoring crop health regularly.")}
-                    </p>
+                    <div id="modalTreatment">
+                      {renderAdvisoryContent(
+                        selectedItem.treatment ||
+                          (selectedItemStage ? "Maintain recommended soil moisture." : "Keep monitoring crop health regularly.")
+                      )}
+                    </div>
                   </div>
 
                   <div className="advice-card">
@@ -934,7 +969,9 @@ export const HistoryPage = () => {
                         <span>🔊</span>
                       </button>
                     </div>
-                    <p id="modalFertilizer">{selectedItem.fertilizer || "Maintain balanced soil nutrition."}</p>
+                    <div id="modalFertilizer">
+                      {renderAdvisoryContent(selectedItem.fertilizer || "Maintain balanced soil nutrition.")}
+                    </div>
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "16px" }}>

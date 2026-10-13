@@ -29,7 +29,6 @@
     "prevention": "Use resistant or tolerant varieties, certified disease-free seed, crop rotation, field sanitation, appropriate plant spacing, and removal of volunteer sorghum and grass hosts.",
     "source_note": "Disease identification and management principles are consistent with TNAU sorghum disease guidance; pathogen nomenclature may differ between older TNAU material and modern taxonomy."
   },
-
   "Bacterialblight Cotton": {
     "crop": "Cotton",
     "disease": "Bacterial Blight / Angular Leaf Spot",
@@ -60,7 +59,6 @@
     "prevention": "Use resistant or tolerant cultivars, disease-free seed, proper seed treatment or delinting according to local recommendations, crop sanitation, and avoidance of excessive irrigation that spreads contaminated water.",
     "source_note": "TNAU uses the older name Xanthomonas campestris pv. malvacearum; Xanthomonas citri pv. malvacearum is used in modern taxonomy."
   },
-
   "Bacterialblight rice": {
     "crop": "Rice",
     "disease": "Bacterial Leaf Blight",
@@ -91,7 +89,6 @@
     "prevention": "Use resistant cultivars, avoid excessive nitrogen, avoid clipping seedling tips during transplanting, maintain clean bunds, and manage irrigation carefully.",
     "source_note": "Disease symptoms and management principles are consistent with TNAU rice bacterial blight guidance."
   },
-
   "Brownrust Sugarcane": {
     "crop": "Sugarcane",
     "disease": "Brown Rust",
@@ -122,7 +119,6 @@
     "prevention": "Grow resistant or tolerant varieties, use healthy planting material, avoid poorly managed fields, and remove severely infected crop residues.",
     "source_note": "TNAU identifies Puccinia erianthi for sugarcane rust. This corrects the original Puccinia melanocephala entry for a TNAU-aligned Tamil Nadu dataset."
   },
-
   "Brownspot rice": {
     "crop": "Rice",
     "disease": "Brown Spot",
@@ -153,7 +149,6 @@
     "prevention": "Use healthy seed, appropriate seed treatment, balanced fertilization, adequate soil moisture, and good field sanitation.",
     "source_note": "Bipolaris oryzae is the modern name corresponding to older nomenclature used for rice brown spot."
   },
-
   "Brownstreak Cassava": {
     "crop": "Cassava",
     "disease": "Cassava Brown Streak Disease",
@@ -184,7 +179,6 @@
     "prevention": "Use certified virus-free planting material, rogue infected plants, monitor whiteflies, maintain field sanitation, and avoid propagation from infected plants.",
     "source_note": "Cassava brown streak disease is a genuine viral disease but is primarily associated with African and Indian Ocean cassava production systems. Confirm geographical relevance before using it as a Tamil Nadu-specific class."
   },
-
   "Commonrust corn": {
     "crop": "Corn (Maize)",
     "disease": "Common Rust",
@@ -215,7 +209,6 @@
     "prevention": "Use resistant hybrids, timely planting, good field sanitation and management of alternate hosts such as Oxalis where relevant.",
     "source_note": "Disease and pathogen are consistent with TNAU maize common rust guidance."
   },
-
   "Earlyleafspot Groundnut": {
     "crop": "Groundnut (Peanut)",
     "disease": "Early Leaf Spot",
@@ -246,7 +239,6 @@
     "prevention": "Use healthy seed, crop rotation, residue management, adequate field drainage and timely fungicide protection where recommended.",
     "source_note": "Disease identification is consistent with TNAU groundnut disease guidance."
   },
-
   "Grayleafspot Coconut": {
     "crop": "Coconut",
     "disease": "Grey Leaf Spot / Blight",
@@ -277,7 +269,6 @@
     "prevention": "Avoid excessive shade, maintain adequate drainage and sanitation, and remove severely affected fronds.",
     "source_note": "TNAU uses older taxonomy including Pestalosia/Pestalotia names; Pestalotiopsis palmarum is used in modern references."
   },
-
   "Grayspot corn": {
     "crop": "Corn (Maize)",
     "disease": "Grey Leaf Spot",
@@ -308,7 +299,6 @@
     "prevention": "Plant resistant hybrids, rotate with non-host crops, and manage infected crop residues because the pathogen can survive on maize residue.",
     "source_note": "Disease identification and management principles are supported by university extension and plant pathology references."
   },
-
   "Healthy Cassava": {
     "crop": "Cassava",
     "disease": "Healthy Foliage",
@@ -326,7 +316,6 @@
     "organic_remedy": "Use well-decomposed organic manure or locally recommended biofertilizers as part of an integrated nutrient-management program.",
     "prevention": "Use healthy planting material, maintain field sanitation, monitor whiteflies and remove suspicious plants early."
   },
-
   "Healthy corn": {
     "crop": "Corn (Maize)",
     "disease": "Healthy Foliage",
@@ -344,7 +333,6 @@
     "organic_remedy": "Use compost, properly prepared organic manures or permitted biological inputs as part of integrated crop nutrition.",
     "prevention": "Maintain balanced nutrition, proper irrigation and drainage, weed control, crop rotation and regular disease scouting."
   },
-
   "Healthy Cotton": {
     "crop": "Cotton",
     "disease": "Healthy Foliage",
@@ -362,7 +350,6 @@
     "organic_remedy": "Use well-decomposed organic manure and locally recommended biological inputs as part of integrated nutrient management.",
     "prevention": "Use healthy seed, maintain balanced irrigation and nutrition, monitor insect vectors and maintain field sanitation."
   },
-
   "Healthy Groundnut": {
     "crop": "Groundnut (Peanut)",
     "disease": "Healthy Foliage",
@@ -380,7 +367,6 @@
     "organic_remedy": "Use Rhizobium and other locally recommended biofertilizers where appropriate.",
     "prevention": "Use healthy seed, maintain appropriate soil moisture and drainage, control weeds and scout regularly for leaf diseases."
   },
-
   "Healthy rice": {
     "crop": "Rice",
     "disease": "Healthy Foliage",
@@ -398,7 +384,6 @@
     "organic_remedy": "Use locally recommended organic amendments or biological inputs such as Azolla where appropriate.",
     "prevention": "Use healthy seed, maintain clean bunds, balanced fertilization, appropriate irrigation and regular disease monitoring."
   },
-
   "Healthy Sugarcane": {
     "crop": "Sugarcane",
     "disease": "Healthy Foliage",
@@ -416,7 +401,6 @@
     "organic_remedy": "Use well-decomposed farmyard manure, compost or locally recommended biological inputs.",
     "prevention": "Use healthy disease-free seed cane, maintain field sanitation, proper drainage and timely earthing-up and other recommended cultural practices."
   },
-
   "Lateleafspot Groundnut": {
     "crop": "Groundnut (Peanut)",
     "disease": "Late Leaf Spot",
@@ -447,7 +431,6 @@
     "prevention": "Use resistant or tolerant varieties where available, rotate crops, manage residues and use timely fungicide protection when recommended.",
     "source_note": "Nothopassalora personata is the modern taxonomic name; older literature may use Phaeoisariopsis personata or Cercospora personata."
   },
-
   "Leafblast rice": {
     "crop": "Rice",
     "disease": "Rice Blast",
@@ -477,7 +460,6 @@
     "organic_remedy": "Use resistant varieties, healthy seed, appropriate seed treatment and biological products such as Pseudomonas fluorescens where locally recommended.",
     "prevention": "Use blast-resistant varieties, avoid excessive nitrogen, maintain suitable plant density, manage irrigation appropriately and remove grass hosts."
   },
-
   "Leafblight corn": {
     "crop": "Corn (Maize)",
     "disease": "Northern Corn Leaf Blight",
@@ -507,7 +489,6 @@
     "organic_remedy": "Use resistant hybrids, crop rotation and residue management. Biological products may be used where locally registered.",
     "prevention": "Use resistant hybrids, rotate with non-host crops and bury or otherwise manage infected maize residues."
   },
-
   "Leafrot Coconut": {
     "crop": "Coconut",
     "disease": "Coconut Leaf Rot",
@@ -538,7 +519,6 @@
     "prevention": "Maintain crown hygiene, avoid prolonged crown wetness, ensure good drainage and manage rhinoceros beetle and other insect damage that can predispose the crown to infection.",
     "source_note": "The pathogen description reflects the disease complex described in TNAU coconut guidance."
   },
-
   "Mosaic Cassava": {
     "crop": "Cassava",
     "disease": "Cassava Mosaic Disease",
@@ -569,7 +549,6 @@
     "prevention": "Use certified virus-free or healthy stem cuttings, rogue infected plants early, monitor whiteflies, maintain field sanitation and use tolerant varieties where available.",
     "source_note": "Disease identification and major management principles are consistent with TNAU cassava mosaic guidance."
   },
-
   "RedRot Sugarcane": {
     "crop": "Sugarcane",
     "disease": "Sugarcane Red Rot",
@@ -600,7 +579,6 @@
     "prevention": "Use healthy disease-free seed cane, resistant or tolerant varieties where available, recommended seed-cane treatment, good drainage, field sanitation and removal of infected stools.",
     "source_note": "Colletotrichum falcatum is the traditional name widely used for sugarcane red rot; Glomerella tucumanensis is used in some current taxonomic references and TNAU material."
   },
-
   "Rust Groundnut": {
     "crop": "Groundnut (Peanut)",
     "disease": "Groundnut Rust",
@@ -630,7 +608,6 @@
     "organic_remedy": "Use healthy seed, resistant varieties where available, crop rotation and biological products where locally recommended.",
     "prevention": "Use resistant or tolerant varieties, maintain field sanitation, use appropriate crop rotation and begin fungicide protection when locally recommended."
   },
-
   "Rust Sorghum": {
     "crop": "Sorghum",
     "disease": "Sorghum Rust",
@@ -660,7 +637,6 @@
     "organic_remedy": "Use resistant or tolerant varieties, field sanitation and biological products where locally recommended.",
     "prevention": "Use resistant or tolerant varieties, appropriate planting time, field sanitation and management of alternate hosts where relevant."
   },
-
   "Yellowleaf Sugarcane": {
     "crop": "Sugarcane",
     "disease": "Sugarcane Yellow Leaf Disease",
@@ -691,7 +667,6 @@
     "prevention": "Use healthy virus-free planting material, tolerant varieties where available, monitor and manage aphid vectors, and avoid propagation from infected stools.",
     "source_note": "Disease and vector information are consistent with TNAU sugarcane yellow leaf disease guidance."
   },
-
   "Earlyblight tomato": {
     "crop": "Tomato",
     "disease": "Early Blight",
@@ -721,7 +696,6 @@
     "organic_remedy": "Use crop sanitation, mulch to reduce soil splash, healthy seedlings and biological products such as Trichoderma where locally recommended.",
     "prevention": "Use healthy transplants, crop rotation, drip irrigation where suitable, mulch, adequate plant spacing and removal of infected debris."
   },
-
   "Healthy tomato": {
     "crop": "Tomato",
     "disease": "Healthy Foliage",
@@ -739,7 +713,6 @@
     "organic_remedy": "Use compost, well-decomposed organic manure and permitted biological inputs as part of integrated nutrient management.",
     "prevention": "Use healthy seedlings, maintain field sanitation, appropriate irrigation, good air circulation and regular disease scouting."
   },
-
   "Lateblight tomato": {
     "crop": "Tomato",
     "disease": "Late Blight",
@@ -770,7 +743,6 @@
     "prevention": "Use healthy transplants, resistant or tolerant varieties where available, avoid prolonged leaf wetness, improve air circulation, remove cull piles and use preventive fungicide programs when disease risk is high.",
     "source_note": "Disease symptoms are consistent with TNAU tomato late blight guidance. Exact fungicide availability and registration should be checked against the current Indian label."
   },
-
   "Yellowleafcurlyvirus tomato": {
     "crop": "Tomato",
     "disease": "Tomato Yellow Leaf Curl Virus",
@@ -800,6 +772,129 @@
     "organic_remedy": "Use yellow sticky traps, reflective or physical barriers where appropriate, conservation of natural enemies and permitted neem-based products as supplementary whitefly-management tools.",
     "prevention": "Use TYLCV-tolerant or resistant hybrids where available, healthy seedlings, insect-proof nursery protection, whitefly management, early removal of infected plants and avoidance of overlapping susceptible solanaceous crops.",
     "source_note": "The disease is transmitted primarily by Bemisia tabaci whiteflies; vector control reduces spread but does not cure infected plants."
+  },
+  "Earlyleafspot Potato": {
+    "crop": "Potato",
+    "disease": "Early Blight",
+    "pathogen": "Alternaria solani",
+    "healthy": false,
+    "symptoms": "Dark brown to black circular or irregular spots on leaves, showing concentric rings producing a characteristic target-board effect, surrounded by chlorotic yellow halos.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Initial Leaf Spotting",
+        "description": "Scattered small dark spots with faint rings on lower older foliage.",
+        "treatment": "Remove infected lower leaves. Spray protective fungicides such as Mancozeb or Chlorothalonil if weather is warm and humid.",
+        "fertilizer": "Maintain balanced nitrogen fertility; avoid nitrogen deficiency which makes plants susceptible."
+      },
+      "Medium": {
+        "severity_name": "Canopy Lesion Expansion",
+        "description": "Concentric target spots enlarge, coalesce, and spread upwards into the mid canopy causing partial defoliation.",
+        "treatment": "Apply translaminar or systemic fungicides (e.g. Azoxystrobin, Difenoconazole, or Boscalid) as recommended locally.",
+        "fertilizer": "Ensure balanced potassium and phosphorus application to strengthen foliar resistance."
+      },
+      "High": {
+        "severity_name": "Extensive Blight & Foliar Necrosis",
+        "description": "Severe blighting and rapid drying of leaves, significant leaf loss, reducing tuber bulking.",
+        "treatment": "Rotate systemic fungicide classes immediately to prevent pathogen resistance. Destroy heavily infected haulms after harvest.",
+        "fertilizer": "Avoid late excess nitrogen; maintain proper soil moisture to reduce physiological stress."
+      }
+    },
+    "organic_remedy": "Apply copper hydroxide/copper oxychloride sprays, Trichoderma harzianum or Bacillus subtilis bio-fungicides, and maintain strict field sanitation.",
+    "prevention": "Use certified disease-free seed tubers, practice 2-3 year crop rotation, manage furrow irrigation to keep foliage dry, and destroy crop residues.",
+    "source_note": "Validated according to CPRI and ICAR potato disease management guidelines."
+  },
+  "Lateleafspot Potato": {
+    "crop": "Potato",
+    "disease": "Late Blight",
+    "pathogen": "Phytophthora infestans",
+    "healthy": false,
+    "symptoms": "Water-soaked, irregular pale to dark brownish-black lesions rapidly expanding on leaves and stems, often with delicate white downy fungal mold on the underside during humid mornings.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Early Water-Soaked Lesions",
+        "description": "Isolated dark water-soaked spots with faint pale green borders on leaf margins or tips.",
+        "treatment": "Apply protective contact fungicide immediately (e.g. Mancozeb or Chlorothalonil) before lesions spread.",
+        "fertilizer": "Maintain moderate nitrogen; excessive vegetative succulent growth increases disease risk."
+      },
+      "Medium": {
+        "severity_name": "Rapid Foliar Blight Spread",
+        "description": "Lesions rapidly enlarge, blacken, and show white sporulation on leaf undersides in cool, moist weather.",
+        "treatment": "Apply systemic anti-oomycete fungicides like Metalaxyl + Mancozeb, Cymoxanil, or Dimethomorph per local spray advisory.",
+        "fertilizer": "Withhold excessive irrigation and nitrogen to discourage canopy humidity."
+      },
+      "High": {
+        "severity_name": "Destructive Canopy Blight",
+        "description": "Whole leaves turn brown, wither, and rot rapidly accompanied by foul odor; high risk of tuber rot.",
+        "treatment": "Spray eradicant systemic fungicides. Cut and destroy infected vines/haulms 10-14 days before harvest to protect tubers.",
+        "fertilizer": "Discontinue all foliar fertilizers. Ensure good hilling-up of ridges to prevent zoospores washing down to tubers."
+      }
+    },
+    "organic_remedy": "Spray Bordeaux mixture (1%) or copper-based fungicides at first symptom onset. Utilize bio-agents like Pseudomonas fluorescens.",
+    "prevention": "Plant resistant potato cultivars, use certified disease-free seed tubers, practice broad crop spacing for airflow, and avoid sprinkler irrigation.",
+    "source_note": "Consistent with ICAR-CPRI late blight advisory protocols."
+  },
+  "Healthy Potato": {
+    "crop": "Potato",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Vibrant, uniformly green compound leaves with upright stems and crisp foliage free from necrotic spotting, curling, or water-soaked blight lesions.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Strong vegetative growth and healthy canopy with no observable disease symptoms.",
+        "treatment": "No disease treatment required. Continue routine scouting and preventive monitoring.",
+        "fertilizer": "Apply balanced NPK fertilization per tuber stage (higher potassium during tuber initiation and bulking)."
+      }
+    },
+    "organic_remedy": "Incorporate well-rotted farmyard manure (FYM) and apply neem cake or bio-fertilizers (Azotobacter, PSB).",
+    "prevention": "Maintain regular ridging/earthing up, uniform soil moisture, and preventive scouting for aphids and leaf spots."
+  },
+  "Leafrust Coffee": {
+    "crop": "Coffee",
+    "disease": "Coffee Leaf Rust",
+    "pathogen": "Hemileia vastatrix",
+    "healthy": false,
+    "symptoms": "Yellow-orange powdery circular pustules on the undersides of leaves, corresponding to pale chlorotic yellow spots on the upper leaf surface, causing premature leaf fall.",
+    "severity_levels": {
+      "Low": {
+        "severity_name": "Scattered Rust Pustules",
+        "description": "Small isolated powdery orange spots on lower canopy leaves with minimal leaf drop.",
+        "treatment": "Apply protective 0.5% Bordeaux mixture or copper oxychloride before the onset of heavy monsoon rains.",
+        "fertilizer": "Maintain balanced plant nutrition with adequate potassium to enhance plant vitality."
+      },
+      "Medium": {
+        "severity_name": "Canopy Sporulation",
+        "description": "Multiple orange powdery spots coalesce on mid-tier leaves, causing noticeable defoliation and branch dieback.",
+        "treatment": "Spray registered systemic triazole fungicides like Triadimefon, Hexaconazole, or Epoxiconazole per Central Coffee Research Institute guidelines.",
+        "fertilizer": "Apply soil-test based fertilizer with balanced zinc and boron micronutrients."
+      },
+      "High": {
+        "severity_name": "Severe Defoliation & Dieback",
+        "description": "Extensive defoliation across coffee bush branches, exposing berries and causing severe dieback and berry drop.",
+        "treatment": "Apply integrated systemic fungicide spray followed by copper spray after 30-45 days. Prune dead wood and shade canopy.",
+        "fertilizer": "Recondition soil organic matter and apply balanced post-monsoon NPK to assist canopy recovery."
+      }
+    },
+    "organic_remedy": "Spray 0.5% neutral Bordeaux mixture, mineral sulfur formulations, or bio-fungicides like Lecanicillium lecanii (hyperparasite of rust).",
+    "prevention": "Prune shade trees to allow 50-60% filtered sunlight, maintain good field aeration, prune infected shoots, and plant rust-tolerant coffee cultivars.",
+    "source_note": "Aligned with Central Coffee Research Institute (CCRI) guidelines."
+  },
+  "Healthy Coffee": {
+    "crop": "Coffee",
+    "disease": "Healthy Foliage",
+    "pathogen": "None",
+    "healthy": true,
+    "symptoms": "Glossy, deep green oval leaves with prominent veins and clean leaf margins, showing vigorous shoot extension without orange rust pustules or black rot.",
+    "severity_levels": {
+      "Optimal": {
+        "severity_name": "Optimal Health",
+        "description": "Lush, dark green glossy leaves with robust branch nodes and healthy flower bud or berry clusters.",
+        "treatment": "No disease treatment required. Continue regular scouting and weed management.",
+        "fertilizer": "Apply pre-monsoon and post-monsoon balanced NPK fertilizer and organic compost tailored to bush age."
+      }
+    },
+    "organic_remedy": "Mulch with coffee pulp or organic leaves, apply vermicompost, and maintain beneficial mycorrhizal soil fungi.",
+    "prevention": "Regulate shade trees for optimum sunlight, maintain good drainage during monsoon, and prune criss-cross branches."
   }
 }
-

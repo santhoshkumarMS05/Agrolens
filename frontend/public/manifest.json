@@ -1,0 +1,18 @@
+{
+  "short_name": "AgroLens",
+  "name": "AgroLens — Botanical Intelligence & Crop Diagnostics",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/dashboard",
+  "background_color": "#0a0f0a",
+  "theme_color": "#2d4627",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/"
+}

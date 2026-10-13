@@ -58,7 +58,7 @@ git lfs pull
 # 5. Build Frontend
 echo "[5/7] Building Frontend..."
 cd /home/ubuntu/agrolens/frontend
-echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_aHVtYW5lLXRyb2xsLTU5NjIuY2xlcmsuYWNjb3VudHMuZGV2JA" > .env
+echo "VITE_GOOGLE_CLIENT_ID=37786540843-bonofkqkqk57epqbp2utkfarrqu5eb14.apps.googleusercontent.com" > .env
 npm install
 npm run build
 

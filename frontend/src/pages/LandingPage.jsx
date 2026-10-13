@@ -35,6 +35,14 @@ const cropData = {
   coconut: {
     title: "Coconut Palm Health",
     note: "Monitors Gray Leaf Spot (oval spots turning grayish-white with dark brown borders) and Leaf Rot / Bud Rot (rotting of youngest spear leaves, necrotic blackening, and collar rot)."
+  },
+  potato: {
+    title: "Potato Foliage Protection",
+    note: "Diagnoses Early Blight (concentric target-board rings), Late Blight (water-soaked dark lesions with downy sporulation), and healthy potato foliage."
+  },
+  coffee: {
+    title: "Coffee Plantation Health",
+    note: "Detects devastating Coffee Leaf Rust (powdery yellow-orange foliar pustules on leaf undersides) and healthy coffee foliage."
   }
 };
 
@@ -293,9 +301,27 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
           <div id="navAuthSlot" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <ThemeToggle />
             {user ? (
-              <Link className="btn primary" to="/dashboard" style={{ padding: "8px 20px", fontSize: ".88rem" }}>
-                🌱 Open Scanner
-              </Link>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span
+                  style={{
+                    fontSize: "0.84rem",
+                    padding: "5px 14px",
+                    borderRadius: "99px",
+                    background: "rgba(45,70,39,.14)",
+                    border: "1px solid rgba(45,70,39,.25)",
+                    color: "var(--ink)",
+                    fontWeight: 600,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  👨‍🌾 {user?.name || user?.email || "Farmer"}
+                </span>
+                <Link className="btn primary" to="/dashboard" style={{ padding: "8px 20px", fontSize: ".88rem" }}>
+                  🌱 Open Scanner
+                </Link>
+              </div>
             ) : (
               <Link className="pill" to="/login">Sign in</Link>
             )}
@@ -315,15 +341,15 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
           <span className="eyebrow" style={{ display: "block" }}>AI Agricultural Health &amp; Phenology Intelligence</span>
           <h1 style={{ marginTop: "14px" }}>One photo.<br/><em>Disease diagnosis</em> &amp;<br/>growth stage tracking.</h1>
           <p className="lede">
-            AgroLens delivers dual-engine agronomic intelligence for farmers. Instantly diagnose 25 critical foliar diseases with Grad-CAM heatmaps, or track plant growth across vegetative, reproductive, and ripening phases with tailored irrigation schedules, fertilizer timing, and harvest forecasts. Powered by edge neural networks and Amazon Nova Lite multimodal vision.
+            AgroLens delivers dual-engine agronomic intelligence for farmers. Instantly diagnose 30 critical foliar conditions with Grad-CAM heatmaps, or track plant growth across vegetative, reproductive, and ripening phases with tailored irrigation schedules, fertilizer timing, and harvest forecasts. Powered by edge neural networks and Amazon Nova Lite multimodal vision.
           </p>
           <div className="ctas">
             <Link className="btn primary" to="/dashboard">Open AI Dashboard →</Link>
             <a className="btn" href="#crops">Explore Supported Crops</a>
           </div>
           <div className="facts">
-            <div className="fact"><div className="n">8+</div><div className="l">Crops Supported</div></div>
-            <div className="fact"><div className="n">25</div><div className="l">Disease Classes</div></div>
+            <div className="fact"><div className="n">10+</div><div className="l">Crops Supported</div></div>
+            <div className="fact"><div className="n">30</div><div className="l">Disease Classes</div></div>
             <div className="fact"><div className="n">Dual</div><div className="l">Disease &amp; Phenology</div></div>
             <div className="fact"><div className="n">3</div><div className="l">Languages (EN/TA/HI)</div></div>
           </div>
@@ -378,7 +404,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
               <h3>Dual-Engine Intelligence: Disease + Phenology</h3>
               <p>A streamlined mobile diagnostic workflow designed for real farmers, agronomists, and field officers.</p>
               <ul>
-                <li><b>Crop Pre-Selection &amp; Open-World:</b> Select from 8 core crops or type any custom crop with dynamic English, Tamil, and Hindi translations.</li>
+                <li><b>Crop Pre-Selection &amp; Open-World:</b> Select from 10 core crops (including Potato &amp; Coffee) or type any custom crop with dynamic English, Tamil, and Hindi translations.</li>
                 <li><b>Dual Diagnostic Modes:</b> Toggle between close-up leaf disease diagnosis and whole-plant growth stage phenology tracking.</li>
                 <li><b>Hybrid Vision Intelligence:</b> Edge neural network paired with Amazon Nova Lite multimodal visual teacher for open-world verification.</li>
                 <li><b>Trilingual Advisory:</b> Instant actionable curative remedies, stage-based irrigation, and fertilizer timing in English, தமிழ், or हिन्दी.</li>
@@ -405,7 +431,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
                 <div className={`card ${openCards[1] ? "open" : ""}`} onClick={() => toggleCard(1)}>
                   <div className="top"><h3>1. Crop Selection &amp; Diagnostic Mode</h3><span className="sign"></span></div>
                   <p className="kick">Targeted agronomic context &amp; multilingual crop selection</p>
-                  <div className="drawer"><div><p>The farmer selects their crop from 8 core agricultural commodities or enters a custom crop in English, Tamil, or Hindi, then chooses between Foliar Disease Diagnosis or Whole-Plant Growth Stage Phenology.</p></div></div>
+                  <div className="drawer"><div><p>The farmer selects their crop from 10 core agricultural commodities or enters a custom crop in English, Tamil, or Hindi, then chooses between Foliar Disease Diagnosis or Whole-Plant Growth Stage Phenology.</p></div></div>
                 </div>
               </li>
               <li className="step">
@@ -421,7 +447,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
                 <div className={`card ${openCards[3] ? "open" : ""}`} onClick={() => toggleCard(3)}>
                   <div className="top"><h3>3. Dual Vision Neural Evaluation</h3><span className="sign"></span></div>
                   <p className="kick">Edge classification &amp; crop consistency verification</p>
-                  <div className="drawer"><div><p>The neural network scans micro-features across 25 agricultural classes. The system actively cross-checks the prediction against the selected crop to prevent false diagnoses.</p></div></div>
+                  <div className="drawer"><div><p>The neural network scans micro-features across 30 agricultural classes. The system actively cross-checks the prediction against the selected crop to prevent false diagnoses.</p></div></div>
                 </div>
               </li>
               <li className="step">
@@ -465,7 +491,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
         <div className="wrap">
           <div className="sec-head">
             <span className="eyebrow">Supported Crop Directory</span>
-            <h2>25 Diagnosable Conditions across 8 Crops.</h2>
+            <h2>30 Diagnosable Conditions across 10 Crops.</h2>
             <p>Select any crop card below to view its specific diagnosable diseases, fungal pathogens, and healthy foliage indicators.</p>
           </div>
           
@@ -566,6 +592,29 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
                 <span className="chip">Leaf rot</span>
               </div>
             </div>
+
+            <div className={`mcard ${selectedCrop === "potato" ? "sel" : ""}`} onClick={() => setSelectedCrop("potato")}>
+              <span className="mark"></span>
+              <span className="badge-win">Tuber Vegetable</span>
+              <h3>🥔 Potato</h3>
+              <p>Early blight (target-board lesions), late blight, and healthy potato leaves.</p>
+              <div className="chips">
+                <span className="chip">Early blight</span>
+                <span className="chip">Late blight</span>
+                <span className="chip">Healthy</span>
+              </div>
+            </div>
+
+            <div className={`mcard ${selectedCrop === "coffee" ? "sel" : ""}`} onClick={() => setSelectedCrop("coffee")}>
+              <span className="mark"></span>
+              <span className="badge-win">Plantation Cash Crop</span>
+              <h3>☕ Coffee</h3>
+              <p>Coffee leaf rust (orange pustules) and healthy coffee foliage.</p>
+              <div className="chips">
+                <span className="chip">Leaf rust</span>
+                <span className="chip">Healthy</span>
+              </div>
+            </div>
           </div>
 
           <div className="mnote" id="cropInfoNote">
@@ -586,7 +635,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
             <div className={`scell ${openScells[1] ? "open" : ""}`} onClick={() => toggleScell(1)}>
               <div className="lbl">Crop Pre-Selection</div>
               <h4>Targeted &amp; Open-World</h4>
-              <div className="dr"><div><p>Choose from 8 core agricultural commodities or input any custom crop in your local language to provide strict agronomic context and prevent false diagnoses.</p></div></div>
+              <div className="dr"><div><p>Choose from 10 core agricultural commodities (including Potato &amp; Coffee) or input any custom crop in your local language to provide strict agronomic context and prevent false diagnoses.</p></div></div>
             </div>
             <div className={`scell ${openScells[2] ? "open" : ""}`} onClick={() => toggleScell(2)}>
               <div className="lbl">Dual Diagnostic Modes</div>
@@ -623,7 +672,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
           <div>
             <b>AgroLens</b> — Intelligent Crop Disease &amp; Stage Detection Application
             <div style={{ fontSize: "0.8rem", color: "rgba(244,241,226,0.6)", marginTop: "6px" }}>
-              Protecting Rice, Sugarcane, Cotton, Corn, Groundnut, Cassava, Sorghum &amp; Coconut
+              Protecting Rice, Sugarcane, Cotton, Corn, Groundnut, Cassava, Sorghum, Coconut, Potato &amp; Coffee
             </div>
           </div>
           <div className="f-links">

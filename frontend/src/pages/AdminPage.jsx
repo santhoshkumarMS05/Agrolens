@@ -806,7 +806,7 @@ export const AdminPage = () => {
                               <span className="m-lbl">{isStage ? "Model Type" : "Model Accuracy"}</span>
                               <span className={`m-val ${isMaintenance ? "acc-high" : "acc-staging"}`}>
                                 {isStage
-                                  ? "Stage Base (Pending)"
+                                  ? (c.is_new_class ? "Nova Lite (Zero-Shot)" : "ConvNeXt-Tiny Stage Head")
                                   : c.is_new_class
                                   ? "0.0% (New)"
                                   : c.current_accuracy
@@ -818,9 +818,9 @@ export const AdminPage = () => {
                               <span className="m-lbl">Staging Status</span>
                               <span className="m-val" style={{ fontSize: ".85rem", color: "var(--ink)" }}>
                                 {isStage
-                                  ? c.approved_count >= 100
-                                    ? "Quota Reached (Awaiting Model)"
-                                    : "Collecting (≥85%)"
+                                  ? c.approved_count >= 50
+                                    ? "Ready to Retrain (≥50)"
+                                    : `Collecting (≥85%): ${c.approved_count}/50`
                                   : c.approved_count > 0
                                   ? "Ready to Retrain"
                                   : isMaintenance
@@ -837,19 +837,7 @@ export const AdminPage = () => {
                           </div>
 
                           <div className="class-card-actions">
-                            {isStage ? (
-                              <button
-                                type="button"
-                                className="retrain-btn secondary"
-                                disabled
-                                title={`Custom stage model architecture not initialized yet. Collecting samples in progress (${c.approved_count}/${c.threshold || 100}).`}
-                              >
-                                <span>🔒</span>{" "}
-                                <span>
-                                  Awaiting Stage Model Base ({c.approved_count}/{c.threshold || 100})
-                                </span>
-                              </button>
-                            ) : c.approved_count >= (c.threshold || 100) ? (
+                            {c.approved_count >= (isStage ? 50 : (c.threshold || 100)) ? (
                               <button
                                 type="button"
                                 className="retrain-btn primary"
@@ -862,11 +850,11 @@ export const AdminPage = () => {
                                 type="button"
                                 className="retrain-btn secondary"
                                 disabled
-                                title="Threshold not reached. 100 approved samples required before fine-tuning."
+                                title={`Threshold not reached. ${isStage ? 50 : (c.threshold || 100)} approved samples required before fine-tuning.`}
                               >
                                 <span>⏳</span>{" "}
                                 <span>
-                                  Collecting Samples ({c.approved_count}/{c.threshold || 100})
+                                  Collecting Samples ({c.approved_count}/{isStage ? 50 : (c.threshold || 100)})
                                 </span>
                               </button>
                             )}

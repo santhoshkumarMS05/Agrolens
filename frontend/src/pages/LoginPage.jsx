@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useClerk } from "@clerk/react";
+import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
 
@@ -11,32 +11,72 @@ export const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
-  const clerk = useClerk();
 
-  const handleGoogleSignIn = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const c = window.Clerk || clerk;
-      if (c && c.client && c.client.signIn) {
-        await c.client.signIn.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: `${window.location.origin}/sso-callback`,
-          redirectUrlComplete: `${window.location.origin}/sso-callback`,
+  // If already signed in, immediately forward to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate(user.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError("");
+      setLoading(true);
+      try {
+        const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
-        return;
-      }
-      if (c && c.openSignIn) {
-        c.openSignIn();
+        const profile = await userInfoRes.json();
+        const email = profile.email;
+        const name = profile.name || profile.given_name || (email ? email.split("@")[0] : "Farmer");
+
+        if (!email) {
+          setError("Google account did not provide an email address.");
+          setLoading(false);
+          return;
+        }
+
+        const syncRes = await fetch("/api/oauth/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, name }),
+        });
+        const data = await syncRes.json();
+        if (data.ok && data.user) {
+          login(data.user);
+          navigate(data.user.role === "admin" ? "/admin" : "/dashboard");
+        } else {
+          setError(data.error || "Failed to synchronize Google account.");
+        }
+      } catch (err) {
+        console.error("Google sign in error:", err);
+        setError("Error connecting to Google profile. Please try again.");
+      } finally {
         setLoading(false);
       }
-    } catch (err) {
-      console.error("Google sign in error:", err);
-      setError(err?.errors?.[0]?.message || err?.message || "Failed to launch Google sign in.");
+    },
+    onError: (err) => {
+      console.warn("Google sign in cancelled or failed:", err);
+      if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+        setError("Google Client ID is not configured. Please add VITE_GOOGLE_CLIENT_ID to your frontend .env file.");
+      } else {
+        setError("Google sign-in was cancelled or failed.");
+      }
       setLoading(false);
+    },
+  });
+
+  const handleGoogleSignIn = () => {
+    setError("");
+    if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+      setError("Please set VITE_GOOGLE_CLIENT_ID in your .env file to enable Google Sign-In.");
+      return;
     }
+    loginWithGoogle();
   };
 
   const handleSubmit = async (e) => {
@@ -97,7 +137,7 @@ export const LoginPage = () => {
         </div>
         <div className="proofs">
           <div className="proof">
-            <div className="n">25+</div>
+            <div className="n">30+</div>
             <div className="l">Diagnosed Crops</div>
           </div>
           <div className="proof">

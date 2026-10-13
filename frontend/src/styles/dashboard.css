@@ -766,5 +766,356 @@ a.nav-link.active,
   }
 }
 
+/* ── WEATHER & MICROCLIMATE RISK CARD ────────────────────── */
+.weather-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px 24px;
+  margin: 18px 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(27, 33, 20, 0.04);
+  color: var(--ink);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Matching top gradient accent line just like .panel */
+.weather-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--gold) 70%, var(--rust));
+}
+
+.weather-card .location-title {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+}
+
+.weather-card .location-sub {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.weather-card .metric-pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(27, 33, 20, 0.03);
+}
+
+.weather-card .rain-pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.weather-card .risk-badge {
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Light Theme Badges matching the AgroLens palette */
+.weather-card.risk-low .risk-badge {
+  background: rgba(45, 70, 39, 0.12);
+  color: var(--green);
+  border: 1.2px solid rgba(45, 70, 39, 0.25);
+}
+.weather-card.risk-moderate .risk-badge {
+  background: rgba(193, 156, 64, 0.14);
+  color: #8c6819;
+  border: 1.2px solid rgba(193, 156, 64, 0.3);
+}
+.weather-card.risk-high .risk-badge {
+  background: rgba(176, 85, 46, 0.14);
+  color: var(--rust);
+  border: 1.2px solid rgba(176, 85, 46, 0.3);
+}
+
+/* Threat Box matching advisory cards in the application */
+.weather-card .threat-box {
+  margin-top: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.weather-card.risk-low .threat-title {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.94rem;
+}
+.weather-card.risk-moderate .threat-title {
+  color: #8c6819;
+  font-weight: 700;
+  font-size: 0.94rem;
+}
+.weather-card.risk-high .threat-title {
+  color: var(--rust);
+  font-weight: 700;
+  font-size: 0.94rem;
+}
+
+.weather-card .threat-advice {
+  font-size: 0.88rem;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* Dark Theme Overrides matching dark palette seamlessly */
+[data-theme="dark"] .weather-card {
+  background: var(--paper-2);
+  border-color: var(--line);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+}
+[data-theme="dark"] .weather-card .location-title {
+  color: var(--ink);
+}
+[data-theme="dark"] .weather-card .location-sub {
+  color: var(--muted);
+}
+[data-theme="dark"] .weather-card .metric-pill {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+[data-theme="dark"] .weather-card .rain-pill {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #93c5fd;
+}
+[data-theme="dark"] .weather-card.risk-low .risk-badge {
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--green);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+[data-theme="dark"] .weather-card.risk-moderate .risk-badge {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--gold);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+[data-theme="dark"] .weather-card.risk-high .risk-badge {
+  background: rgba(251, 113, 133, 0.15);
+  color: var(--rust);
+  border-color: rgba(251, 113, 133, 0.3);
+}
+[data-theme="dark"] .weather-card .threat-box {
+  background: var(--paper);
+  border-color: var(--line);
+}
+[data-theme="dark"] .weather-card.risk-low .threat-title {
+  color: var(--green);
+}
+[data-theme="dark"] .weather-card.risk-moderate .threat-title {
+  color: var(--gold);
+}
+[data-theme="dark"] .weather-card.risk-high .threat-title {
+  color: var(--rust);
+}
+[data-theme="dark"] .weather-card .threat-advice {
+  color: var(--ink);
+}
+
+/* ── Live Mobile Camera Scanner & Snap UI ───────────────── */
+.btn-scanner-action {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--r);
+  border: 1.5px solid var(--green);
+  background: rgba(45, 70, 39, 0.08);
+  color: var(--green);
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.btn-scanner-action:hover {
+  background: var(--green);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(45, 70, 39, 0.25);
+}
+[data-theme="dark"] .btn-scanner-action {
+  border-color: var(--green-l);
+  color: var(--green-l);
+  background: rgba(74, 222, 128, 0.1);
+}
+[data-theme="dark"] .btn-scanner-action:hover {
+  background: var(--green-l);
+  color: #111a10;
+}
+
+.camera-viewfinder-card {
+  margin-top: 20px;
+  border-radius: var(--r);
+  overflow: hidden;
+  background: #000000;
+  border: 2px solid var(--green);
+  box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.45);
+  display: block;
+  position: relative;
+}
+
+.camera-stream-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  max-height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #080d07;
+}
+
+.camera-video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Reticle targeting viewfinder */
+.camera-overlay-reticle {
+  position: absolute;
+  top: 15%;
+  left: 12%;
+  right: 12%;
+  bottom: 20%;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 16px;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+.reticle-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--gold-l);
+  border-style: solid;
+}
+.reticle-corner.top-left {
+  top: -2px;
+  left: -2px;
+  border-width: 3.5px 0 0 3.5px;
+  border-top-left-radius: 8px;
+}
+.reticle-corner.top-right {
+  top: -2px;
+  right: -2px;
+  border-width: 3.5px 3.5px 0 0;
+  border-top-right-radius: 8px;
+}
+.reticle-corner.bottom-left {
+  bottom: -2px;
+  left: -2px;
+  border-width: 0 0 3.5px 3.5px;
+  border-bottom-left-radius: 8px;
+}
+.reticle-corner.bottom-right {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 3.5px 3.5px 0;
+  border-bottom-right-radius: 8px;
+}
+.reticle-guide {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 10px;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.3px;
+}
+
+/* Camera bottom controls */
+.camera-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16px 20px;
+  background: #111a10;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.btn-camera-snap {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s var(--ease);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+.btn-camera-snap:hover {
+  transform: scale(1.06);
+}
+.btn-camera-snap:active {
+  transform: scale(0.94);
+}
+.snap-btn-inner {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: background 0.15s var(--ease);
+}
+.btn-camera-snap:hover .snap-btn-inner {
+  background: var(--gold-l);
+}
+.btn-camera-flip,
+.btn-camera-cancel {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 9px 16px;
+  border-radius: 99px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+.btn-camera-flip:hover,
+.btn-camera-cancel:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 
 
