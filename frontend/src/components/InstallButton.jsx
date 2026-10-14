@@ -4,8 +4,24 @@ export const InstallButton = ({ style = {}, className = "" }) => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const checkIsMobile = () => {
+      const ua = navigator.userAgent || "";
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+      const isTouchAndSmall = navigator.maxTouchPoints > 0 && window.innerWidth <= 840;
+      return isMobileUA || isTouchAndSmall;
+    };
+
+    setIsMobile(checkIsMobile());
+
+    const handleResize = () => {
+      setIsMobile(checkIsMobile());
+    };
+
+    window.addEventListener("resize", handleResize);
+
     // Check if app is already running in standalone PWA mode
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -29,12 +45,14 @@ export const InstallButton = ({ style = {}, className = "" }) => {
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
-  if (isInstalled) return null;
+  // Only show on mobile devices (e.g. mobile Chrome) and not installed
+  if (!isMobile || isInstalled) return null;
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {

@@ -281,6 +281,13 @@ button, input, select, textarea{font-family:"Space Grotesk",system-ui,-apple-sys
   .user-pill{display:none !important}
 }
 
+/* Hide Install App button on desktop computers (only intended for mobile devices) */
+@media (min-width: 769px) {
+  .install-btn {
+    display: none !important;
+  }
+}
+
 .pill{border:1px solid var(--line);border-radius:99px;padding:8px 18px;font-size:.85rem;color:var(--muted);text-decoration:none;transition:all .25s var(--ease)}
 .pill:hover{border-color:var(--green);color:var(--green)}
 
