@@ -1042,6 +1042,134 @@ def get_advisory():
     })
 
 
+@app.post("/api/doctor/chat")
+def doctor_chat():
+    """
+    AgroLens Multimodal AI Crop Doctor & Precision Spray Dosage Assistant.
+    Accepts user question, conversation history, crop context, diagnosis result, and microclimate weather.
+    Produces localized expert agronomic advice, spray feasibility, and precision tank dilution calculations.
+    """
+    data = json_body() or {}
+    message = (data.get("message") or "").strip()
+    if not message:
+        return jsonify({"ok": False, "error": "Message is required."}), 400
+
+    history = data.get("history") or []
+    crop = (data.get("crop") or "Crop").strip()
+    disease = (data.get("disease") or "Plant Foliage Condition").strip()
+    severity = (data.get("severity") or "Moderate").strip()
+    confidence = data.get("confidence", 0.0)
+    weather = data.get("weather") or {}
+    lang = (data.get("lang") or "en").lower().strip()
+    if lang not in ("en", "ta", "hi"):
+        lang = "en"
+
+    # Acreage & Tank capacity for calculation
+    acreage = data.get("acreage")
+    tank_capacity = data.get("tank_capacity")
+
+    # Load Groq key
+    groq_key = os.getenv("GROQ_API_KEY", "").strip()
+    if not groq_key:
+        load_dotenv(BASE / ".env", override=True)
+        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+
+    weather_desc = f"Temperature: {weather.get('temp', 28)}°C, Humidity: {weather.get('humidity', 75)}%, Wind Speed: {weather.get('windSpeed', 10)} km/h, Rain: {weather.get('precipitation', 0.0)} mm"
+
+    lang_instructions = {
+        "ta": "Reply STRICTLY in natural, respectful, farmer-friendly Tamil (தமிழ் script). Keep chemical names, active ingredients, and numbers very clear (e.g., காப்பர் ஆக்ஸிகுளோரைடு 50 WP @ 2.5 கிராம்/லிட்டர், 16 லிட்டர் டேங்க்).",
+        "hi": "Reply STRICTLY in natural, respectful, farmer-friendly Hindi (हिन्दी script). Keep chemical active ingredients and unit numbers clear (e.g., कॉपर ऑक्सीक्लोराइड 50 WP @ 2.5 ग्राम/लीटर, 16 लीटर टंकी).",
+        "en": "Reply in clear, direct, practical English suitable for farmers and agriculturalists."
+    }
+
+    system_prompt = (
+        "You are 'AgroLens AI Crop Doctor', a certified agricultural expert and precision spray agronomist.\n"
+        f"{lang_instructions.get(lang, lang_instructions['en'])}\n\n"
+        "CORE RESPONSIBILITIES:\n"
+        "1. Crop & Pathology Knowledge: Answer questions about the detected crop, diagnosis, symptom progression, and curative treatments according to ICAR and state agricultural university (TNAU) protocols.\n"
+        "2. Precision Spray & Dosage Calculation:\n"
+        "   - Standard field water requirement: 150 - 200 Liters of water per acre for foliar spray (or 370-500 L/ha).\n"
+        "   - When calculating for a field, clearly state:\n"
+        "     * Recommended Chemical or Organic active ingredient with recommended concentration (e.g. 2 ml/L or 2.5 g/L)\n"
+        "     * Total water volume needed for the total field area (Liters)\n"
+        "     * Total chemical quantity needed (ml or grams)\n"
+        "     * Number of spray tanks needed based on the tank capacity (e.g. 16L knapsack)\n"
+        "     * Exact amount of chemical to pour into EACH tank\n"
+        "3. Weather & Spray Timing Guidance: Check the provided weather conditions. If high humidity (>85%) or rain is imminent, advise on rainfastness or using an agricultural wetting/sticking agent (spreader). Never recommend spraying in strong winds (>15 km/h) or scorching midday heat.\n"
+        "4. Safety First: Remind farmers to wear gloves/mask, spray with the wind at their back, and keep animals/children away.\n"
+        "5. Tone: Respectful, practical, crisp (use bullet points or numbered lists). Avoid overwhelming academic jargon."
+    )
+
+    context_prompt = (
+        f"CURRENT FIELD CONTEXT:\n"
+        f"- Target Crop: {crop}\n"
+        f"- Diagnosed Foliage Condition: {disease}\n"
+        f"- Severity Level: {severity}\n"
+        f"- Model Confidence: {confidence}%\n"
+        f"- Live Microclimate: {weather_desc}\n"
+    )
+    if acreage:
+        context_prompt += f"- Farmer Field Size: {acreage} Acres\n"
+    if tank_capacity:
+        context_prompt += f"- Farmer Spray Tank Capacity: {tank_capacity} Liters\n"
+
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.append({"role": "system", "content": context_prompt})
+
+    # Append recent history (last 6 messages max)
+    for h in history[-6:]:
+        r = h.get("role")
+        c = h.get("content")
+        if r in ("user", "assistant") and c:
+            messages.append({"role": r, "content": c})
+
+    messages.append({"role": "user", "content": message})
+
+    if groq_key:
+        try:
+            from groq import Groq
+            client = Groq(api_key=groq_key)
+            completion = None
+            used_model = None
+            for m in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"]:
+                try:
+                    completion = client.chat.completions.create(
+                        model=m,
+                        messages=messages,
+                        temperature=0.3,
+                        max_tokens=800
+                    )
+                    used_model = m
+                    break
+                except Exception as me:
+                    print(f"[doctor] Model {m} error: {me}")
+                    continue
+
+            if completion:
+                reply_text = completion.choices[0].message.content or ""
+                return jsonify({
+                    "ok": True,
+                    "reply": reply_text,
+                    "model": used_model,
+                    "lang": lang
+                })
+        except Exception as ge:
+            print(f"[doctor] Groq call error: {ge}")
+
+    # Fallback response if LLM is unreachable
+    fallback_replies = {
+        "ta": f"வணக்கம் விவசாயி அவர்களே. உங்கள் {crop} பயிரில் {disease} ({severity}) அடையாளம் காணப்பட்டுள்ளது. ஒரு ஏக்கருக்கு 150-200 லிட்டர் தண்ணீர் தேவைப்படும். 16 லிட்டர் ஸ்ப்ரே டேங்கிற்கு பரிந்துரைக்கப்பட்ட மருந்தை 30-35 மிலி அல்லது கிராம் கலந்து காலை அல்லது மாலை வேளையில் தெளிக்கவும்.",
+        "hi": f"नमस्ते किसान भाई। आपकी {crop} फसल में {disease} ({severity}) पाया गया है। प्रति एकड़ 150-200 लीटर पानी का उपयोग करें। 16 लीटर स्प्रे टंकी के लिए अनुशंसित दवा 30-35 मिली/ग्राम मिलाकर सुबह या शाम को छिड़काव करें।",
+        "en": f"Hello farmer. For your {crop} diagnosed with {disease} ({severity}), standard foliar spraying requires 150–200 Liters of water per acre. For a typical 16-Liter knapsack tank, mix 30–35 ml (or grams) of the recommended fungicide and spray during cool morning or evening hours."
+    }
+    return jsonify({
+        "ok": True,
+        "reply": fallback_replies.get(lang, fallback_replies["en"]),
+        "model": "offline_agronomist_fallback",
+        "lang": lang
+    })
+
+
 # ── Native PyTorch Inference & Authentic Grad-CAM ─────────
 CLASSES_FILE = BASE / "class_names.json"
 if CLASSES_FILE.exists():

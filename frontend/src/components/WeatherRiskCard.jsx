@@ -16,7 +16,7 @@ const BASELINE_WEATHER = {
   timestamp: Date.now()
 };
 
-export const WeatherRiskCard = ({ selectedCrop = "Rice", activeLang = "en" }) => {
+export const WeatherRiskCard = ({ selectedCrop = "Rice", activeLang = "en", onWeatherUpdate = null }) => {
   const [weather, setWeather] = useState(BASELINE_WEATHER);
   const [locationName, setLocationName] = useState("Local Field Area");
   const [riskAssessment, setRiskAssessment] = useState(() =>
@@ -31,6 +31,7 @@ export const WeatherRiskCard = ({ selectedCrop = "Rice", activeLang = "en" }) =>
       const weatherData = await fetchLiveWeather(coords.lat, coords.lon);
       if (weatherData) {
         setWeather(weatherData);
+        if (onWeatherUpdate) onWeatherUpdate(weatherData);
         setRiskAssessment(evaluateDiseaseRisk(weatherData, selectedCrop));
       }
       try {

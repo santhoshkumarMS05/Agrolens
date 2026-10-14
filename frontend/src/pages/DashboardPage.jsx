@@ -7,6 +7,7 @@ import voiceReader from "../utils/voiceReader";
 import { loadOfflineModel, runClientOnnxInference } from "../utils/onnxOfflineEngine";
 import WeatherRiskCard from "../components/WeatherRiskCard";
 import BrandLogo from "../components/BrandLogo";
+import CropDoctorChat from "../components/CropDoctorChat";
 
 const CROPS_LIST = [
   { id: "Cotton", icon: "🌱", en: "Cotton", ta: "பருத்தி", hi: "कपास" },
@@ -321,6 +322,7 @@ export const DashboardPage = () => {
   const cameraStreamRef = useRef(null);
 
   // Status & Diagnosis Results
+  const [liveWeather, setLiveWeather] = useState({ temp: 28, humidity: 75, windSpeed: 10, precipitation: 0.0 });
   const [statusText, setStatusText] = useState("Model ready — ConvNeXt-Tiny (96.7% Accuracy, 30 Classes).");
   const [loading, setLoading] = useState(false);
   const [cropGateError, setCropGateError] = useState(null);
@@ -1255,7 +1257,7 @@ export const DashboardPage = () => {
             </button>
 
             {/* Live Microclimate & Outbreak Alert Widget */}
-            <WeatherRiskCard selectedCrop={selectedCropName} activeLang={activeLang} />
+            <WeatherRiskCard selectedCrop={selectedCropName} activeLang={activeLang} onWeatherUpdate={setLiveWeather} />
 
             <div className="grid">
               {/* LEFT PANEL: UPLOAD & ACTIVE LEAF */}
@@ -1779,6 +1781,16 @@ export const DashboardPage = () => {
                           )}
                         </div>
 
+                        {/* AI Crop Doctor & Precision Spray Assistant */}
+                        <CropDoctorChat
+                          crop={p.crop || selectedCropName}
+                          disease={p.disease || (currentResult?.healthy ? "Healthy Foliage" : "Crop Condition")}
+                          severity={p.severity || "Moderate"}
+                          confidence={currentResult?.confidence || 90}
+                          weather={liveWeather}
+                          activeLang={activeLang}
+                        />
+
                         {/* Save, Share, Export & Report Actions */}
                         <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
                           <button
@@ -2002,6 +2014,16 @@ export const DashboardPage = () => {
                             </div>
                           </div>
                         </div>
+
+                        {/* AI Crop Doctor & Precision Spray Assistant */}
+                        <CropDoctorChat
+                          crop={currentStageResult.advisory?.crop || currentStageResult.crop || selectedCropName}
+                          disease={`${currentStageResult.phase} Phase Growth Stage`}
+                          severity="Optimal"
+                          confidence={currentStageResult.confidence || 90}
+                          weather={liveWeather}
+                          activeLang={activeLang}
+                        />
 
                         {/* Save Stage, Share & Export */}
                         <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
