@@ -6,6 +6,7 @@ import { shareToWhatsApp, exportToPdf } from "../utils/advisoryExport";
 import voiceReader from "../utils/voiceReader";
 import { loadOfflineModel, runClientOnnxInference } from "../utils/onnxOfflineEngine";
 import WeatherRiskCard from "../components/WeatherRiskCard";
+import BrandLogo from "../components/BrandLogo";
 
 const CROPS_LIST = [
   { id: "Cotton", icon: "🌱", en: "Cotton", ta: "பருத்தி", hi: "कपास" },
@@ -1123,10 +1124,7 @@ export const DashboardPage = () => {
       <nav className="nav">
         <div className="nav-in">
           <Link className="brand" to="/">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z" fill="#2d4627" />
-              <path d="M12 21V9" stroke="#f4f1e2" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
+            <BrandLogo size={38} style={{ marginRight: "10px" }} />
             AgroLens
           </Link>
           <div className="nav-links">
@@ -1525,9 +1523,7 @@ export const DashboardPage = () => {
                 {/* Empty State */}
                 {(!activeItem || (!currentResult && !currentStageResult && !activeItem.isNonCrop)) && (
                   <div className="empty" id="empty">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#1b2114" strokeWidth="1.2">
-                      <path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7zM12 21V9" strokeLinecap="round" />
-                    </svg>
+                    <BrandLogo size={56} style={{ marginBottom: "14px", opacity: 0.75 }} />
                     <p>Results will appear here once you run a leaf photo through the model.</p>
                   </div>
                 )}

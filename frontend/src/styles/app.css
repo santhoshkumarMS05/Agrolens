@@ -116,6 +116,10 @@ button, input, select, textarea{font-family:"Space Grotesk",system-ui,-apple-sys
     width:20px;
     height:20px;
   }
+  .brand .brand-logo-img{
+    width:30px !important;
+    height:30px !important;
+  }
   .userbox, #navAuthSlot{
     gap:6px !important;
     display:flex;

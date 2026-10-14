@@ -288,7 +288,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
       <nav className="nav">
         <div className="nav-in">
           <Link className="brand" to="/">
-            <BrandLogo size={28} style={{ marginRight: "8px" }} />
+            <BrandLogo size={38} style={{ marginRight: "10px" }} />
             AgroLens
           </Link>
           <div className="nav-links landing-nav-links">
@@ -678,7 +678,11 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
       <footer>
         <div className="f-in">
           <div>
-            <b>AgroLens</b> — Intelligent Crop Disease &amp; Stage Detection Application
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <BrandLogo size={24} />
+              <b>AgroLens</b>
+            </div>
+            Intelligent Crop Disease &amp; Stage Detection Application
             <div style={{ fontSize: "0.8rem", color: "rgba(244,241,226,0.6)", marginTop: "6px" }}>
               Protecting Rice, Sugarcane, Cotton, Corn, Groundnut, Cassava, Sorghum, Coconut, Potato &amp; Coffee
             </div>

@@ -54,7 +54,7 @@ export const AdminLoginPage = () => {
     <div className="auth">
       <aside className="side admin-side" style={{ background: "linear-gradient(130deg, #0f2314, #19381e 40%, #164020 70%, #0d1e12)" }}>
         <Link className="brand" to="/">
-          <BrandLogo size={32} style={{ marginRight: "10px" }} />
+          <BrandLogo size={46} style={{ marginRight: "12px" }} />
           AgroLens Ops
         </Link>
         <div>

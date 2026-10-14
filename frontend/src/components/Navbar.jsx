@@ -19,7 +19,7 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
       <nav className="nav">
         <div className="nav-in">
           <Link className="brand" to="/admin">
-            <BrandLogo size={28} style={{ marginRight: "8px" }} />
+            <BrandLogo size={38} style={{ marginRight: "10px" }} />
             AgroLens{" "}
             <span
               style={{
@@ -80,7 +80,7 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
     <nav className="nav">
       <div className="nav-in">
         <Link className="brand" to="/">
-          <BrandLogo size={28} style={{ marginRight: "8px" }} />
+          <BrandLogo size={38} style={{ marginRight: "10px" }} />
           AgroLens
         </Link>
         <div className={`nav-links ${isAdmin ? "is-admin" : ""}`}>

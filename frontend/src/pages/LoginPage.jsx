@@ -116,7 +116,7 @@ export const LoginPage = () => {
     <div className="auth">
       <aside className="side">
         <Link className="brand" to="/">
-          <BrandLogo size={32} style={{ marginRight: "10px" }} />
+          <BrandLogo size={46} style={{ marginRight: "12px" }} />
           AgroLens
         </Link>
         <div>
