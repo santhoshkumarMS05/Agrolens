@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 import InstallButton from "./InstallButton";
+import BrandLogo from "./BrandLogo";
 
 export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) => {
   const { user, isAdmin, logout } = useAuth();
@@ -18,18 +19,7 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
       <nav className="nav">
         <div className="nav-in">
           <Link className="brand" to="/admin">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z"
-                fill="#2d4627"
-              />
-              <path
-                d="M12 21V9"
-                stroke="#f4f1e2"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-              />
-            </svg>
+            <BrandLogo size={28} style={{ marginRight: "8px" }} />
             AgroLens{" "}
             <span
               style={{
@@ -90,18 +80,7 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
     <nav className="nav">
       <div className="nav-in">
         <Link className="brand" to="/">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z"
-              fill="#2d4627"
-            />
-            <path
-              d="M12 21V9"
-              stroke="#f4f1e2"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-          </svg>
+          <BrandLogo size={28} style={{ marginRight: "8px" }} />
           AgroLens
         </Link>
         <div className={`nav-links ${isAdmin ? "is-admin" : ""}`}>

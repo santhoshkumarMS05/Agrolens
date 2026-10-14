@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import BrandLogo from "../components/BrandLogo";
 import ThemeToggle from "../components/ThemeToggle";
 
 export const AdminLoginPage = () => {
@@ -53,18 +54,7 @@ export const AdminLoginPage = () => {
     <div className="auth">
       <aside className="side admin-side" style={{ background: "linear-gradient(130deg, #0f2314, #19381e 40%, #164020 70%, #0d1e12)" }}>
         <Link className="brand" to="/">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z"
-              fill="#2d4627"
-            />
-            <path
-              d="M12 21V9"
-              stroke="#f4f1e2"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-          </svg>
+          <BrandLogo size={32} style={{ marginRight: "10px" }} />
           AgroLens Ops
         </Link>
         <div>

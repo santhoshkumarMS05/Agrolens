@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
 import InstallButton from "../components/InstallButton";
+import BrandLogo from "../components/BrandLogo";
 
 const cropData = {
   rice: {
@@ -287,10 +288,7 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
       <nav className="nav">
         <div className="nav-in">
           <Link className="brand" to="/">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 21C7 17 4 13 4 8.5A6.5 6.5 0 0116.9 6c1.7 1.7 2.6 4.2 1.6 8-1 3.9-4 6.3-6.5 7z" fill="#2d4627"/>
-              <path d="M12 21V9" stroke="#f4f1e2" strokeWidth="1.3" strokeLinecap="round"/>
-            </svg>
+            <BrandLogo size={28} style={{ marginRight: "8px" }} />
             AgroLens
           </Link>
           <div className="nav-links landing-nav-links">

@@ -1,5 +1,5 @@
 // AgroLens Offline-First Service Worker
-const CACHE_NAME = "agrolens-cache-v2";
+const CACHE_NAME = "agrolens-cache-v3";
 const OFFLINE_ASSETS = [
   "/",
   "/dashboard",
@@ -8,8 +8,13 @@ const OFFLINE_ASSETS = [
   "/crop_stage_knowledge.json",
   "/manifest.json",
   "/favicon.svg",
+  "/favicon.ico",
+  "/favicon-32x32.png",
+  "/favicon-16x16.png",
+  "/apple-touch-icon.png",
   "/icon-192.png",
   "/icon-512.png",
+  "/brand-logo.png",
   "/icons.svg",
   "/ort/ort.wasm.min.js",
   "/ort/ort-wasm.wasm",
