@@ -47,29 +47,35 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
               OPS CONSOLE
             </span>
           </Link>
-          <div className="nav-links">
+          <div className="nav-links is-admin-console">
             <button
               type="button"
               className={`nav-link ${activeAdminTab === "staging" ? "active" : ""}`}
               onClick={() => onAdminTabChange && onAdminTabChange("staging")}
-              style={{ background: "none", border: "none", cursor: "pointer" }}
             >
-              🛡️ Staging &amp; Retraining
+              <span className="nav-icon">🛡️</span>
+              <span className="nav-label">
+                <span>Staging &amp;</span>
+                <span>Retraining</span>
+              </span>
             </button>
             <button
               type="button"
               className={`nav-link ${activeAdminTab === "farmers" ? "active" : ""}`}
               onClick={() => onAdminTabChange && onAdminTabChange("farmers")}
-              style={{ background: "none", border: "none", cursor: "pointer" }}
             >
-              👥 Farmer Registry &amp; Scans
+              <span className="nav-icon">👥</span>
+              <span className="nav-label">
+                <span>Farmers &amp;</span>
+                <span>Scans</span>
+              </span>
             </button>
           </div>
           <div className="userbox">
             <InstallButton />
             <ThemeToggle />
-            <span className="user-pill">
-              Admin: <b>{user?.name || "Monkey D. Luffy (Admin)"}</b>
+            <span className="user-pill admin-user-pill">
+              Admin: <b>{user?.name ? user.name.split(" ")[0] : "Luffy"}</b>
             </span>
             <button className="signout-btn" onClick={handleSignOut} type="button">
               Sign out
@@ -98,19 +104,29 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
           </svg>
           AgroLens
         </Link>
-        <div className="nav-links">
+        <div className={`nav-links ${isAdmin ? "is-admin" : ""}`}>
           <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} end>
-            Home
+            <span className="nav-icon">🏠</span>
+            <span className="nav-label">Home</span>
           </NavLink>
           <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-            Dashboard
+            <span className="nav-icon">🌱</span>
+            <span className="nav-label">Dashboard</span>
           </NavLink>
           <NavLink to="/history" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-            History &amp; Profile
+            <span className="nav-icon">📚</span>
+            <span className="nav-label">
+              <span>History &amp;</span>
+              <span>Profile</span>
+            </span>
           </NavLink>
           {isAdmin && (
-            <Link to="/admin" className="nav-link" style={{ color: "var(--gold)" }}>
-              🛡️ Ops Console
+            <Link to="/admin" className="nav-link admin-nav-link" style={{ color: "var(--gold)" }}>
+              <span className="nav-icon">🛡️</span>
+              <span className="nav-label">
+                <span>Ops</span>
+                <span>Console</span>
+              </span>
             </Link>
           )}
         </div>
@@ -118,20 +134,20 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
           <InstallButton />
           <ThemeToggle />
           {user ? (
-            <>
+            <div className="user-controls" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span className="user-pill">
-                Signed in: <b>{user.name}</b>
+                👨‍🌾 <b>{user.name ? user.name.split(" ")[0] : "Farmer"}</b>
               </span>
               <button className="signout-btn" onClick={handleSignOut} type="button">
                 Sign out
               </button>
-            </>
+            </div>
           ) : (
-            <div style={{ display: "flex", gap: "8px" }}>
-              <Link to="/login" className="pill">
+            <div style={{ display: "flex", gap: "6px" }}>
+              <Link to="/login" className="pill login-btn-compact">
                 Sign in
               </Link>
-              <Link to="/signup" className="btn primary" style={{ padding: "8px 18px", fontSize: ".85rem" }}>
+              <Link to="/signup" className="btn primary signup-btn-compact">
                 Get Started
               </Link>
             </div>

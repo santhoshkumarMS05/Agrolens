@@ -293,39 +293,47 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
             </svg>
             AgroLens
           </Link>
-          <div className="nav-links">
-            <a href="#overview">Overview</a>
-            <a href="#workflow">How It Works</a>
-            <a href="#crops">Supported Crops</a>
-            <a href="#capabilities">Features</a>
+          <div className="nav-links landing-nav-links">
+            <a href="#overview" className="nav-link">
+              <span className="nav-label">Overview</span>
+            </a>
+            <a href="#workflow" className="nav-link">
+              <span className="nav-label">
+                <span>How It</span>
+                <span>Works</span>
+              </span>
+            </a>
+            <a href="#crops" className="nav-link">
+              <span className="nav-label">
+                <span>Supported</span>
+                <span>Crops</span>
+              </span>
+            </a>
+            <a href="#capabilities" className="nav-link">
+              <span className="nav-label">Features</span>
+            </a>
           </div>
-          <div id="navAuthSlot" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div id="navAuthSlot" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <InstallButton />
             <ThemeToggle />
             {user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span
-                  style={{
-                    fontSize: "0.84rem",
-                    padding: "5px 14px",
-                    borderRadius: "99px",
-                    background: "rgba(45,70,39,.14)",
-                    border: "1px solid rgba(45,70,39,.25)",
-                    color: "var(--ink)",
-                    fontWeight: 600,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px"
-                  }}
-                >
-                  👨‍🌾 {user?.name || user?.email || "Farmer"}
+              <div className="landing-auth-group" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span className="user-pill landing-user-pill">
+                  👨‍🌾 {user?.name ? user.name.split(" ")[0] : "Farmer"}
                 </span>
-                <Link className="btn primary" to="/dashboard" style={{ padding: "8px 20px", fontSize: ".88rem" }}>
-                  🌱 Open Scanner
+                <Link className="btn primary scanner-btn" to="/dashboard">
+                  🌱 <span className="scanner-btn-text">Open Scanner</span>
+                  <span className="scanner-btn-short">Scan</span>
                 </Link>
               </div>
             ) : (
-              <Link className="pill" to="/login">Sign in</Link>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <Link className="pill login-btn-compact" to="/login">Sign in</Link>
+                <Link className="btn primary scanner-btn" to="/dashboard">
+                  🌱 <span className="scanner-btn-text">Open Scanner</span>
+                  <span className="scanner-btn-short">Scan</span>
+                </Link>
+              </div>
             )}
           </div>
         </div>

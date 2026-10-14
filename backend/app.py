@@ -1014,6 +1014,17 @@ def get_advisory():
         except Exception as e:
             print(f"[warn] Groq LLM call failed, falling back to JSON ground-truth: {e}")
 
+    def _fallback_steps(text, default_val):
+        t = (text or default_val or "").strip()
+        if not t:
+            return default_val
+        if re.search(r"^\s*\d+[\.\)]", t):
+            return t
+        parts = [s.strip() for s in re.split(r"\.(?:\s+|$)", t) if s.strip() and len(s.strip()) > 6]
+        if len(parts) > 1:
+            return "\n".join(f"{i}. {p}." for i, p in enumerate(parts[:3], 1))
+        return f"1. {t}"
+
     # Ground-truth JSON fallback or open-world fallback
     return jsonify({
         "ok": True,
@@ -1024,8 +1035,8 @@ def get_advisory():
         "healthy": is_healthy,
         "severity": tier_data.get("severity_name") or severity_label,
         "diagnosis": f"{entry.get('symptoms', '')} ({tier_data.get('description', '')})" if entry else f"Visual foliar inspection indicates {disease_name} on {crop_name}.",
-        "treatment": tier_data.get("treatment", "1. Isolate diseased foliage.\n2. Consult local agricultural extension service for registered products."),
-        "fertilizer": tier_data.get("fertilizer", "1. Maintain balanced soil fertility and drainage.\n2. Avoid excessive nitrogen applications."),
+        "treatment": _fallback_steps(tier_data.get("treatment"), "1. Isolate diseased foliage.\n2. Consult local agricultural extension service for registered products."),
+        "fertilizer": _fallback_steps(tier_data.get("fertilizer"), "1. Maintain balanced soil fertility and drainage.\n2. Avoid excessive nitrogen applications."),
         "organic_tip": entry.get("organic_remedy", "Apply organic bio-fungicide or neem oil extract.") if entry else "Apply organic bio-fungicide or neem oil extract.",
         "summary": tier_data.get("description", f"Proactive foliar care for {crop_name}.") if entry else f"Proactive foliar care for {crop_name}."
     })

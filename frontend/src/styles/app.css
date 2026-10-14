@@ -74,36 +74,207 @@ button, input, select, textarea{font-family:"Space Grotesk",system-ui,-apple-sys
 .nav-links a:hover::after{right:0}
 .nav-links a.nav-link:hover::after{display:none!important}
 
+.nav-link .nav-icon{
+  display:inline-block;
+  margin-right:5px;
+  font-size:1rem;
+}
+.nav-link .nav-label{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+}
+.nav-link .nav-label span{
+  display:inline;
+}
+.scanner-btn-short{
+  display:none;
+}
+
+/* ── Mobile Navigation: Strict Fit for Android 360px & iOS 393px Standards ── */
 @media(max-width:900px){
-  .nav-in{padding:12px 16px;flex-wrap:wrap;gap:10px}
-  .nav-links{
-    order:3;
-    width:100%;
-    display:flex;
-    justify-content:flex-start;
-    gap:8px;
-    overflow-x:auto;
-    padding:4px 0 6px;
-    -webkit-overflow-scrolling:touch;
+  .nav{
+    position:sticky;
+    top:0;
+    z-index:99;
   }
-  .nav-links a, .nav-links button{
-    font-size:0.82rem;
-    padding:6px 14px;
-    white-space:nowrap;
+  .nav-in{
+    padding:8px 12px;
+    flex-wrap:wrap;
+    gap:8px 0;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .brand{
+    font-size:1.15rem;
+    gap:6px;
     flex-shrink:0;
   }
-  .wrap{padding:0 16px}
-}
-@media(max-width:480px){
-  .nav-in{padding:10px 12px}
-  .brand{font-size:1.15rem}
-  .nav-links a, .nav-links button{
-    font-size:0.78rem;
-    padding:5px 12px;
+  .brand svg{
+    width:20px;
+    height:20px;
   }
-  .userbox{gap:6px}
-  .signout-btn{padding:5px 12px;font-size:0.8rem}
-  .theme-toggle{width:34px;height:34px;font-size:0.95rem}
+  .userbox, #navAuthSlot{
+    gap:6px !important;
+    display:flex;
+    align-items:center;
+    margin-left:auto;
+    flex-shrink:0;
+  }
+  .user-pill{
+    font-size:0.75rem !important;
+    padding:4px 8px !important;
+    max-width:115px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .install-btn{
+    padding:5px 8px !important;
+    gap:3px !important;
+    font-size:0.75rem !important;
+  }
+  .install-btn-text{
+    display:none !important;
+  }
+  .theme-toggle{
+    width:32px !important;
+    height:32px !important;
+    font-size:0.9rem !important;
+  }
+  .signout-btn{
+    padding:4px 10px !important;
+    font-size:0.75rem !important;
+    border-radius:99px;
+  }
+  .scanner-btn{
+    padding:5px 12px !important;
+    font-size:0.8rem !important;
+  }
+  .scanner-btn .scanner-btn-text{
+    display:none !important;
+  }
+  .scanner-btn .scanner-btn-short{
+    display:inline !important;
+  }
+  .login-btn-compact{
+    padding:5px 10px !important;
+    font-size:0.78rem !important;
+  }
+  .signup-btn-compact{
+    padding:5px 12px !important;
+    font-size:0.78rem !important;
+  }
+
+  /* The Bottom Segmented Tab Bar - 100% Screen Width, Zero Horizontal Sliding */
+  .nav-links{
+    order:3;
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:repeat(3, 1fr) !important;
+    gap:5px;
+    overflow-x:hidden !important; /* Strictly no horizontal scrolling */
+    padding:4px 0 2px !important;
+    margin:0 !important;
+    box-sizing:border-box;
+  }
+  .nav-links.is-admin{
+    grid-template-columns:repeat(4, 1fr) !important;
+    gap:3px;
+  }
+  .nav-links.is-admin-console{
+    grid-template-columns:repeat(2, 1fr) !important;
+    gap:8px;
+  }
+  .nav-links.landing-nav-links{
+    grid-template-columns:repeat(4, 1fr) !important;
+    gap:3px;
+  }
+
+  .nav-links a,
+  .nav-links button,
+  .nav-links .nav-link{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    padding:6px 2px !important;
+    margin:0 !important;
+    border-radius:10px !important;
+    white-space:normal !important;
+    flex-shrink:1 !important;
+    min-height:44px;
+    background:rgba(255, 255, 255, 0.04);
+    border:1px solid rgba(255, 255, 255, 0.07);
+    box-sizing:border-box;
+    text-decoration:none;
+    color:var(--muted);
+    transition:all .2s ease;
+  }
+
+  .nav-links a:hover,
+  .nav-links button:hover,
+  .nav-links .nav-link:hover{
+    background:rgba(255, 255, 255, 0.08);
+    color:var(--ink);
+  }
+
+  .nav-links a.active,
+  .nav-links button.active,
+  .nav-links .nav-link.active{
+    background:rgba(34, 197, 94, 0.16) !important;
+    border-color:rgba(34, 197, 94, 0.45) !important;
+    color:var(--green) !important;
+    font-weight:700 !important;
+  }
+
+  .nav-link .nav-icon{
+    display:block !important;
+    font-size:1.05rem;
+    line-height:1;
+    margin-bottom:2px;
+    margin-right:0 !important;
+  }
+
+  .nav-link .nav-label{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    font-size:0.71rem !important;
+    line-height:1.15;
+    text-align:center;
+    letter-spacing:-0.01em;
+    gap:0 !important;
+  }
+
+  .landing-nav-links .nav-link{
+    min-height:36px;
+    padding:4px 2px !important;
+    background:rgba(45, 70, 39, 0.08);
+    border:1px solid rgba(45, 70, 39, 0.18);
+  }
+  .landing-nav-links .nav-link .nav-label{
+    font-size:0.69rem !important;
+    line-height:1.1;
+  }
+  .landing-nav-links .nav-link .nav-icon{
+    display:none !important;
+  }
+
+  .wrap{padding:0 14px}
+}
+
+/* Specific micro-optimizations for 360px × 800dp (Android standard) */
+@media(max-width:375px){
+  .nav-in{padding:6px 8px}
+  .brand{font-size:1.05rem}
+  .nav-link .nav-label{font-size:0.67rem !important}
+  .landing-nav-links .nav-link .nav-label{font-size:0.66rem !important}
+  .user-pill{display:none !important}
 }
 
 .pill{border:1px solid var(--line);border-radius:99px;padding:8px 18px;font-size:.85rem;color:var(--muted);text-decoration:none;transition:all .25s var(--ease)}
