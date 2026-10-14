@@ -3084,8 +3084,12 @@ def headers(resp):
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
     resp.headers.setdefault("X-Frame-Options", "DENY")
     resp.headers.setdefault("Referrer-Policy", "same-origin")
-    if request.path.startswith("/api/") or request.path in ("/login", "/signup", "/dashboard"):
-        resp.headers["Cache-Control"] = "no-store"
+    if (
+        request.path.startswith("/api/")
+        or request.path in ("/login", "/signup", "/dashboard", "/sw.js", "/index.html", "/")
+        or request.path.endswith(".html")
+    ):
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     return resp
 
 

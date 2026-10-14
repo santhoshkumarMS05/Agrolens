@@ -1,5 +1,5 @@
 // AgroLens Offline-First Service Worker
-const CACHE_NAME = "agrolens-cache-v1";
+const CACHE_NAME = "agrolens-cache-v2";
 const OFFLINE_ASSETS = [
   "/",
   "/dashboard",
@@ -52,14 +52,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request)
+  // Network-First for navigation / HTML requests
+  const isNavigate =
+    event.request.mode === "navigate" ||
+    (event.request.headers.get("accept") &&
+      event.request.headers.get("accept").includes("text/html"));
+
+  if (isNavigate) {
+    event.respondWith(
+      fetch(event.request)
         .then((networkResponse) => {
-          // Cache successful responses for offline assets
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -68,10 +70,28 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResponse;
         })
-        .catch(() => {
-          // Offline fallback
-          return caches.match(event.request);
-        });
+        .catch(() => caches.match(event.request).then((res) => res || caches.match("/")))
+    );
+    return;
+  }
+
+  // Cache-First with Network fallback for static assets
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request));
     })
   );
 });
