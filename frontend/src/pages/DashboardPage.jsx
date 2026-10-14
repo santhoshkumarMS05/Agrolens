@@ -1652,9 +1652,6 @@ export const DashboardPage = () => {
                           </div>
                         )}
 
-                        {/* Live Microclimate Disease Risk Alert */}
-                        <WeatherRiskCard selectedCrop={p.crop || selectedCropName} activeLang={activeLang} />
-
                         {/* Farmer Guidance */}
                         <div className="guide">
                           <span className="lbl" id="lblFarmerGuidance">{ui.farmerGuidance}</span>
