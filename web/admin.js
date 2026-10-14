@@ -450,19 +450,15 @@ function renderClassesGrid() {
       </div>
 
       <div class="class-card-actions">
-        ${isStage ? `
-          <button type="button" class="retrain-btn secondary" disabled title="Custom stage model architecture not initialized yet. Collecting samples in progress (${c.approved_count}/${c.threshold || 100}).">
-            <span>🔒</span> <span>Awaiting Stage Model Base (${c.approved_count}/${c.threshold || 100})</span>
-          </button>
-        ` : (c.approved_count >= (c.threshold || 100) ? `
+        ${c.approved_count >= (isStage ? 50 : (c.threshold || 100)) ? `
           <button type="button" class="retrain-btn primary" data-class="${c.class_name}">
             <span>🚀</span> <span>Start Retraining Head (${c.approved_count} samples)</span>
           </button>
         ` : `
-          <button type="button" class="retrain-btn secondary" disabled title="Threshold not reached. 100 approved samples required before fine-tuning to prevent overfitting.">
-            <span>⏳</span> <span>Collecting Samples (${c.approved_count}/${c.threshold || 100})</span>
+          <button type="button" class="retrain-btn secondary" disabled title="Threshold not reached. ${isStage ? 50 : (c.threshold || 100)} approved samples required before fine-tuning.">
+            <span>⏳</span> <span>Collecting Samples (${c.approved_count}/${isStage ? 50 : (c.threshold || 100)})</span>
           </button>
-        `)}
+        `}
         <button type="button" class="view-approved-btn ${c.approved_count > 0 ? '' : 'disabled'}" data-folder="${c.folder}" data-class="${c.display_name}" data-count="${c.approved_count}" ${c.approved_count === 0 ? 'disabled' : ''}>
           <span>👁️</span> <span>View Approved Images (${c.approved_count})</span>
         </button>

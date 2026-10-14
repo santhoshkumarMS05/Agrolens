@@ -8,6 +8,8 @@ const OFFLINE_ASSETS = [
   "/crop_stage_knowledge.json",
   "/manifest.json",
   "/favicon.svg",
+  "/icon-192.png",
+  "/icon-512.png",
   "/icons.svg",
   "/ort/ort.wasm.min.js",
   "/ort/ort-wasm.wasm",

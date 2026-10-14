@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
+import InstallButton from "../components/InstallButton";
 
 const cropData = {
   rice: {
@@ -298,7 +299,8 @@ footer{background:var(--footer-bg);color:rgba(244,241,226,.66);padding:52px 0 44
             <a href="#crops">Supported Crops</a>
             <a href="#capabilities">Features</a>
           </div>
-          <div id="navAuthSlot" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div id="navAuthSlot" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <InstallButton />
             <ThemeToggle />
             {user ? (
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>

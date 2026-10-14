@@ -2,6 +2,7 @@ import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
+import InstallButton from "./InstallButton";
 
 export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) => {
   const { user, isAdmin, logout } = useAuth();
@@ -65,6 +66,7 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
             </button>
           </div>
           <div className="userbox">
+            <InstallButton />
             <ThemeToggle />
             <span className="user-pill">
               Admin: <b>{user?.name || "Monkey D. Luffy (Admin)"}</b>
@@ -113,6 +115,7 @@ export const Navbar = ({ mode = "farmer", activeAdminTab, onAdminTabChange }) =>
           )}
         </div>
         <div className="userbox">
+          <InstallButton />
           <ThemeToggle />
           {user ? (
             <>
