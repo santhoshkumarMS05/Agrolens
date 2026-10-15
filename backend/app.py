@@ -836,7 +836,7 @@ def tts_neural_endpoint():
 
     audio_data = None
     try:
-        audio_data = asyncio.run(_generate_edge_tts(text[:2500], voice))
+        audio_data = asyncio.run(asyncio.wait_for(_generate_edge_tts(text[:2500], voice), timeout=9.0))
     except Exception as e:
         print(f"[tts-fallback] Edge TTS notice ({e}), using Google Neural TTS fallback")
         try:

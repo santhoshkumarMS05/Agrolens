@@ -88,32 +88,15 @@ export function prefetchAudio(text, langPreference, titleText) {
   }
 }
 
-function splitFastStart(title, body) {
-  const cleanT = cleanString(title);
-  const cleanB = cleanString(body);
-
-  if (!cleanB) return cleanT ? [cleanT] : [];
-  if (!cleanT) {
-    const match = cleanB.match(/^(.+?[.!?\n|।\u0964])\s*(.*)$/);
-    if (match && match[1] && match[2] && match[1].length < 180) {
-      return [match[1].trim(), match[2].trim()];
-    }
-    return [cleanB];
-  }
-
-  const match = cleanB.match(/^(.+?[.!?\n|।\u0964])\s*(.*)$/);
-  if (match && match[1] && match[2] && (cleanT.length + match[1].length) < 200) {
-    return [`${cleanT}: ${match[1].trim()}`, match[2].trim()];
-  }
-
-  return [`${cleanT}: ${cleanB}`];
-}
-
 function fallbackWebSpeech(text, langCode) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     stopSpeaking();
     return;
   }
+  try {
+    window.speechSynthesis.cancel();
+  } catch (e) {}
+
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = langCode === "ta" ? "ta-IN" : langCode === "hi" ? "hi-IN" : "en-IN";
   utterance.rate = 0.95;
@@ -166,75 +149,43 @@ export function speakText(rawText, langPreference, buttonElement, titleText, onE
     }
   };
 
-  // 1. If full audio was already prefetched or cached, play immediately
+  // Play as a single, uninterrupted audio stream (prevents mobile chunk blocking and mid-sentence restart)
+  let audio;
   if (AUDIO_CACHE.has(fullUrl)) {
-    const cached = AUDIO_CACHE.get(fullUrl);
-    currentAudio = cached;
-    cached.currentTime = 0;
-    cached.onplaying = onStartPlaying;
-    cached.onended = () => {
-      if (sessionId === playSessionId) stopSpeaking();
-    };
-    cached.onerror = () => {
-      if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
-    };
-    cached.play().then(onStartPlaying).catch(() => {
-      if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
-    });
-    return;
-  }
-
-  // 2. Fast-Start Split
-  const segments = splitFastStart(titleText, rawText);
-  if (segments.length === 1) {
-    const audio = new Audio(getAudioUrl(segments[0], langCode));
-    currentAudio = audio;
+    audio = AUDIO_CACHE.get(fullUrl);
+    audio.currentTime = 0;
+  } else {
+    audio = new Audio(fullUrl);
+    audio.preload = "auto";
     AUDIO_CACHE.set(fullUrl, audio);
-    audio.onplaying = onStartPlaying;
-    audio.onended = () => {
-      if (sessionId === playSessionId) stopSpeaking();
-    };
-    audio.onerror = () => {
-      if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
-    };
-    audio.play().then(onStartPlaying).catch(() => {
-      if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
-    });
-    return;
+    if (AUDIO_CACHE.size > 50) {
+      const firstKey = AUDIO_CACHE.keys().next().value;
+      AUDIO_CACHE.delete(firstKey);
+    }
   }
 
-  // Multiple segments: chunk 1 starts playing immediately while chunk 2 streams
-  const chunk1Url = getAudioUrl(segments[0], langCode);
-  const chunk2Url = getAudioUrl(segments[1], langCode);
+  currentAudio = audio;
+  audio.onplaying = onStartPlaying;
 
-  const audio1 = new Audio(chunk1Url);
-  const audio2 = new Audio(chunk2Url);
-  audio2.preload = "auto";
-
-  currentAudio = audio1;
-  audio1.onplaying = onStartPlaying;
-
-  audio1.onended = () => {
-    if (sessionId !== playSessionId) return;
-    currentAudio = audio2;
-    audio2.onplaying = onStartPlaying;
-    audio2.onended = () => {
-      if (sessionId === playSessionId) stopSpeaking();
-    };
-    audio2.onerror = () => {
-      if (sessionId === playSessionId) stopSpeaking();
-    };
-    audio2.play().catch(() => {
-      if (sessionId === playSessionId) stopSpeaking();
-    });
+  audio.onended = () => {
+    if (sessionId === playSessionId) {
+      stopSpeaking();
+    }
   };
 
-  audio1.onerror = () => {
-    if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
+  audio.onerror = (err) => {
+    console.warn("[VoiceReader] Edge TTS notice, falling back to WebSpeech:", err);
+    if (sessionId === playSessionId) {
+      fallbackWebSpeech(fullText, langCode);
+    }
   };
 
-  audio1.play().then(onStartPlaying).catch(() => {
-    if (sessionId === playSessionId) fallbackWebSpeech(fullText, langCode);
+  // Trigger play immediately inside user-initiated click event for mobile compliance
+  audio.play().then(onStartPlaying).catch((err) => {
+    console.warn("[VoiceReader] Direct play notice, attempting WebSpeech:", err);
+    if (sessionId === playSessionId) {
+      fallbackWebSpeech(fullText, langCode);
+    }
   });
 }
 
