@@ -142,28 +142,26 @@ export const WeatherRiskCard = ({ selectedCrop = "Rice", activeLang = "en", onWe
             id="weatherDropdownBtn"
             onClick={() => setIsExpanded((prev) => !prev)}
             aria-expanded={isExpanded}
-            title={isExpanded ? "Collapse Forecast & Outbreak Details" : "View Full Forecast & Outbreak Details"}
+            title={isExpanded ? "Collapse Details" : "View Full Details"}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "5px",
-              padding: "4px 11px",
+              justifyContent: "center",
+              width: "28px",
+              height: "28px",
+              padding: 0,
               background: isExpanded ? "var(--green)" : "var(--paper-2)",
               color: isExpanded ? "#ffffff" : "var(--ink)",
               border: "1px solid var(--line)",
-              borderRadius: "99px",
-              fontSize: "0.76rem",
+              borderRadius: "50%",
+              fontSize: "0.82rem",
               fontWeight: 700,
               cursor: "pointer",
-              transition: "all 0.2s ease"
+              transition: "all 0.2s ease",
+              flexShrink: 0
             }}
           >
-            <span>{isExpanded ? "▲" : "▼"}</span>
-            <span>
-              {isExpanded
-                ? (activeLang === "ta" ? "மறைக்க" : activeLang === "hi" ? "संक्षिप्त करें" : "Collapse")
-                : (activeLang === "ta" ? "விவரங்கள்" : activeLang === "hi" ? "पूर्ण विवरण" : "Details")}
-            </span>
+            {isExpanded ? "▲" : "▼"}
           </button>
         </div>
       </div>

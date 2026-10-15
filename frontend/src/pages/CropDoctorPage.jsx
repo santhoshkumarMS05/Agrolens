@@ -413,30 +413,20 @@ export const CropDoctorPage = () => {
             </div>
           </div>
 
-          {/* Top Right: Strictly contains Language Options & Theme Toggle */}
+          {/* Top Right: Language Dropdown & Theme Toggle */}
           <div className="doctor-header-right">
-            <div className="doctor-lang-switch" role="group" aria-label="Select Language">
-              <button
-                type="button"
-                className={`doctor-lang-btn ${activeLang === "en" ? "active" : ""}`}
-                onClick={() => setActiveLang("en")}
+            <div className="doctor-lang-select-wrap">
+              <select
+                className="doctor-lang-select"
+                id="doctorLangSelect"
+                value={activeLang}
+                onChange={(e) => setActiveLang(e.target.value)}
+                aria-label="Select Language"
               >
-                EN
-              </button>
-              <button
-                type="button"
-                className={`doctor-lang-btn ${activeLang === "ta" ? "active" : ""}`}
-                onClick={() => setActiveLang("ta")}
-              >
-                தமிழ்
-              </button>
-              <button
-                type="button"
-                className={`doctor-lang-btn ${activeLang === "hi" ? "active" : ""}`}
-                onClick={() => setActiveLang("hi")}
-              >
-                हिंदी
-              </button>
+                <option value="en">🌐 English</option>
+                <option value="ta">🌐 தமிழ்</option>
+                <option value="hi">🌐 हिंदी</option>
+              </select>
             </div>
 
             <ThemeToggle />

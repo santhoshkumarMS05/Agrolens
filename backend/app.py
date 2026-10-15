@@ -1145,6 +1145,10 @@ def doctor_chat():
     system_prompt = (
         "You are 'AgroLens AI Crop Doctor', a certified agricultural expert and precision spray agronomist.\n"
         f"{lang_instructions.get(lang, lang_instructions['en'])}\n\n"
+        "CRITICAL INSTRUCTION — BREVITY & DIRECTNESS:\n"
+        "- Keep responses concise, direct, and focused strictly on the farmer's specific question.\n"
+        "- Do NOT write long essays or repetitive background summaries. Farmers can ask follow-up questions anytime if they need more details.\n"
+        "- For calculations, give clean, bulleted numbers (Total Water, Spray Tanks, Dose per Tank, Total Chemical) and 2-3 brief practical steps.\n\n"
         "CORE RESPONSIBILITIES:\n"
         "1. Crop & Pathology Knowledge: Answer questions about the detected crop, diagnosis, symptom progression, and curative treatments according to ICAR and state agricultural university (TNAU) protocols.\n"
         "2. Precision Spray & Dosage Calculation:\n"
@@ -1157,7 +1161,7 @@ def doctor_chat():
         "     * Exact amount of chemical to pour into EACH tank\n"
         "3. Weather & Spray Timing Guidance: Check the provided weather conditions. If high humidity (>85%) or rain is imminent, advise on rainfastness or using an agricultural wetting/sticking agent (spreader). Never recommend spraying in strong winds (>15 km/h) or scorching midday heat.\n"
         "4. Safety First: Remind farmers to wear gloves/mask, spray with the wind at their back, and keep animals/children away.\n"
-        "5. Tone: Respectful, practical, crisp (use bullet points or numbered lists). Avoid overwhelming academic jargon.\n"
+        "5. Tone: Respectful, practical, crisp (use bullet points). Avoid overwhelming academic jargon.\n"
         "6. Dashboard Alignment: You have full access to the exact diagnosis, confidence percentage, symptoms, and treatments displayed on the farmer's dashboard. Seamlessly reference these findings when answering follow-up questions."
     )
 
@@ -1227,7 +1231,7 @@ def doctor_chat():
                         model=m,
                         messages=messages,
                         temperature=0.3,
-                        max_tokens=800
+                        max_tokens=1500
                     )
                     used_model = m
                     break
