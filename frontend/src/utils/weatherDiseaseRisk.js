@@ -57,11 +57,12 @@ export async function fetchLiveWeather(lat, lon) {
   }
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m&forecast_days=1&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m&hourly=precipitation_probability,precipitation,wind_speed_10m,relative_humidity_2m,temperature_2m&forecast_days=3&timezone=auto`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("Weather API request failed");
     const json = await res.json();
     const current = json.current;
+    const sprayWindows = computeSprayWindows(json.hourly);
 
     const data = {
       temp: Math.round(current.temperature_2m),
@@ -70,6 +71,7 @@ export async function fetchLiveWeather(lat, lon) {
       precipitation: current.precipitation || 0,
       windSpeed: Math.round(current.wind_speed_10m || 0),
       weatherCode: current.weather_code,
+      sprayWindows,
       timestamp: Date.now()
     };
 
@@ -87,10 +89,124 @@ export async function fetchLiveWeather(lat, lon) {
       precipitation: 0.2,
       windSpeed: 12,
       weatherCode: 2,
+      sprayWindows: computeSprayWindows(null),
       timestamp: Date.now(),
       isFallback: true
     };
   }
+}
+
+/**
+ * 3-Day Agricultural Spray Window Engine
+ * Analyzes wind speed, rainfall probability, humidity, and thermal comfort
+ * to recommend safe, rainfast spraying windows for farmers.
+ */
+export function computeSprayWindows(hourly) {
+  const days = ["Today", "Tomorrow", "Day 3"];
+  const dayLabelsTa = ["இன்று", "நாளை", "நாள் 3"];
+  const dayLabelsHi = ["आज", "कल", "तीसरा दिन"];
+
+  if (!hourly || !hourly.time || hourly.time.length === 0) {
+    return [
+      {
+        day: days[0], dayTa: dayLabelsTa[0], dayHi: dayLabelsHi[0],
+        timeWindow: "6:30 AM – 9:00 AM", status: "OPTIMAL",
+        wind: 8, rain: 0, rainPop: 5, humidity: 68, temp: 26,
+        noteEn: "Calm morning wind. Ideal foliar absorption.",
+        noteTa: "குறைந்த காற்று மற்றும் உலர் இலைகள். தெளிக்க மிகச்சிறந்தது.",
+        noteHi: "शांत हवा और अनुकूल मौसम। छिड़काव के लिए सर्वोत्तम समय।"
+      },
+      {
+        day: days[1], dayTa: dayLabelsTa[1], dayHi: dayLabelsHi[1],
+        timeWindow: "6:00 AM – 8:30 AM", status: "OPTIMAL",
+        wind: 7, rain: 0, rainPop: 10, humidity: 72, temp: 25,
+        noteEn: "Low drift risk. Excellent chemical coverage.",
+        noteTa: "குறைந்த காற்று விரயம். சிறந்த மருந்து ஊடுருவல்.",
+        noteHi: "कम बहाव का जोखिम। दवा पत्तियों पर अच्छे से टिकेगी।"
+      },
+      {
+        day: days[2], dayTa: dayLabelsTa[2], dayHi: dayLabelsHi[2],
+        timeWindow: "4:30 PM – 6:30 PM", status: "FAIR",
+        wind: 12, rain: 0, rainPop: 20, humidity: 62, temp: 29,
+        noteEn: "Late afternoon calm. Spray with low-pressure nozzle.",
+        noteTa: "மாலை வேளை அமைதி. குறைந்த அழுத்தத்தில் தெளிக்கவும்.",
+        noteHi: "शाम का शांत समय। कम दबाव वाले नोजल से छिड़काव करें।"
+      }
+    ];
+  }
+
+  const windows = [];
+
+  for (let d = 0; d < 3; d++) {
+    const startIdx = d * 24;
+    const morningIndices = [startIdx + 6, startIdx + 7, startIdx + 8, startIdx + 9].filter(i => i < hourly.time.length);
+    const eveningIndices = [startIdx + 16, startIdx + 17, startIdx + 18].filter(i => i < hourly.time.length);
+
+    const evalIndices = (indices) => {
+      if (!indices.length) return null;
+      let totalWind = 0, maxPrecip = 0, maxPop = 0, totalHum = 0, totalTemp = 0;
+      indices.forEach(idx => {
+        totalWind += (hourly.wind_speed_10m[idx] || 0);
+        maxPrecip = Math.max(maxPrecip, hourly.precipitation[idx] || 0);
+        maxPop = Math.max(maxPop, hourly.precipitation_probability[idx] || 0);
+        totalHum += (hourly.relative_humidity_2m[idx] || 60);
+        totalTemp += (hourly.temperature_2m[idx] || 25);
+      });
+      return {
+        wind: Math.round(totalWind / indices.length),
+        maxPrecip: Math.round(maxPrecip * 10) / 10,
+        maxPop: Math.round(maxPop),
+        humidity: Math.round(totalHum / indices.length),
+        temp: Math.round(totalTemp / indices.length)
+      };
+    };
+
+    const morning = evalIndices(morningIndices);
+    const evening = evalIndices(eveningIndices);
+
+    let best = morning || evening;
+    let windowTime = "6:30 AM – 9:00 AM";
+
+    if (evening && (!morning || evening.maxPop < morning.maxPop || (morning.maxPrecip > 0.5 && evening.maxPrecip <= 0.2))) {
+      best = evening;
+      windowTime = "4:30 PM – 6:30 PM";
+    }
+
+    let status = "OPTIMAL";
+    let noteEn = "Calm wind and dry foliage. Optimal spray absorption.";
+    let noteTa = "குறைந்த காற்று மற்றும் உலர் இலைகள். தெளிக்க மிகச்சிறந்தது.";
+    let noteHi = "शांत हवा और अनुकूल मौसम। छिड़काव के लिए सर्वोत्तम समय।";
+
+    if (best.maxPrecip > 0.5 || best.maxPop >= 45) {
+      status = "UNSAFE";
+      noteEn = `Rain probability ${best.maxPop}%. Washout risk — postpone foliar spray.`;
+      noteTa = `மழை வாய்ப்பு ${best.maxPop}%. மருந்து கழுவிச் செல்லும் அபாயம் — ஒத்திவைக்கவும்.`;
+      noteHi = `बारिश की संभावना ${best.maxPop}%। दवा धुलने का जोखिम — छिड़काव टालें।`;
+    } else if (best.wind > 14) {
+      status = "FAIR";
+      noteEn = `Wind ${best.wind} km/h. Moderate drift risk — spray with low-pressure nozzle.`;
+      noteTa = `காற்றின் வேகம் ${best.wind} கி.மீ/மணி. மிதமான மருந்து விரயம் — குறைந்த அழுத்தத்தில் தெளிக்கவும்.`;
+      noteHi = `हवा ${best.wind} किमी/घंटा। बहाव का जोखिम — कम दबाव वाले नोजल का प्रयोग करें।`;
+    }
+
+    windows.push({
+      day: days[d],
+      dayTa: dayLabelsTa[d],
+      dayHi: dayLabelsHi[d],
+      timeWindow: windowTime,
+      status,
+      wind: best.wind,
+      rain: best.maxPrecip,
+      rainPop: best.maxPop,
+      humidity: best.humidity,
+      temp: best.temp,
+      noteEn,
+      noteTa,
+      noteHi
+    });
+  }
+
+  return windows;
 }
 
 /**

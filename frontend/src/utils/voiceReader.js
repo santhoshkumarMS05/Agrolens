@@ -1,11 +1,12 @@
 /**
- * AgroLens — Ultra-Fast Neural Voice Reader (Edge TTS + Zero-Wait Prefetching)
- * Broadcast-quality (9.5/10) human realism for English, தமிழ் (Tamil), and हिन्दी (Hindi).
+ * AgroLens — Ultra-Fast Neural Voice Reader (Edge TTS + Google TTS + WebSpeech Fallback)
+ * Broadcast-quality native speech for English, தமிழ் (Tamil), and हिन्दी (Hindi).
  */
 
 let activeBtn = null;
 let currentAudio = null;
 let playSessionId = 0;
+let currentCallback = null;
 const AUDIO_CACHE = new Map(); // url -> HTMLAudioElement
 
 export function stopSpeaking() {
@@ -13,18 +14,28 @@ export function stopSpeaking() {
   if (currentAudio) {
     try {
       currentAudio.pause();
+      currentAudio.currentTime = 0;
       currentAudio.src = "";
     } catch (e) {}
     currentAudio = null;
   }
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    try { window.speechSynthesis.cancel(); } catch (e) {}
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {}
   }
   if (activeBtn) {
     activeBtn.classList.remove("speaking", "loading");
     activeBtn.innerHTML = `<span>🔊</span>`;
     activeBtn.title = "Listen aloud";
     activeBtn = null;
+  }
+  if (currentCallback) {
+    const cb = currentCallback;
+    currentCallback = null;
+    try {
+      cb();
+    } catch (e) {}
   }
 }
 
@@ -49,7 +60,7 @@ export function cleanString(str) {
 export function detectLanguage(text, langPreference) {
   if (langPreference === "ta" || /[\u0B80-\u0BFF]/.test(text)) return "ta";
   if (langPreference === "hi" || /[\u0900-\u097F]/.test(text)) return "hi";
-  return "en";
+  return langPreference === "ta" ? "ta" : langPreference === "hi" ? "hi" : "en";
 }
 
 export function getAudioUrl(text, langCode) {
@@ -99,28 +110,36 @@ function splitFastStart(title, body) {
 }
 
 function fallbackWebSpeech(text, langCode) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    stopSpeaking();
+    return;
+  }
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = langCode === "ta" ? "ta-IN" : langCode === "hi" ? "hi-IN" : "en-IN";
   utterance.rate = 0.95;
 
   const voices = window.speechSynthesis.getVoices();
   const prefix = langCode === "ta" ? "ta" : langCode === "hi" ? "hi" : "en";
-  const voice = voices.find(v => v.lang.toLowerCase().startsWith(prefix));
+  const voice = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
   if (voice) utterance.voice = voice;
 
-  utterance.onend = () => { stopSpeaking(); };
-  utterance.onerror = () => { stopSpeaking(); };
+  utterance.onend = () => {
+    stopSpeaking();
+  };
+  utterance.onerror = () => {
+    stopSpeaking();
+  };
   window.speechSynthesis.speak(utterance);
 }
 
-export function speakText(rawText, langPreference, buttonElement, titleText) {
+export function speakText(rawText, langPreference, buttonElement, titleText, onEndedCallback) {
   if (activeBtn === buttonElement && buttonElement) {
     stopSpeaking();
     return;
   }
 
   stopSpeaking();
+  currentCallback = onEndedCallback || null;
 
   const cleanTitle = cleanString(titleText);
   const cleanBody = cleanString(rawText);
@@ -222,6 +241,7 @@ export function speakText(rawText, langPreference, buttonElement, titleText) {
 export default {
   speakText,
   stopSpeaking,
+  stop: stopSpeaking,
   cleanString,
   prefetch: prefetchAudio
 };

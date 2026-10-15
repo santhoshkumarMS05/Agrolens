@@ -79,12 +79,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
-if not SECRET_KEY:
-    # Fine for local dev, but every restart signs everyone out.
-    SECRET_KEY = secrets.token_hex(32)
-    print("[warn] SECRET_KEY not set — using a random one. "
-          "Sessions will reset on restart. Set it in backend/.env.")
+SECRET_KEY = os.environ.get("SECRET_KEY") or "agrolens-stable-session-key-2026-prod-dev"
 
 app = Flask(__name__, static_folder=None)
 app.config.update(
@@ -751,11 +746,60 @@ async def _generate_edge_tts(text: str, voice: str) -> bytes:
     return b"".join(chunks)
 
 
+def _generate_google_tts(text: str, lang: str) -> bytes:
+    """
+    Fallback high-fidelity TTS using Google Translate voice synthesizer.
+    Supports native Tamil, Hindi, and Indian English with sentence chunking.
+    """
+    tl = "ta" if lang.startswith("ta") or re.search(r"[\u0b80-\u0bff]", text) else ("hi" if lang.startswith("hi") or re.search(r"[\u0900-\u097f]", text) else "en")
+    sentences = re.split(r"(?<=[.!?,|;\n।\u0964])\s+", text)
+    chunks = []
+    current = ""
+    for s in sentences:
+        s = s.strip()
+        if not s:
+            continue
+        if len(current) + len(s) < 180:
+            current = f"{current} {s}".strip()
+        else:
+            if current:
+                chunks.append(current)
+            current = s[:180]
+    if current:
+        chunks.append(current)
+
+    if not chunks:
+        chunks = [text[:180]]
+
+    audio_parts = []
+    for chunk in chunks[:15]:
+        params = {
+            "ie": "UTF-8",
+            "client": "tw-ob",
+            "tl": tl,
+            "q": chunk
+        }
+        try:
+            r = requests.get(
+                "https://translate.google.com/translate_tts",
+                params=params,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+                timeout=8
+            )
+            if r.status_code == 200 and r.content:
+                audio_parts.append(r.content)
+        except Exception as ce:
+            print(f"[tts-chunk-error] {ce}")
+            continue
+
+    return b"".join(audio_parts)
+
+
 @app.route("/api/tts", methods=["GET", "POST"])
 def tts_neural_endpoint():
     """
-    Microsoft Edge Neural TTS:
-    Generates 9.5/10 broadcast-quality native speech for Tamil, Hindi, and Indian English.
+    Multilingual Neural TTS with Edge TTS and Google Translate TTS fallback.
+    Generates broadcast-quality native speech for Tamil, Hindi, and Indian English.
     Includes in-memory LRU caching for instant (0ms) repeat and prefetched playback.
     """
     if request.method == "POST":
@@ -774,12 +818,15 @@ def tts_neural_endpoint():
     lang_lower = (lang or "en").lower().strip()
     if lang_lower.startswith("ta") or re.search(r"[\u0b80-\u0bff]", text):
         voice = "ta-IN-PallaviNeural"
+        target_lang = "ta"
     elif lang_lower.startswith("hi") or re.search(r"[\u0900-\u097f]", text):
         voice = "hi-IN-SwaraNeural"
+        target_lang = "hi"
     else:
         voice = "en-IN-NeerjaNeural"
+        target_lang = "en"
 
-    cache_key = (voice, text[:1500])
+    cache_key = (target_lang, text[:1500])
     if cache_key in TTS_CACHE:
         return Response(TTS_CACHE[cache_key], mimetype="audio/mpeg", headers={
             "Cache-Control": "public, max-age=86400",
@@ -787,23 +834,35 @@ def tts_neural_endpoint():
             "X-TTS-Cache": "HIT"
         })
 
+    audio_data = None
     try:
         audio_data = asyncio.run(_generate_edge_tts(text[:2500], voice))
-        # LRU cache management
-        if len(TTS_CACHE_KEYS) >= MAX_TTS_CACHE_ITEMS:
-            oldest = TTS_CACHE_KEYS.pop(0)
-            TTS_CACHE.pop(oldest, None)
-        TTS_CACHE[cache_key] = audio_data
-        TTS_CACHE_KEYS.append(cache_key)
-
-        return Response(audio_data, mimetype="audio/mpeg", headers={
-            "Cache-Control": "public, max-age=86400",
-            "Content-Disposition": "inline; filename=speech.mp3",
-            "X-TTS-Cache": "MISS"
-        })
     except Exception as e:
-        print(f"[tts-error] Edge TTS failed: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"[tts-fallback] Edge TTS notice ({e}), using Google Neural TTS fallback")
+        try:
+            audio_data = _generate_google_tts(text[:2500], target_lang)
+        except Exception as ge:
+            print(f"[tts-error] Google TTS failed: {ge}")
+            return jsonify({"error": str(ge)}), 500
+
+    if not audio_data:
+        try:
+            audio_data = _generate_google_tts(text[:2500], target_lang)
+        except Exception as ge:
+            return jsonify({"error": "Failed to synthesize speech"}), 500
+
+    # LRU cache management
+    if len(TTS_CACHE_KEYS) >= MAX_TTS_CACHE_ITEMS:
+        oldest = TTS_CACHE_KEYS.pop(0)
+        TTS_CACHE.pop(oldest, None)
+    TTS_CACHE[cache_key] = audio_data
+    TTS_CACHE_KEYS.append(cache_key)
+
+    return Response(audio_data, mimetype="audio/mpeg", headers={
+        "Cache-Control": "public, max-age=86400",
+        "Content-Disposition": "inline; filename=speech.mp3",
+        "X-TTS-Cache": "MISS"
+    })
 
 
 @app.post("/api/advisory")
@@ -1067,6 +1126,7 @@ def doctor_chat():
     # Acreage & Tank capacity for calculation
     acreage = data.get("acreage")
     tank_capacity = data.get("tank_capacity")
+    diagnosis_details = data.get("diagnosis_details") or {}
 
     # Load Groq key
     groq_key = os.getenv("GROQ_API_KEY", "").strip()
@@ -1097,7 +1157,8 @@ def doctor_chat():
         "     * Exact amount of chemical to pour into EACH tank\n"
         "3. Weather & Spray Timing Guidance: Check the provided weather conditions. If high humidity (>85%) or rain is imminent, advise on rainfastness or using an agricultural wetting/sticking agent (spreader). Never recommend spraying in strong winds (>15 km/h) or scorching midday heat.\n"
         "4. Safety First: Remind farmers to wear gloves/mask, spray with the wind at their back, and keep animals/children away.\n"
-        "5. Tone: Respectful, practical, crisp (use bullet points or numbered lists). Avoid overwhelming academic jargon."
+        "5. Tone: Respectful, practical, crisp (use bullet points or numbered lists). Avoid overwhelming academic jargon.\n"
+        "6. Dashboard Alignment: You have full access to the exact diagnosis, confidence percentage, symptoms, and treatments displayed on the farmer's dashboard. Seamlessly reference these findings when answering follow-up questions."
     )
 
     context_prompt = (
@@ -1108,6 +1169,35 @@ def doctor_chat():
         f"- Model Confidence: {confidence}%\n"
         f"- Live Microclimate: {weather_desc}\n"
     )
+    if diagnosis_details:
+        context_prompt += "\nVERIFIED DASHBOARD DIAGNOSIS & AGRONOMIC EVIDENCE:\n"
+        if diagnosis_details.get("rawClass"):
+            context_prompt += f"- Exact Model Class: {diagnosis_details['rawClass']}\n"
+        if diagnosis_details.get("confidencePercent"):
+            context_prompt += f"- Exact Diagnostic Confidence: {diagnosis_details['confidencePercent']}%\n"
+        if diagnosis_details.get("symptoms"):
+            context_prompt += f"- Observed Symptoms & Pathology: {diagnosis_details['symptoms']}\n"
+        if diagnosis_details.get("treatment"):
+            context_prompt += f"- Recommended Treatment: {diagnosis_details['treatment']}\n"
+        if diagnosis_details.get("fertilizer"):
+            context_prompt += f"- Recommended Soil Nutrition & Fertilizer: {diagnosis_details['fertilizer']}\n"
+        if diagnosis_details.get("organic_tip"):
+            context_prompt += f"- Eco / Organic Remedy: {diagnosis_details['organic_tip']}\n"
+        if diagnosis_details.get("teacherModelUsed"):
+            context_prompt += f"- Teacher Escalation: Verified by Amazon Nova Lite Teacher Model (Student Edge Confidence: {diagnosis_details.get('studentConfidence')}%)\n"
+            if diagnosis_details.get("teacherReasoning"):
+                context_prompt += f"- Teacher Agronomist Reasoning: {diagnosis_details['teacherReasoning']}\n"
+        if diagnosis_details.get("phase"):
+            context_prompt += f"- Growth Stage Phase: {diagnosis_details['phase']} ({diagnosis_details.get('phaseName', '')})\n"
+            if diagnosis_details.get("daysToHarvest"):
+                context_prompt += f"- Days to Harvest: {diagnosis_details['daysToHarvest']} days\n"
+            if diagnosis_details.get("irrigation"):
+                context_prompt += f"- Stage Irrigation Advice: {diagnosis_details['irrigation']}\n"
+            if diagnosis_details.get("priorityAction"):
+                context_prompt += f"- Stage Priority Action: {diagnosis_details['priorityAction']}\n"
+            if diagnosis_details.get("pestWatch"):
+                context_prompt += f"- Vulnerable Pest Watch: {diagnosis_details['pestWatch']}\n"
+
     if acreage:
         context_prompt += f"- Farmer Field Size: {acreage} Acres\n"
     if tank_capacity:

@@ -1,8 +1,9 @@
 // AgroLens Offline-First Service Worker
-const CACHE_NAME = "agrolens-cache-v3";
+const CACHE_NAME = "agrolens-cache-v4";
 const OFFLINE_ASSETS = [
   "/",
   "/dashboard",
+  "/doctor",
   "/class_names.json",
   "/agronomy_knowledge.json",
   "/crop_stage_knowledge.json",

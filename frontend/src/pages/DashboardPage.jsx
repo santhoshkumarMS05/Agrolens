@@ -7,7 +7,6 @@ import voiceReader from "../utils/voiceReader";
 import { loadOfflineModel, runClientOnnxInference } from "../utils/onnxOfflineEngine";
 import WeatherRiskCard from "../components/WeatherRiskCard";
 import BrandLogo from "../components/BrandLogo";
-import CropDoctorChat from "../components/CropDoctorChat";
 
 const CROPS_LIST = [
   { id: "Cotton", icon: "🌱", en: "Cotton", ta: "பருத்தி", hi: "कपास" },
@@ -68,7 +67,9 @@ const UI_STRINGS = {
     saveHistory: "Save to History",
     savedSuccess: "Saved to your diagnostic history!",
     shareWhatsApp: "WhatsApp",
-    exportPdf: "Export PDF"
+    exportPdf: "Export PDF",
+    askDoctorBtnTitle: "Ask AI Crop Doctor & Precision Spray Assistant",
+    askDoctorBtnSub: "Ask follow-ups, weather spray checks, and field dosage dilution"
   },
   ta: {
     tagHealthy: "ஆரோக்கியமான பயிர் இலைகள்",
@@ -92,7 +93,9 @@ const UI_STRINGS = {
     saveHistory: "வரலாற்றில் சேமிக்கவும்",
     savedSuccess: "உங்கள் நோய் கண்டறிதல் வரலாற்றில் வெற்றிகரமாக சேமிக்கப்பட்டது!",
     shareWhatsApp: "வாட்ஸ்அப்",
-    exportPdf: "PDF அறிக்கை"
+    exportPdf: "PDF அறிக்கை",
+    askDoctorBtnTitle: "AI பயிர் மருத்துவரிடம் ஆலோசிக்கவும்",
+    askDoctorBtnSub: "சந்தேகங்கள், வானிலை தெளிப்பு வழிகாட்டல் & மருந்து கலவை அளவீடு"
   },
   hi: {
     tagHealthy: "स्वस्थ फसल के पत्ते",
@@ -116,7 +119,9 @@ const UI_STRINGS = {
     saveHistory: "इतिहास में सहेजें",
     savedSuccess: "आपके निदान इतिहास में सफलतापूर्वक सहेजा गया!",
     shareWhatsApp: "व्हाट्सएप",
-    exportPdf: "PDF रिपोर्ट"
+    exportPdf: "PDF रिपोर्ट",
+    askDoctorBtnTitle: "AI फसल डॉक्टर से परामर्श करें",
+    askDoctorBtnSub: "सवालों के जवाब, मौसम छिड़काव जांच एवं दवा खुराक का हिसाब"
   }
 };
 
@@ -1065,6 +1070,9 @@ export const DashboardPage = () => {
       organic_tip: p.organic_tip,
       imageSrc: activeItem.dataUrl || activeItem.url,
       gradcamSrc: activeItem.result.gradcamDataUrl,
+      weather: liveWeather,
+      acreage: 1.0,
+      tankCapacity: 16,
       farmerName: user?.name || "AgroLens Farmer"
     });
   };
@@ -1109,6 +1117,7 @@ export const DashboardPage = () => {
       pestWatch: adv.pest_disease_watch,
       priorityAction: adv.priority_action,
       imageSrc: activeItem.dataUrl || activeItem.url,
+      weather: liveWeather,
       farmerName: user?.name || "AgroLens Farmer"
     });
   };
@@ -1781,15 +1790,52 @@ export const DashboardPage = () => {
                           )}
                         </div>
 
-                        {/* AI Crop Doctor & Precision Spray Assistant */}
-                        <CropDoctorChat
-                          crop={p.crop || selectedCropName}
-                          disease={p.disease || (currentResult?.healthy ? "Healthy Foliage" : "Crop Condition")}
-                          severity={p.severity || "Moderate"}
-                          confidence={currentResult?.confidence || 90}
-                          weather={liveWeather}
-                          activeLang={activeLang}
-                        />
+                        {/* Dedicated AI Crop Doctor CTA Button */}
+                        <div style={{ marginTop: "18px" }}>
+                          <button
+                            type="button"
+                            className="btn ask-doctor-btn"
+                            id="askDoctorBtn"
+                            onClick={() => {
+                              const confPercent = currentResult?.conf != null ? +(currentResult.conf * 100).toFixed(1) : 90;
+                              const condName = p?.cond || (currentResult?.healthy ? "Healthy Foliage" : "Crop Condition");
+                              navigate("/doctor", {
+                                state: {
+                                  crop: p?.crop || selectedCropName,
+                                  disease: condName,
+                                  severity: p?.severity || (currentResult?.healthy ? "Optimal Health" : "Moderate Severity"),
+                                  confidence: confPercent,
+                                  weather: liveWeather,
+                                  activeLang: activeLang,
+                                  source: "disease",
+                                  diagnosisDetails: {
+                                    rawClass: currentResult?.raw || "",
+                                    healthy: Boolean(p?.healthy),
+                                    confidencePercent: confPercent,
+                                    symptoms: p?.diagnosis || p?.guide || "",
+                                    treatment: p?.treatment || "",
+                                    fertilizer: p?.fertilizer || "",
+                                    organic_tip: p?.organic_tip || "",
+                                    teacherModelUsed: Boolean(currentResult?.teacherModelUsed),
+                                    teacherReasoning: currentResult?.teacherReasoning || "",
+                                    studentConfidence: currentResult?.studentConfidence || null
+                                  }
+                                }
+                              });
+                            }}
+                          >
+                            <span style={{ fontSize: "1.35rem" }}>🩺</span>
+                            <div style={{ textAlign: "left", flex: 1 }}>
+                              <div style={{ fontWeight: 700, fontSize: "0.98rem", lineHeight: 1.25 }}>
+                                {ui.askDoctorBtnTitle}
+                              </div>
+                              <div style={{ fontSize: ".78rem", opacity: 0.9, marginTop: "2px" }}>
+                                {ui.askDoctorBtnSub}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>→</span>
+                          </button>
+                        </div>
 
                         {/* Save, Share, Export & Report Actions */}
                         <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -2015,15 +2061,49 @@ export const DashboardPage = () => {
                           </div>
                         </div>
 
-                        {/* AI Crop Doctor & Precision Spray Assistant */}
-                        <CropDoctorChat
-                          crop={currentStageResult.advisory?.crop || currentStageResult.crop || selectedCropName}
-                          disease={`${currentStageResult.phase} Phase Growth Stage`}
-                          severity="Optimal"
-                          confidence={currentStageResult.confidence || 90}
-                          weather={liveWeather}
-                          activeLang={activeLang}
-                        />
+                        {/* Dedicated AI Crop Doctor CTA Button */}
+                        <div style={{ marginTop: "18px" }}>
+                          <button
+                            type="button"
+                            className="btn ask-doctor-btn"
+                            id="askStageDoctorBtn"
+                            onClick={() =>
+                              navigate("/doctor", {
+                                state: {
+                                  crop: currentStageResult.advisory?.crop || currentStageResult.crop || selectedCropName,
+                                  disease: `${currentStageResult.phase} Phase Growth Stage`,
+                                  severity: "Optimal",
+                                  confidence: currentStageResult.confidence || 90,
+                                  weather: liveWeather,
+                                  activeLang: activeLang,
+                                  source: "stage",
+                                  stageDetails: currentStageResult.advisory,
+                                  diagnosisDetails: {
+                                    rawClass: `${currentStageResult.crop || selectedCropName}_${currentStageResult.phase}`,
+                                    confidencePercent: currentStageResult.confidence || 90,
+                                    phase: currentStageResult.phase,
+                                    phaseName: currentStageResult.advisory?.phase_name || currentStageResult.phase,
+                                    daysToHarvest: currentStageResult.advisory?.days_to_harvest,
+                                    irrigation: currentStageResult.advisory?.irrigation_guide,
+                                    priorityAction: currentStageResult.advisory?.priority_action,
+                                    pestWatch: currentStageResult.advisory?.vulnerable_pests
+                                  }
+                                }
+                              })
+                            }
+                          >
+                            <span style={{ fontSize: "1.35rem" }}>🩺</span>
+                            <div style={{ textAlign: "left", flex: 1 }}>
+                              <div style={{ fontWeight: 700, fontSize: "0.98rem", lineHeight: 1.25 }}>
+                                {ui.askDoctorBtnTitle}
+                              </div>
+                              <div style={{ fontSize: ".78rem", opacity: 0.9, marginTop: "2px" }}>
+                                {ui.askDoctorBtnSub}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>→</span>
+                          </button>
+                        </div>
 
                         {/* Save Stage, Share & Export */}
                         <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>

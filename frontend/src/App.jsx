@@ -10,6 +10,7 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
+import CropDoctorPage from "./pages/CropDoctorPage";
 
 export const App = () => {
   return (
@@ -22,6 +23,7 @@ export const App = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/admin-login" element={<AdminLoginPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/doctor" element={<CropDoctorPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />

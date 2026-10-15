@@ -4,9 +4,24 @@ import { googleLogout } from "@react-oauth/google";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("agrolens_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      const saved = localStorage.getItem("agrolens_user");
+      const parsed = saved ? JSON.parse(saved) : null;
+      return parsed?.role === "admin";
+    } catch {
+      return false;
+    }
+  });
+  const [loading, setLoading] = useState(false);
 
   const checkAuth = async () => {
     try {
@@ -16,13 +31,14 @@ export const AuthProvider = ({ children }) => {
         const currentUser = data.user || data;
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
-      } else {
-        setUser(null);
-        setIsAdmin(false);
+        try {
+          localStorage.setItem("agrolens_user", JSON.stringify(currentUser));
+        } catch {}
       }
-    } catch {
-      setUser(null);
-      setIsAdmin(false);
+      // Note: Do not wipe cached user on 401 so offline farmers and session hiccups
+      // don't unexpectedly sign the user out. Only explicit logout() clears the user.
+    } catch (e) {
+      console.warn("[AgroLens] Auth check offline/network warning:", e);
     } finally {
       setLoading(false);
     }
@@ -45,6 +61,9 @@ export const AuthProvider = ({ children }) => {
       if (data.ok && data.user) {
         setUser(data.user);
         setIsAdmin(data.user.role === "admin");
+        try {
+          localStorage.setItem("agrolens_user", JSON.stringify(data.user));
+        } catch {}
         return data.user;
       }
     } catch (err) {
@@ -56,6 +75,9 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     setUser(userData);
     setIsAdmin(userData.role === "admin");
+    try {
+      localStorage.setItem("agrolens_user", JSON.stringify(userData));
+    } catch {}
   };
 
   const logout = async () => {
@@ -71,6 +93,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       setIsAdmin(false);
+      try {
+        localStorage.removeItem("agrolens_user");
+      } catch {}
     }
   };
 

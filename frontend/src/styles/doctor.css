@@ -1,0 +1,1012 @@
+/* AgroLens AI Crop Doctor Dedicated Page Styling */
+
+.doctor-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--paper);
+  color: var(--ink);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── Top Header ────────────────────────────────────────── */
+.doctor-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 24px;
+}
+
+.doctor-header-in {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.doctor-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.doctor-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--paper-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.doctor-back-btn:hover {
+  background: var(--paper-3);
+  border-color: var(--green);
+  transform: translateX(-2px);
+}
+
+.doctor-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doctor-title-box h1 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doctor-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  background: rgba(34, 197, 94, 0.14);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+[data-theme="dark"] .doctor-status-badge {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.16);
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.doctor-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.doctor-status-badge.offline {
+  background: rgba(245, 158, 11, 0.14);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .doctor-status-badge.offline {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.doctor-pdf-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.2));
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .doctor-pdf-export-btn {
+  color: #93c5fd;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.28));
+  border-color: rgba(96, 165, 250, 0.45);
+}
+
+.doctor-pdf-export-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Top Right Section (Language options strictly on top right) */
+.doctor-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doctor-lang-switch {
+  display: flex;
+  align-items: center;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.doctor-lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-lang-btn:hover {
+  color: var(--ink);
+}
+
+.doctor-lang-btn.active {
+  background: var(--green);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(45, 70, 39, 0.25);
+}
+
+[data-theme="dark"] .doctor-lang-btn.active {
+  background: var(--green);
+  color: #0f140f;
+  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.35);
+}
+
+/* ── Context & Dosage Sub-Bar ──────────────────────────── */
+.doctor-context-bar {
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 24px;
+}
+
+.doctor-context-in {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.doctor-meta-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.doctor-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.doctor-tag.crop {
+  border-color: var(--green-l);
+  color: var(--green-l);
+}
+
+.doctor-tag.condition {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.doctor-tag.weather {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.doctor-calc-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.22));
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .doctor-calc-toggle-btn {
+  color: #86efac;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.3));
+  border-color: rgba(74, 222, 128, 0.45);
+}
+
+.doctor-calc-toggle-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+/* ── Dosage Calculator Drawer ──────────────────────────── */
+.doctor-calc-drawer {
+  background: var(--paper-2);
+  border-bottom: 2px solid var(--green);
+  padding: 18px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.doctor-calc-in {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.doctor-calc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.doctor-calc-header h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--green-l);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doctor-calc-fields {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .doctor-calc-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctor-calc-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.doctor-calc-field input,
+.doctor-calc-field select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.doctor-calc-field input:focus,
+.doctor-calc-field select:focus {
+  border-color: var(--green);
+}
+
+.doctor-calc-submit-btn {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.doctor-calc-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+/* ── Main Chat Feed ────────────────────────────────────── */
+.doctor-chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 940px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 20px 120px;
+}
+
+.doctor-messages-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Message Bubble Rows */
+.doctor-msg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  animation: fadeInMsg 0.2s ease-out;
+}
+
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.doctor-msg-row.user {
+  flex-direction: row-reverse;
+}
+
+.doctor-msg-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.doctor-msg-avatar.doctor {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.doctor-msg-avatar.user {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+}
+
+/* Bubble Content */
+.doctor-msg-bubble {
+  max-width: 82%;
+  padding: 16px 20px;
+  border-radius: 18px;
+  line-height: 1.6;
+  position: relative;
+  font-size: 0.94rem;
+}
+
+@media (max-width: 600px) {
+  .doctor-msg-bubble {
+    max-width: 92%;
+  }
+}
+
+.doctor-msg-row.user .doctor-msg-bubble {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 3px 12px rgba(22, 163, 74, 0.25);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .doctor-msg-row.user .doctor-msg-bubble {
+  background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+  color: #f0fdf4;
+}
+
+.doctor-msg-row.doctor .doctor-msg-bubble {
+  background: var(--paper-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+}
+
+.doctor-msg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.doctor-msg-author {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--green-l);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.doctor-listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-listen-btn:hover {
+  border-color: var(--green);
+  color: var(--green-l);
+}
+
+.doctor-listen-btn.playing {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.doctor-msg-time {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 8px;
+  text-align: right;
+}
+
+.doctor-msg-row.user .doctor-msg-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Markdown Content Styling ──────────────────────────── */
+.markdown-body {
+  font-size: 0.94rem;
+  color: inherit;
+}
+
+.markdown-body .md-h1,
+.markdown-body .md-h2 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 14px 0 6px;
+}
+
+.markdown-body .md-h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--green-l);
+  margin: 12px 0 4px;
+}
+
+.markdown-body .md-p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.markdown-body .md-bold {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.doctor-msg-row.user .markdown-body .md-bold {
+  color: #ffffff;
+}
+
+.markdown-body .md-italic {
+  font-style: italic;
+  opacity: 0.92;
+}
+
+.markdown-body .md-code {
+  background: var(--paper-3);
+  color: var(--green-l);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.88em;
+  font-family: monospace;
+}
+
+.markdown-body .md-hr {
+  border: 0;
+  border-top: 1px dashed var(--line);
+  margin: 12px 0;
+}
+
+.markdown-body .md-blockquote {
+  border-left: 3.5px solid var(--gold);
+  background: var(--paper-3);
+  padding: 8px 14px;
+  border-radius: 0 8px 8px 0;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
+.markdown-body .md-list {
+  margin: 8px 0 8px 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.markdown-body .md-li {
+  line-height: 1.55;
+}
+
+.markdown-body .md-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.markdown-body .md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.markdown-body .md-table th {
+  background: var(--paper-3);
+  padding: 8px 12px;
+  font-weight: 700;
+  color: var(--green-l);
+  border-bottom: 2px solid var(--border);
+}
+
+.markdown-body .md-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.markdown-body .md-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Quick Action Prompt Chips ─────────────────────────── */
+.doctor-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 8px;
+  padding: 4px 0;
+}
+
+.doctor-quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--paper-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.doctor-quick-chip:hover {
+  background: var(--paper-3);
+  border-color: var(--green);
+  color: var(--green-l);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .doctor-quick-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .doctor-quick-chip:hover {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: var(--green);
+  color: #86efac;
+}
+
+/* ── Fixed Bottom Input Bar ────────────────────────────── */
+.doctor-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding: 12px 20px;
+  z-index: 40;
+}
+
+.doctor-bottom-in {
+  max-width: 940px;
+  margin: 0 auto;
+}
+
+.doctor-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--paper-2);
+  border: 1.5px solid var(--line);
+  border-radius: 99px;
+  padding: 4px 6px 4px 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.doctor-input-row:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.doctor-mic-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.doctor-mic-btn:hover {
+  color: var(--ink);
+  transform: scale(1.08);
+}
+
+.doctor-mic-btn.recording {
+  color: #ef4444;
+  animation: pulseMic 1.2s infinite;
+}
+
+@keyframes pulseMic {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.7)); }
+  100% { transform: scale(1); }
+}
+
+.doctor-input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.94rem;
+  color: var(--ink);
+  font-family: "Space Grotesk", sans-serif;
+  padding: 8px 4px;
+}
+
+.doctor-input-field::placeholder {
+  color: var(--muted);
+}
+
+.doctor-send-btn {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 99px;
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.doctor-send-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.35);
+}
+
+.doctor-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading Dots */
+.doctor-typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.doctor-typing-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green-l);
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.doctor-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.doctor-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1.1); opacity: 1; }
+}
+
+/* ── CTA Button on Dashboard ───────────────────────────── */
+.ask-doctor-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  color: #ffffff;
+  border: 1px solid rgba(22, 163, 74, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  font-family: "Space Grotesk", sans-serif;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.22);
+}
+
+.ask-doctor-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35);
+  filter: brightness(1.05);
+}
+
+/* ── Mobile Responsive Layout Optimizations (< 680px) ────── */
+@media (max-width: 680px) {
+  .doctor-header {
+    padding: 8px 12px;
+  }
+
+  .doctor-header-in {
+    gap: 6px;
+  }
+
+  .doctor-header-left {
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .doctor-back-btn {
+    padding: 5px 8px;
+    font-size: 0.76rem;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  .doctor-brand-wrap {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .doctor-brand-wrap img,
+  .doctor-brand-wrap svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .doctor-title-box h1 {
+    font-size: 0.88rem;
+    gap: 4px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+  }
+
+  .doctor-title-text {
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .doctor-status-badge {
+    padding: 2px 6px;
+    font-size: 0.68rem;
+  }
+
+  .doctor-header-right {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .doctor-lang-switch {
+    padding: 2px;
+    gap: 1px;
+  }
+
+  .doctor-lang-btn {
+    padding: 3px 6px;
+    font-size: 0.72rem;
+  }
+
+  /* Compact Context Bar on Mobile */
+  .doctor-context-bar {
+    padding: 6px 12px;
+  }
+
+  .doctor-context-in {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .doctor-meta-tags {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+
+  .doctor-meta-tags::-webkit-scrollbar {
+    display: none;
+  }
+
+  .doctor-tag {
+    font-size: 0.74rem;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .doctor-context-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px !important;
+    width: 100%;
+  }
+
+  .doctor-pdf-export-btn,
+  .doctor-calc-toggle-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 5px 8px !important;
+    font-size: 0.74rem !important;
+    white-space: nowrap;
+  }
+
+  /* Chat container & messages */
+  .doctor-chat-container {
+    padding: 10px 10px 105px;
+  }
+
+  .doctor-messages-feed {
+    gap: 12px;
+  }
+
+  .doctor-msg-bubble {
+    max-width: 92%;
+    padding: 10px 13px;
+    font-size: 0.88rem;
+  }
+
+  .doctor-msg-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  /* Horizontally scrollable quick prompt chips */
+  .doctor-quick-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 0 6px;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+
+  .doctor-quick-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .doctor-quick-chip {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.74rem;
+    padding: 5px 11px;
+  }
+
+  /* Fixed bottom input bar */
+  .doctor-bottom-bar {
+    padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .doctor-input-row {
+    padding: 3px 4px 3px 10px;
+    gap: 6px;
+  }
+
+  .doctor-input-field {
+    font-size: 0.86rem;
+    padding: 6px 2px;
+  }
+
+  .doctor-mic-btn {
+    padding: 4px;
+    font-size: 1.1rem;
+  }
+
+  .doctor-send-btn {
+    padding: 7px 13px;
+    font-size: 0.82rem;
+  }
+}
+
