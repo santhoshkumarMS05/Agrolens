@@ -862,7 +862,7 @@
   }
 
   .doctor-title-box h1 {
-    font-size: 0.84rem;
+    font-size: 0.78rem;
     gap: 4px;
     white-space: nowrap;
     display: flex;
@@ -870,7 +870,7 @@
   }
 
   .doctor-title-text {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 700;
   }
 
