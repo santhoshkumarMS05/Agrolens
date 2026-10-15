@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { shareToWhatsApp, exportToPdf } from "../utils/advisoryExport";
@@ -298,23 +298,72 @@ function renderAdvisoryContent(text) {
   return <p className="advisory-para" style={{ margin: 0 }}>{trimmed}</p>;
 }
 
+const getSavedScan = () => {
+  try {
+    const raw = sessionStorage.getItem("agrolens_active_scan");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && (parsed.item?.result || parsed.item?.stageResult)) {
+      return parsed;
+    }
+  } catch (e) {
+    console.warn("Failed to load saved scan:", e);
+  }
+  return null;
+};
+
 export const DashboardPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const savedScan = useMemo(() => getSavedScan(), []);
 
   // Screen Step: 1 = Crop Selector, 2 = Diagnosis
-  const [step, setStep] = useState(1);
-  const [selectedCropId, setSelectedCropId] = useState("Cotton");
-  const [customCrop, setCustomCrop] = useState("");
+  const [step, setStep] = useState(() => (savedScan?.step === 2 ? 2 : 1));
+  const [selectedCropId, setSelectedCropId] = useState(() => savedScan?.selectedCropId || "Cotton");
+  const [customCrop, setCustomCrop] = useState(() => savedScan?.customCrop || "");
   const [cropLang, setCropLang] = useState("en"); // 'en' | 'ta' | 'hi'
 
   // Diagnostic Mode: 'disease' | 'stage'
-  const [mode, setMode] = useState("disease");
-  const [activeLang, setActiveLang] = useState("en");
+  const [mode, setMode] = useState(() => savedScan?.mode || "disease");
+  const [activeLang, setActiveLang] = useState(() => savedScan?.activeLang || "en");
 
   // File Upload & Batch Queue
-  const [batchFiles, setBatchFiles] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [batchFiles, setBatchFiles] = useState(() => {
+    if (savedScan?.item) {
+      return [{
+        ...savedScan.item,
+        url: savedScan.item.dataUrl || savedScan.item.url
+      }];
+    }
+    return [];
+  });
+  const [activeIndex, setActiveIndex] = useState(() => (savedScan?.item ? 0 : -1));
+
+  const persistActiveScan = (itemToSave, cropId = selectedCropId, custom = customCrop, curMode = mode, lang = activeLang, weather = liveWeather) => {
+    try {
+      if (!itemToSave || (!itemToSave.result && !itemToSave.stageResult)) return;
+      sessionStorage.setItem("agrolens_active_scan", JSON.stringify({
+        step: 2,
+        selectedCropId: cropId,
+        customCrop: custom,
+        mode: curMode,
+        activeLang: lang,
+        liveWeather: weather,
+        item: {
+          name: itemToSave.name,
+          dataUrl: itemToSave.dataUrl || itemToSave.url,
+          result: itemToSave.result,
+          stageResult: itemToSave.stageResult,
+          advisories: itemToSave.advisories || {},
+          stageAdvisories: itemToSave.stageAdvisories || {}
+        }
+      }));
+    } catch (e) {
+      console.warn("Could not persist active scan:", e);
+    }
+  };
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null); // Native camera input for devices
   const [isDragging, setIsDragging] = useState(false);
@@ -554,6 +603,9 @@ export const DashboardPage = () => {
   };
 
   const handleClear = () => {
+    try {
+      sessionStorage.removeItem("agrolens_active_scan");
+    } catch {}
     batchFiles.forEach((b) => {
       if (b.url) URL.revokeObjectURL(b.url);
     });
@@ -673,6 +725,7 @@ export const DashboardPage = () => {
               advisory: advisoryObj
             };
             setBatchFiles([...batchFiles]);
+            persistActiveScan(item, selectedCropId, customCrop, "stage", activeLang, liveWeather);
           }
         } catch (err) {
           console.error("Stage diagnosis error for item", i, err);
@@ -807,6 +860,7 @@ export const DashboardPage = () => {
               p
             };
             setBatchFiles([...batchFiles]);
+            persistActiveScan(item, selectedCropId, customCrop, "disease", activeLang, liveWeather);
 
             // Background prefetch audio so clicking speaker plays instantly
             if (voiceReader.prefetch) {
@@ -918,6 +972,9 @@ export const DashboardPage = () => {
           })
           .catch(() => {});
       }
+    }
+    if (activeItem && (activeItem.result || activeItem.stageResult)) {
+      persistActiveScan(activeItem, selectedCropId, customCrop, mode, activeLang, liveWeather);
     }
   }, [activeLang, activeIndex, mode]);
 
@@ -1259,7 +1316,12 @@ export const DashboardPage = () => {
             <button
               type="button"
               id="selectedCropChip"
-              onClick={() => setStep(1)}
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem("agrolens_active_scan");
+                } catch {}
+                setStep(1);
+              }}
             >
               <span>{selectedCropObj.icon}</span> <span id="selectedCropChipLabel">{selectedCropName}</span>
               <span style={{ fontSize: ".72rem", fontWeight: 500, color: "var(--muted)", marginLeft: "4px" }}>✕ Change</span>
@@ -1797,6 +1859,7 @@ export const DashboardPage = () => {
                             className="btn ask-doctor-btn"
                             id="askDoctorBtn"
                             onClick={() => {
+                              persistActiveScan(activeItem, selectedCropId, customCrop, mode, activeLang, liveWeather);
                               const confPercent = currentResult?.conf != null ? +(currentResult.conf * 100).toFixed(1) : 90;
                               const condName = p?.cond || (currentResult?.healthy ? "Healthy Foliage" : "Crop Condition");
                               navigate("/doctor", {
@@ -1808,6 +1871,8 @@ export const DashboardPage = () => {
                                   weather: liveWeather,
                                   activeLang: activeLang,
                                   source: "disease",
+                                  imageSrc: activeItem?.dataUrl || activeItem?.url || "",
+                                  gradcamSrc: currentResult?.gradcamDataUrl || "",
                                   diagnosisDetails: {
                                     rawClass: currentResult?.raw || "",
                                     healthy: Boolean(p?.healthy),
@@ -2067,7 +2132,8 @@ export const DashboardPage = () => {
                             type="button"
                             className="btn ask-doctor-btn"
                             id="askStageDoctorBtn"
-                            onClick={() =>
+                            onClick={() => {
+                              persistActiveScan(activeItem, selectedCropId, customCrop, mode, activeLang, liveWeather);
                               navigate("/doctor", {
                                 state: {
                                   crop: currentStageResult.advisory?.crop || currentStageResult.crop || selectedCropName,
@@ -2077,6 +2143,7 @@ export const DashboardPage = () => {
                                   weather: liveWeather,
                                   activeLang: activeLang,
                                   source: "stage",
+                                  imageSrc: activeItem?.dataUrl || activeItem?.url || "",
                                   stageDetails: currentStageResult.advisory,
                                   diagnosisDetails: {
                                     rawClass: `${currentStageResult.crop || selectedCropName}_${currentStageResult.phase}`,
@@ -2089,8 +2156,8 @@ export const DashboardPage = () => {
                                     pestWatch: currentStageResult.advisory?.vulnerable_pests
                                   }
                                 }
-                              })
-                            }
+                              });
+                            }}
                           >
                             <span style={{ fontSize: "1.35rem" }}>🩺</span>
                             <div style={{ textAlign: "left", flex: 1 }}>

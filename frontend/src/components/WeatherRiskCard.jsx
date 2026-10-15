@@ -146,22 +146,24 @@ export const WeatherRiskCard = ({ selectedCrop = "Rice", activeLang = "en", onWe
             style={{
               display: "inline-flex",
               alignItems: "center",
-              justifyContent: "center",
-              width: "28px",
-              height: "28px",
-              padding: 0,
+              gap: "4px",
+              padding: "4px 10px",
               background: isExpanded ? "var(--green)" : "var(--paper-2)",
               color: isExpanded ? "#ffffff" : "var(--ink)",
               border: "1px solid var(--line)",
-              borderRadius: "50%",
-              fontSize: "0.82rem",
-              fontWeight: 700,
+              borderRadius: "99px",
+              fontSize: "0.78rem",
+              fontWeight: 600,
               cursor: "pointer",
-              transition: "all 0.2s ease",
-              flexShrink: 0
+              transition: "all 0.2s ease"
             }}
           >
-            {isExpanded ? "▲" : "▼"}
+            <span>
+              {isExpanded
+                ? (activeLang === "ta" ? "மறைக்க" : activeLang === "hi" ? "संक्षिप्त करें" : "Collapse")
+                : (activeLang === "ta" ? "விவரங்கள்" : activeLang === "hi" ? "पूर्ण விவரம்" : "Details")}
+            </span>
+            <span style={{ fontSize: "0.72rem" }}>{isExpanded ? "▲" : "▼"}</span>
           </button>
         </div>
       </div>

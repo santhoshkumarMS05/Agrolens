@@ -392,7 +392,7 @@ export const CropDoctorPage = () => {
             <button
               type="button"
               className="doctor-back-btn"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/dashboard", { state: { fromDoctor: true } })}
               title="Return to Dashboard"
             >
               <span className="doctor-back-arrow">←</span>
