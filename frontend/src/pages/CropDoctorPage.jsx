@@ -395,8 +395,8 @@ export const CropDoctorPage = () => {
               onClick={() => navigate("/dashboard")}
               title="Return to Dashboard"
             >
-              <span>←</span>
-              <span>{ui.back}</span>
+              <span className="doctor-back-arrow">←</span>
+              <span className="doctor-back-label">{ui.back}</span>
             </button>
 
             <div className="doctor-brand-wrap">
@@ -423,7 +423,7 @@ export const CropDoctorPage = () => {
                 onChange={(e) => setActiveLang(e.target.value)}
                 aria-label="Select Language"
               >
-                <option value="en">🌐 English</option>
+                <option value="en">🌐 EN</option>
                 <option value="ta">🌐 தமிழ்</option>
                 <option value="hi">🌐 हिंदी</option>
               </select>

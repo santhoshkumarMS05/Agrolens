@@ -818,24 +818,31 @@
 /* ── Mobile Responsive Layout Optimizations (< 680px) ────── */
 @media (max-width: 680px) {
   .doctor-header {
-    padding: 8px 12px;
+    padding: 8px 10px;
   }
 
   .doctor-header-in {
     gap: 6px;
+    justify-content: space-between;
   }
 
   .doctor-header-left {
     gap: 6px;
     min-width: 0;
-    flex: 1;
+    flex: 1 1 auto;
+    overflow: hidden;
   }
 
   .doctor-back-btn {
     padding: 5px 8px;
-    font-size: 0.76rem;
-    gap: 3px;
-    white-space: nowrap;
+    font-size: 0.8rem;
+    gap: 2px;
+    flex-shrink: 0;
+    border-radius: 8px;
+  }
+
+  .doctor-back-label {
+    display: none;
   }
 
   .doctor-brand-wrap {
@@ -845,12 +852,17 @@
 
   .doctor-brand-wrap img,
   .doctor-brand-wrap svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .doctor-title-box {
+    min-width: 0;
   }
 
   .doctor-title-box h1 {
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     gap: 4px;
     white-space: nowrap;
     display: flex;
@@ -863,8 +875,9 @@
   }
 
   .doctor-status-badge {
-    padding: 2px 6px;
-    font-size: 0.68rem;
+    padding: 2px 5px;
+    font-size: 0.65rem;
+    flex-shrink: 0;
   }
 
   .doctor-header-right {
@@ -878,10 +891,10 @@
   }
 
   .doctor-lang-select {
-    padding: 3px 6px;
-    font-size: 0.74rem;
-    border-radius: 8px;
-    max-width: 105px;
+    padding: 3px 5px;
+    font-size: 0.72rem;
+    border-radius: 6px;
+    max-width: 78px;
   }
 
   .doctor-lang-switch {
