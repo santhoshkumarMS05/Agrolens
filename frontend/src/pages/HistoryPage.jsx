@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
 import BrandLogo from "../components/BrandLogo";
 import voiceReader from "../utils/voiceReader";
+import { TN_AGRICULTURAL_DISTRICTS } from "../utils/weatherDiseaseRisk";
 
 function renderAdvisoryContent(text) {
   if (!text || typeof text !== "string") return "—";
@@ -38,7 +39,7 @@ function renderAdvisoryContent(text) {
 }
 
 export const HistoryPage = () => {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading, logout, updateUser } = useAuth();
   const navigate = useNavigate();
 
   // Tab State: 'profile' | 'history'
@@ -50,6 +51,93 @@ export const HistoryPage = () => {
   const ITEMS_PER_PAGE = 6;
   const [selectedItem, setSelectedItem] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Profile Edit & Delete Account States
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDistrict, setEditDistrict] = useState("");
+  const [isCustomDistrict, setIsCustomDistrict] = useState(false);
+  const [customDistrictInput, setCustomDistrictInput] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const handleOpenEditModal = () => {
+    setEditName(user?.name || "");
+    const curDist = user?.district || "";
+    const isStandard = TN_AGRICULTURAL_DISTRICTS.some((d) => d.name.toLowerCase() === curDist.toLowerCase());
+    if (curDist && !isStandard) {
+      setIsCustomDistrict(true);
+      setCustomDistrictInput(curDist);
+      setEditDistrict("__custom__");
+    } else {
+      setIsCustomDistrict(false);
+      setCustomDistrictInput("");
+      setEditDistrict(curDist || "Madurai");
+    }
+    setProfileError("");
+    setShowEditModal(true);
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    setProfileError("");
+
+    const finalDistrict = isCustomDistrict ? customDistrictInput.trim() : editDistrict.trim();
+
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: editName.trim(),
+          district: finalDistrict
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.ok && data.user) {
+        if (updateUser) {
+          updateUser(data.user);
+        }
+        setShowEditModal(false);
+      } else {
+        setProfileError(data.error || "Failed to update profile.");
+      }
+    } catch (err) {
+      console.error(err);
+      setProfileError("Network error updating profile.");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch("/api/user/account", {
+        method: "DELETE",
+        credentials: "include"
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        await logout();
+        navigate("/login");
+      } else {
+        setDeleteError(data.error || "Failed to delete account.");
+      }
+    } catch (err) {
+      console.error(err);
+      setDeleteError("Network error while deleting account.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -274,6 +362,8 @@ export const HistoryPage = () => {
       language: lang,
       crop: item.crop || "Crop",
       condition: item.predicted_disease || "Condition",
+      confidence: item.confidence ? Math.round(item.confidence > 1 ? item.confidence : item.confidence * 100) : null,
+      district: user?.district || "Tamil Nadu",
       severity: stage ? "" : (sev?.label || item.severity || "Evaluated"),
       diagnosis: item.diagnosis || "",
       treatment: stage ? "" : (item.treatment || ""),
@@ -445,7 +535,26 @@ export const HistoryPage = () => {
 
             {/* Account Details Panel */}
             <div className="panel">
-              <h2 style={{ fontSize: "1.4rem", marginBottom: "18px" }}>Account Details</h2>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", flexWrap: "wrap", gap: "10px" }}>
+                <h2 style={{ fontSize: "1.4rem", margin: 0 }}>Account Details</h2>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleOpenEditModal}
+                  style={{
+                    padding: "6px 14px",
+                    fontSize: "0.85rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "var(--paper-2)",
+                    border: "1px solid var(--line)"
+                  }}
+                >
+                  ✏️ Edit Profile
+                </button>
+              </div>
+
               <div className="detail-item">
                 <span className="detail-icon">👤</span>
                 <div className="detail-meta">
@@ -460,9 +569,52 @@ export const HistoryPage = () => {
                   <div className="val" id="profileEmail">{user?.email || "—"}</div>
                 </div>
               </div>
-              <div style={{ marginTop: "24px", display: "flex", gap: "14px", flexWrap: "wrap" }}>
-                <Link className="btn primary" to="/dashboard">Run New Diagnosis →</Link>
-                <Link className="btn" to="/">View Technology Overview</Link>
+              <div className="detail-item">
+                <span className="detail-icon">📍</span>
+                <div className="detail-meta">
+                  <div className="lbl">Farm Field District / Location</div>
+                  <div className="val" id="profileDistrict" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {user?.district ? (
+                      <span style={{ fontWeight: 600, color: "var(--ink)" }}>{user.district}</span>
+                    ) : (
+                      <span style={{ color: "var(--muted)", fontStyle: "italic" }}>— Not Set (Empty)</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: "24px", display: "flex", gap: "14px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
+                  <Link className="btn primary" to="/dashboard">Run New Diagnosis →</Link>
+                  <Link className="btn" to="/">View Technology Overview</Link>
+                </div>
+
+                {/* Danger Zone: Delete Account */}
+                {user?.role !== "admin" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteError("");
+                      setShowDeleteModal(true);
+                    }}
+                    style={{
+                      background: "transparent",
+                      color: "#dc2626",
+                      border: "1px solid rgba(220, 38, 38, 0.4)",
+                      borderRadius: "8px",
+                      padding: "8px 14px",
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    🗑️ Delete Account
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -582,6 +734,22 @@ export const HistoryPage = () => {
                       ) : (
                         <span className={`severity-tag ${sev ? sev.colorClass : "green"}`}>
                           {sev ? sev.label : "Evaluated"}
+                        </span>
+                      )}
+                      {item.admin_note && (
+                        <span
+                          className="stage-tag"
+                          style={{
+                            background: "rgba(251,191,36,.18)",
+                            border: "1px solid var(--gold)",
+                            color: "var(--gold-l)",
+                            fontWeight: 700,
+                            top: "auto",
+                            bottom: "8px",
+                            left: "8px",
+                          }}
+                        >
+                          👨‍🔬 Officer Note
                         </span>
                       )}
                     </div>
@@ -886,6 +1054,49 @@ export const HistoryPage = () => {
                     </div>
                   </div>
 
+                  {selectedItem.admin_note && (
+                    <div
+                      className="advice-card is-official-advisory"
+                      style={{
+                        background: "rgba(251,191,36,.09)",
+                        border: "1.5px solid var(--gold)",
+                        borderRadius: "14px",
+                        padding: "16px 18px",
+                        marginBottom: "14px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--gold-l)", fontWeight: 700, fontSize: ".92rem" }}>
+                          <span>👨‍🔬</span>
+                          <span>Official Agricultural Officer Advisory</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="voice-btn"
+                          title="Listen aloud"
+                          onClick={(e) =>
+                            voiceReader.speakText(
+                              selectedItem.admin_note,
+                              selectedLang,
+                              e.currentTarget,
+                              "Official Agricultural Officer Advisory"
+                            )
+                          }
+                        >
+                          <span>🔊</span>
+                        </button>
+                      </div>
+                      <div style={{ fontSize: ".94rem", color: "var(--ink)", lineHeight: 1.5, fontWeight: 500 }}>
+                        {selectedItem.admin_note}
+                      </div>
+                      {selectedItem.admin_note_at && (
+                        <div style={{ fontSize: ".76rem", color: "var(--muted)", marginTop: "8px" }}>
+                          Verified by Officer on {selectedItem.admin_note_at}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="advice-card">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
                       <div className="title green" id="modalAdv1Title">
@@ -1051,6 +1262,257 @@ export const HistoryPage = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PROFILE MODAL */}
+      {showEditModal && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowEditModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "16px",
+            backdropFilter: "blur(4px)"
+          }}
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: "460px",
+              width: "100%",
+              background: "var(--paper)",
+              borderRadius: "16px",
+              padding: "24px",
+              boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
+              border: "1px solid var(--line)"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "var(--ink)" }}>
+                ✏️ Edit Farmer Profile
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "1.2rem",
+                  cursor: "pointer",
+                  color: "var(--muted)"
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "0.84rem", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  Farmer Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--line)",
+                    background: "var(--paper-2)",
+                    color: "var(--ink)",
+                    fontSize: "0.92rem",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.84rem", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  Farm Field District / Location
+                </label>
+                {!isCustomDistrict ? (
+                  <select
+                    value={editDistrict}
+                    onChange={(e) => {
+                      if (e.target.value === "__custom__") {
+                        setIsCustomDistrict(true);
+                      } else {
+                        setEditDistrict(e.target.value);
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--line)",
+                      background: "var(--paper-2)",
+                      color: "var(--ink)",
+                      fontSize: "0.92rem",
+                      boxSizing: "border-box"
+                    }}
+                  >
+                    <option value="">— Select Tamil Nadu District —</option>
+                    {TN_AGRICULTURAL_DISTRICTS.map((d) => (
+                      <option key={d.name} value={d.name}>
+                        {d.name} ({d.ta})
+                      </option>
+                    ))}
+                    <option value="__custom__">+ Other / Type Custom District...</option>
+                  </select>
+                ) : (
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input
+                      type="text"
+                      placeholder="Type district name..."
+                      value={customDistrictInput}
+                      onChange={(e) => setCustomDistrictInput(e.target.value)}
+                      style={{
+                        flex: 1,
+                        padding: "10px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--line)",
+                        background: "var(--paper-2)",
+                        color: "var(--ink)",
+                        fontSize: "0.92rem"
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomDistrict(false)}
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--line)",
+                        background: "var(--paper)",
+                        cursor: "pointer",
+                        fontSize: "0.82rem",
+                        color: "var(--ink)"
+                      }}
+                    >
+                      ↩ List
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {profileError && (
+                <div style={{ color: "#dc2626", fontSize: "0.84rem", fontWeight: 600 }}>
+                  {profileError}
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="btn primary"
+                  style={{ flex: 1, padding: "10px", justifyContent: "center" }}
+                >
+                  {savingProfile ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="btn"
+                  style={{ flex: 1, padding: "10px", justifyContent: "center" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE ACCOUNT CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <div
+          className="modal-backdrop"
+          onClick={() => !deleting && setShowDeleteModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "16px",
+            backdropFilter: "blur(4px)"
+          }}
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: "440px",
+              width: "100%",
+              background: "var(--paper)",
+              borderRadius: "16px",
+              padding: "26px",
+              border: "1.5px solid #dc2626",
+              boxShadow: "0 12px 36px rgba(220, 38, 38, 0.18)"
+            }}
+          >
+            <div style={{ textAlign: "center", marginBottom: "16px" }}>
+              <div style={{ fontSize: "2.6rem", marginBottom: "8px" }}>⚠️</div>
+              <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#dc2626", fontWeight: 800 }}>
+                Delete Account?
+              </h3>
+            </div>
+            <p style={{ fontSize: "0.9rem", color: "var(--ink)", lineHeight: 1.5, textAlign: "center", margin: "0 0 16px 0" }}>
+              Are you sure you want to permanently delete your AgroLens account?
+              All your past crop scans, diagnosis records, and alert preferences will be permanently wiped. This action cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div style={{ color: "#dc2626", fontSize: "0.84rem", textAlign: "center", margin: "10px 0", fontWeight: 600 }}>
+                {deleteError}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeleteAccount}
+                style={{
+                  flex: 1,
+                  background: "#dc2626",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  cursor: "pointer"
+                }}
+              >
+                {deleting ? "Deleting..." : "Yes, Delete Account"}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setShowDeleteModal(false)}
+                className="btn"
+                style={{ flex: 1, padding: "10px", justifyContent: "center" }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

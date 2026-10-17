@@ -189,8 +189,8 @@ button, input, select, textarea{font-family:"Space Grotesk",system-ui,-apple-sys
     gap:3px;
   }
   .nav-links.is-admin-console{
-    grid-template-columns:repeat(2, 1fr) !important;
-    gap:8px;
+    grid-template-columns:repeat(4, 1fr) !important;
+    gap:4px;
   }
   .nav-links.landing-nav-links{
     grid-template-columns:repeat(4, 1fr) !important;

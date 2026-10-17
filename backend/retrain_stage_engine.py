@@ -49,11 +49,24 @@ STAGE_TRAINING_STATUS: Dict[str, Any] = {
     "val_accuracy": 0.0,
     "step_description": "Idle",
     "completed": False,
+    "cancelled": False,
     "error": None,
     "history": []
 }
 
 _STAGE_TRAIN_LOCK = threading.Lock()
+_STAGE_CANCEL_EVENT = threading.Event()
+
+
+def cancel_stage_retraining() -> bool:
+    """Signals the active stage retraining thread to stop immediately."""
+    global STAGE_TRAINING_STATUS
+    if STAGE_TRAINING_STATUS.get("is_training"):
+        _STAGE_CANCEL_EVENT.set()
+        STAGE_TRAINING_STATUS["step_description"] = "Cancellation requested... stopping stage retraining."
+        return True
+    return False
+
 
 
 def get_stage_class_names() -> List[str]:
@@ -254,6 +267,7 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
     global STAGE_TRAINING_STATUS
 
     with _STAGE_TRAIN_LOCK:
+        _STAGE_CANCEL_EVENT.clear()
         try:
             STAGE_TRAINING_STATUS.update({
                 "is_training": True,
@@ -264,6 +278,7 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
                 "val_accuracy": 0.0,
                 "step_description": "1/5: Loading Stage Class Registry...",
                 "completed": False,
+                "cancelled": False,
                 "error": None,
                 "history": []
             })
@@ -273,6 +288,12 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
             if target_class not in stage_classes:
                 stage_classes.append(target_class)
                 save_stage_class_names(stage_classes)
+
+            if _STAGE_CANCEL_EVENT.is_set():
+                STAGE_TRAINING_STATUS["is_training"] = False
+                STAGE_TRAINING_STATUS["cancelled"] = True
+                STAGE_TRAINING_STATUS["step_description"] = "Stage retraining cancelled by administrator."
+                return
 
             # 2. Gather data
             STAGE_TRAINING_STATUS["step_description"] = f"2/5: Gathering approved training images for '{target_class}'..."
@@ -299,12 +320,24 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
             epoch_loss = 0.0
 
             for epoch in range(num_epochs):
+                if _STAGE_CANCEL_EVENT.is_set():
+                    STAGE_TRAINING_STATUS["is_training"] = False
+                    STAGE_TRAINING_STATUS["cancelled"] = True
+                    STAGE_TRAINING_STATUS["step_description"] = f"Stage training cancelled by admin before Epoch {epoch+1}."
+                    return
+
                 STAGE_TRAINING_STATUS["step_description"] = f"4/5: Fine-tuning stage head (Epoch {epoch+1}/{num_epochs})..."
                 model.train()
                 running_loss = 0.0
                 total_train = 0
 
                 for inputs, labels in train_loader:
+                    if _STAGE_CANCEL_EVENT.is_set():
+                        STAGE_TRAINING_STATUS["is_training"] = False
+                        STAGE_TRAINING_STATUS["cancelled"] = True
+                        STAGE_TRAINING_STATUS["step_description"] = f"Stage training cancelled by admin during Epoch {epoch+1}."
+                        return
+
                     inputs = inputs.to(DEVICE)
                     labels = labels.to(DEVICE)
 
@@ -326,11 +359,19 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
                 total_val = 0
                 with torch.no_grad():
                     for inputs, labels in val_loader:
+                        if _STAGE_CANCEL_EVENT.is_set():
+                            break
                         inputs = inputs.to(DEVICE)
                         labels = labels.to(DEVICE)
                         preds = model(inputs).argmax(dim=1)
                         correct += preds.eq(labels).sum().item()
                         total_val += inputs.size(0)
+
+                if _STAGE_CANCEL_EVENT.is_set():
+                    STAGE_TRAINING_STATUS["is_training"] = False
+                    STAGE_TRAINING_STATUS["cancelled"] = True
+                    STAGE_TRAINING_STATUS["step_description"] = f"Stage training cancelled by admin during Epoch {epoch+1}."
+                    return
 
                 epoch_acc = (correct / max(1, total_val)) * 100.0
                 if epoch_acc >= best_acc:
@@ -346,6 +387,13 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
                     "acc": round(epoch_acc, 2)
                 })
                 time.sleep(0.3)
+
+            if _STAGE_CANCEL_EVENT.is_set():
+                STAGE_TRAINING_STATUS["is_training"] = False
+                STAGE_TRAINING_STATUS["cancelled"] = True
+                STAGE_TRAINING_STATUS["step_description"] = "Stage retraining cancelled by administrator."
+                return
+
 
             # 5. Save best checkpoint and export ONNX
             STAGE_TRAINING_STATUS["step_description"] = "5/5: Exporting stage ONNX and reloading inference engine..."

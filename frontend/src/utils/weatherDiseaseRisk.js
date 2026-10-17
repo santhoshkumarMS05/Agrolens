@@ -12,6 +12,66 @@ const CACHE_TTL_MS = 20 * 60 * 1000;
 // Default fallback coordinates (Agricultural hub: Madurai / South India)
 export const DEFAULT_COORDS = { lat: 9.9252, lon: 78.1198, name: "Madurai / South Zone" };
 
+export const TN_AGRICULTURAL_DISTRICTS = [
+  { name: "Tiruchirappalli", ta: "திருச்சிராப்பள்ளி", hi: "तिरुचिरापल्ली", lat: 10.7905, lon: 78.7047 },
+  { name: "Madurai", ta: "மதுரை", hi: "मदुरै", lat: 9.9252, lon: 78.1198 },
+  { name: "Thanjavur", ta: "தஞ்சாவூர்", hi: "तंजावुर", lat: 10.7870, lon: 79.1378 },
+  { name: "Coimbatore", ta: "கோயம்புத்தூர்", hi: "कोयंबटूर", lat: 11.0168, lon: 76.9558 },
+  { name: "Salem", ta: "சேலம்", hi: "सलेम", lat: 11.6643, lon: 78.1460 },
+  { name: "Dindigul", ta: "திண்டுக்கல்", hi: "डिंडीगुल", lat: 10.3673, lon: 77.9803 },
+  { name: "Cuddalore", ta: "கடலூர்", hi: "कुड्डालोर", lat: 11.7480, lon: 79.7714 },
+  { name: "Erode", ta: "ஈரோடு", hi: "ईरोड", lat: 11.3410, lon: 77.7172 },
+  { name: "Theni", ta: "தேனி", hi: "थेनी", lat: 10.0104, lon: 77.4768 },
+  { name: "Dharmapuri", ta: "தர்மபுரி", hi: "धर्मपुरी", lat: 12.1211, lon: 78.1582 },
+  { name: "Tirunelveli", ta: "திருநெல்வேலி", hi: "तिरुनेलवेली", lat: 8.7139, lon: 77.7567 },
+  { name: "Vellore", ta: "வேலூர்", hi: "वेल्लोर", lat: 12.9165, lon: 79.1325 },
+  { name: "Karur", ta: "கரூர்", hi: "करूर", lat: 10.9601, lon: 78.0766 },
+  { name: "Pudukkottai", ta: "புதுக்கோட்டை", hi: "पुदुक्कोट्टई", lat: 10.3797, lon: 78.8208 },
+  { name: "Tiruvarur", ta: "திருவாரூர்", hi: "तिरुवारूर", lat: 10.7725, lon: 79.6365 },
+  { name: "Nagapattinam", ta: "நாகப்பட்டினம்", hi: "नागपट्टिनम", lat: 10.7672, lon: 79.8449 },
+  { name: "Villupuram", ta: "விழுப்புரம்", hi: "विल्लुपुरम", lat: 11.9401, lon: 79.4861 },
+  { name: "Kanchipuram", ta: "காஞ்சிபுரம்", hi: "कांचीपुरम", lat: 12.8342, lon: 79.7036 },
+  { name: "Tiruvannamalai", ta: "திருவண்ணாமலை", hi: "तिरुवन्नामलाई", lat: 12.2253, lon: 79.0747 },
+  { name: "Nilgiris", ta: "நீலகிரி", hi: "नीलगिरि", lat: 11.4102, lon: 76.6950 },
+  { name: "Virudhunagar", ta: "விருதுநகர்", hi: "विरुद्धनगर", lat: 9.5680, lon: 77.9624 },
+  { name: "Sivaganga", ta: "சிவகங்கை", hi: "शिवगंगा", lat: 9.8433, lon: 78.4809 },
+  { name: "Ramanathapuram", ta: "இராமநாதபுரம்", hi: "रामनाथपुरम", lat: 9.3639, lon: 78.8395 },
+  { name: "Thoothukudi", ta: "தூத்துக்குடி", hi: "थूथुकुडी", lat: 8.7642, lon: 78.1348 },
+  { name: "Kanyakumari", ta: "கன்னியாகுமரி", hi: "कन्याकुमारी", lat: 8.0883, lon: 77.5385 },
+  { name: "Krishnagiri", ta: "கிருஷ்ணகிரி", hi: "कृष्णगिरि", lat: 12.5186, lon: 78.2137 },
+  { name: "Tenkasi", ta: "தென்காசி", hi: "तेनकाशी", lat: 8.9594, lon: 77.3150 },
+  { name: "Mayiladuthurai", ta: "மயிலாடுதுறை", hi: "मयिलादुतुरै", lat: 11.1075, lon: 79.6524 }
+];
+
+export function getDistrictCoords(districtName) {
+  if (!districtName) return null;
+  const target = String(districtName).trim().toLowerCase();
+  const found = TN_AGRICULTURAL_DISTRICTS.find(
+    (d) =>
+      d.name.toLowerCase() === target ||
+      d.name.toLowerCase().includes(target) ||
+      target.includes(d.name.toLowerCase())
+  );
+  return found ? { lat: found.lat, lon: found.lon, name: found.name } : null;
+}
+
+export function getLocalizedDistrictName(districtName, lang = "en") {
+  if (!districtName) return "";
+  const target = String(districtName).trim().toLowerCase();
+  const found = TN_AGRICULTURAL_DISTRICTS.find(
+    (d) =>
+      d.name.toLowerCase() === target ||
+      (d.ta && d.ta.toLowerCase() === target) ||
+      (d.hi && d.hi.toLowerCase() === target) ||
+      d.name.toLowerCase().includes(target) ||
+      target.includes(d.name.toLowerCase())
+  );
+  if (found) {
+    return found[lang] || found.name;
+  }
+  return districtName;
+}
+
 /**
  * Fetch current device coordinates with fallback
  */

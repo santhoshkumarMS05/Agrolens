@@ -80,6 +80,16 @@ export const AuthProvider = ({ children }) => {
     } catch {}
   };
 
+  const updateUser = (newUserData) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...newUserData };
+      try {
+        localStorage.setItem("agrolens_user", JSON.stringify(merged));
+      } catch {}
+      return merged;
+    });
+  };
+
   const logout = async () => {
     try {
       await fetch("/api/logout", { method: "POST", credentials: "include" });
@@ -108,6 +118,7 @@ export const AuthProvider = ({ children }) => {
         checkAuth,
         login,
         logout,
+        updateUser,
         syncGoogleUser,
         syncOAuthUser: syncGoogleUser,
       }}

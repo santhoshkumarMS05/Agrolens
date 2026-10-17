@@ -7,6 +7,7 @@ import voiceReader from "../utils/voiceReader";
 import { loadOfflineModel, runClientOnnxInference } from "../utils/onnxOfflineEngine";
 import WeatherRiskCard from "../components/WeatherRiskCard";
 import BrandLogo from "../components/BrandLogo";
+import { getCropNameInLang, formatLocalizedCondition } from "../utils/cropLexicon";
 
 const CROPS_LIST = [
   { id: "Cotton", icon: "🌱", en: "Cotton", ta: "பருத்தி", hi: "कपास" },
@@ -69,7 +70,32 @@ const UI_STRINGS = {
     shareWhatsApp: "WhatsApp",
     exportPdf: "Export PDF",
     askDoctorBtnTitle: "Ask AI Crop Doctor & Precision Spray Assistant",
-    askDoctorBtnSub: "Ask follow-ups, weather spray checks, and field dosage dilution"
+    askDoctorBtnSub: "Ask follow-ups, weather spray checks, and field dosage dilution",
+    changeCrop: "✕ Change",
+    modeDisease: "Crop Disease",
+    modeStage: "Growth Stage",
+    eyebrow: "AI Agricultural Intelligence",
+    uploadTitleDisease: "Upload Plant Photo",
+    uploadTitleStage: "Upload Field Canopy Photo",
+    snapAnother: "Snap Another",
+    clearAll: "Clear All",
+    gradcamTitle: "Grad-CAM Heatmap",
+    gradcamCaption: "Red areas indicate regions the model focused on for diagnosis",
+    reportInaccurate: "Report Inaccurate Diagnosis (Send to Admin Staging)",
+    emptyTitle: "Results will appear here once you run a leaf photo through the model.",
+    nonCropDetected: "Non-Crop Image Detected",
+    openCamera: "Open Camera & Snap Leaf",
+    startingCamera: "Starting Camera...",
+    centerLeaf: "Center leaf in viewfinder",
+    flipCamera: "🔄 Flip",
+    closeCamera: "✕ Close",
+    analyzing: "Analyzing...",
+    batchQueueTitle: "Batch Queue",
+    batchQueueSub: "Click any thumbnail to inspect",
+    groundTruthBadge: "🌿 Ground-Truth Advisory",
+    novaLiteBadge: "🎓 Nova Lite Teacher + Groq",
+    openWorldBadge: "🌐 Open-World Nova Lite + Groq",
+    offlineEngineBadge: "⚡ Offline On-Device Neural Engine"
   },
   ta: {
     tagHealthy: "ஆரோக்கியமான பயிர் இலைகள்",
@@ -95,7 +121,32 @@ const UI_STRINGS = {
     shareWhatsApp: "வாட்ஸ்அப்",
     exportPdf: "PDF அறிக்கை",
     askDoctorBtnTitle: "AI பயிர் மருத்துவரிடம் ஆலோசிக்கவும்",
-    askDoctorBtnSub: "சந்தேகங்கள், வானிலை தெளிப்பு வழிகாட்டல் & மருந்து கலவை அளவீடு"
+    askDoctorBtnSub: "சந்தேகங்கள், வானிலை தெளிப்பு வழிகாட்டல் & மருந்து கலவை அளவீடு",
+    changeCrop: "✕ மாற்று",
+    modeDisease: "பயிர் நோய்",
+    modeStage: "வளர்ச்சிப் பருவம்",
+    eyebrow: "AI வேளாண் நுண்ணறிவு",
+    uploadTitleDisease: "பயிர் புகைப்படத்தைப் பதிவேற்றவும்",
+    uploadTitleStage: "முழு பயிர் புகைப்படத்தைப் பதிவேற்றவும்",
+    snapAnother: "மற்றொரு புகைப்படம்",
+    clearAll: "அனைத்தையும் நீக்கு",
+    gradcamTitle: "Grad-CAM வெப்ப வரைபடம்",
+    gradcamCaption: "சிவப்பு பகுதிகள் மாதிரி நோய் கண்டறிதலுக்கு கவனம் செலுத்திய இடங்களைக் காட்டுகின்றன",
+    reportInaccurate: "தவறான நோய் கண்டறிதலைப் புகாரளிக்கவும் (நிர்வாகிக்கு அனுப்பு)",
+    emptyTitle: "பயிர் புகைப்படத்தை மாதிரியில் இயக்கியதும் முடிவுகள் இங்கே தோன்றும்.",
+    nonCropDetected: "பயிர் அல்லாத படம் கண்டறியப்பட்டது",
+    openCamera: "கேமராவைத் திறந்து புகைப்படம் எடுக்கவும்",
+    startingCamera: "கேமரா துவங்குகிறது...",
+    centerLeaf: "கேமரா பார்வையில் இலையை மையப்படுத்தவும்",
+    flipCamera: "🔄 மாற்று",
+    closeCamera: "✕ மூடு",
+    analyzing: "பரிசோதிக்கிறது...",
+    batchQueueTitle: "தொகுதி வரிசை",
+    batchQueueSub: "பரிசோதிக்க ஏதேனும் ஒரு படத்தை அழுத்தவும்",
+    groundTruthBadge: "🌿 கள-சரிபார்க்கப்பட்ட ஆலோசனை",
+    novaLiteBadge: "🎓 நோவா லைட் ஆசிரியர் + Groq",
+    openWorldBadge: "🌐 திறந்த-உலக நோவா லைட் + Groq",
+    offlineEngineBadge: "⚡ உள்ளமை ஆஃப்லைன் நியூரல் என்ஜின்"
   },
   hi: {
     tagHealthy: "स्वस्थ फसल के पत्ते",
@@ -121,7 +172,32 @@ const UI_STRINGS = {
     shareWhatsApp: "व्हाट्सएप",
     exportPdf: "PDF रिपोर्ट",
     askDoctorBtnTitle: "AI फसल डॉक्टर से परामर्श करें",
-    askDoctorBtnSub: "सवालों के जवाब, मौसम छिड़काव जांच एवं दवा खुराक का हिसाब"
+    askDoctorBtnSub: "सवालों के जवाब, मौसम छिड़काव जांच एवं दवा खुराक का हिसाब",
+    changeCrop: "✕ बदलें",
+    modeDisease: "फसल रोग",
+    modeStage: "वृद्धि अवस्था",
+    eyebrow: "AI कृषि बुद्धिमत्ता",
+    uploadTitleDisease: "पौधे की फोटो अपलोड करें",
+    uploadTitleStage: "खेत या पौधे की फोटो अपलोड करें",
+    snapAnother: "दूसरी फोटो लें",
+    clearAll: "सभी हटाएं",
+    gradcamTitle: "Grad-CAM हीटमैप",
+    gradcamCaption: "लाल क्षेत्र उन हिस्सों को दर्शाते हैं जिन पर मॉडल ने निदान के लिए ध्यान केंद्रित किया",
+    reportInaccurate: "गलत निदान की शिकायत करें (एडमिन को भेजें)",
+    emptyTitle: "पत्ती की फोटो मॉडल में चलाने के बाद परिणाम यहां दिखाई देंगे।",
+    nonCropDetected: "गैर-फसल छवि पाई गई",
+    openCamera: "कैमरा खोलें और फोटो लें",
+    startingCamera: "कैमरा शुरू हो रहा है...",
+    centerLeaf: "पत्ती को कैमरे के बीच में रखें",
+    flipCamera: "🔄 बदलें",
+    closeCamera: "✕ बंद करें",
+    analyzing: "विश्लेषण हो रहा है...",
+    batchQueueTitle: "बैच कतार",
+    batchQueueSub: "जांचने के लिए किसी भी थंबनेल पर क्लिक करें",
+    groundTruthBadge: "🌿 सत्यापित परामर्श",
+    novaLiteBadge: "🎓 नोवा लाइट शिक्षक + Groq",
+    openWorldBadge: "🌐 ओपन-वर्ल्ड नोवा लाइट + Groq",
+    offlineEngineBadge: "⚡ ऑफ़लाइन ऑन-डिवाइस न्यूरल इंजन"
   }
 };
 
@@ -251,14 +327,8 @@ function generateGradcamCanvas(sourceImg, canvas) {
   ctx.globalAlpha = 1.0;
 }
 
-function formatClassDisplay(className) {
-  if (!className) return "";
-  if (className === "Earlyleafspot Potato") return "Potato · Early Blight";
-  if (className === "Lateleafspot Potato") return "Potato · Late Blight";
-  if (className === "Healthy Potato") return "Potato · Healthy";
-  if (className === "Leafrust Coffee") return "Coffee · Leaf Rust";
-  if (className === "Healthy Coffee") return "Coffee · Healthy";
-  return className;
+function formatClassDisplay(className, lang = "en") {
+  return formatLocalizedCondition(className, lang);
 }
 
 function renderAdvisoryContent(text) {
@@ -298,6 +368,57 @@ function renderAdvisoryContent(text) {
   return <p className="advisory-para" style={{ margin: 0 }}>{trimmed}</p>;
 }
 
+function getLocalizedStatusText(text, lang = "en") {
+  if (!text) return "";
+  if (text.includes("Diagnosis complete") || text.includes("Diagnosis complete.")) {
+    return lang === "ta" ? "நோய் கண்டறிதல் முடிந்தது." : lang === "hi" ? "निदान पूर्ण हुआ।" : "Diagnosis complete.";
+  }
+  if (text.includes("Model ready")) {
+    return lang === "ta"
+      ? "மாதிரி தயார் — ConvNeXt-Tiny (96.7% துல்லியம், 30 பிரிவுகள்)."
+      : lang === "hi"
+      ? "मॉडल तैयार है — ConvNeXt-Tiny (96.7% सटीकता, 30 श्रेणियां)।"
+      : text;
+  }
+  if (text.includes("Running offline")) {
+    return lang === "ta"
+      ? "உள்ளமை ஆஃப்லைன் நியூரல் ஆய்வு இயங்குகிறது..."
+      : lang === "hi"
+      ? "ऑफ़लाइन इन-ब्राउज़र न्यूरल निदान चल रहा है..."
+      : text;
+  }
+  if (text.includes("Analyzing") || text.includes("Processing")) {
+    return lang === "ta" ? "பரிசோதிக்கிறது..." : lang === "hi" ? "विश्लेषण हो रहा है..." : text;
+  }
+  if (text.includes("Batch complete")) {
+    return lang === "ta"
+      ? "தொகுதி முடிந்தது — முடிவுகளைக் காண சிறுபடத்தைத் தொடவும்."
+      : lang === "hi"
+      ? "बैच पूर्ण — परिणाम देखने के लिए किसी भी थंबनेल पर क्लिक करें।"
+      : text;
+  }
+  return text;
+}
+
+function localizeSeverity(sev, lang = "en") {
+  if (!sev) return "";
+  if (lang === "ta") {
+    if (sev.includes("Optimal")) return "சிறந்த ஆரோக்கியம்";
+    if (sev.includes("High")) return "அதிக தீவிரம்";
+    if (sev.includes("Moderate") || sev.includes("Medium")) return "மிதமான தீவிரம்";
+    if (sev.includes("Low")) return "குறைந்த தீவிரம்";
+    return sev;
+  }
+  if (lang === "hi") {
+    if (sev.includes("Optimal")) return "उत्कृष्ट स्वास्थ्य";
+    if (sev.includes("High")) return "उच्च गंभीरता";
+    if (sev.includes("Moderate") || sev.includes("Medium")) return "मध्यम गंभीरता";
+    if (sev.includes("Low")) return "कम गंभीरता";
+    return sev;
+  }
+  return sev;
+}
+
 const getSavedScan = () => {
   try {
     const raw = sessionStorage.getItem("agrolens_active_scan");
@@ -313,9 +434,28 @@ const getSavedScan = () => {
 };
 
 export const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleDistrictChange = async (newDistrict) => {
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ district: newDistrict })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.user) {
+          updateUser(data.user);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not save user district:", e);
+    }
+  };
 
   const savedScan = useMemo(() => getSavedScan(), []);
 
@@ -383,10 +523,146 @@ export const DashboardPage = () => {
   const [savedMsg, setSavedMsg] = useState("");
   const [reportMsg, setReportMsg] = useState("");
 
+  // Regional Outbreak Geofenced Warning State (Multilingual)
+  const [outbreakAlert, setOutbreakAlert] = useState(null);
+  const [alertExpanded, setAlertExpanded] = useState(false);
+  const [alertDismissed, setAlertDismissed] = useState(false);
+
   const gradcamCanvasRef = useRef(null);
 
+  // 7-Day Foliar Spray & Treatment Reminders
+  const [sprayReminders, setSprayReminders] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("agrolens_spray_reminders") || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [reminderToast, setReminderToast] = useState("");
+
+  const handleSetSprayReminder = (cropName, conditionName, treatmentText) => {
+    const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const dateFormatted = dueDate.toLocaleDateString(activeLang === "ta" ? "ta-IN" : activeLang === "hi" ? "hi-IN" : "en-US", { month: "short", day: "numeric" });
+
+    let chemSnippet = "Targeted Fungicide / Treatment";
+    if (treatmentText) {
+      const match = treatmentText.match(/(?:spray|apply|use)\s+([A-Za-z0-9%+\s]{3,35})(?:\s+@|\s+at|\s+or|\.|\,)/i);
+      if (match && match[1]) {
+        chemSnippet = match[1].trim();
+      } else {
+        chemSnippet = treatmentText.slice(0, 50).trim() + "...";
+      }
+    }
+
+    const newReminder = {
+      id: "rem_" + Date.now(),
+      crop: cropName || selectedCropName,
+      condition: conditionName || "Crop Condition",
+      chemical: chemSnippet,
+      createdDate: new Date().toISOString(),
+      dueDate: dueDate.toISOString(),
+      completed: false
+    };
+
+    setSprayReminders((prev) => {
+      const filtered = prev.filter((r) => !(r.crop === newReminder.crop && r.condition === newReminder.condition && !r.completed));
+      const updated = [newReminder, ...filtered];
+      try {
+        localStorage.setItem("agrolens_spray_reminders", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    const successMsg = activeLang === "ta"
+      ? `⏰ 7 நாள் தெளிப்பு நினைவூட்டல் பதிவு செய்யப்பட்டது (${dateFormatted})`
+      : activeLang === "hi"
+      ? `⏰ 7 दिन छिड़काव रिमाइंडर सेट हुआ (${dateFormatted})`
+      : `⏰ 7-Day spray reminder set for ${dateFormatted}`;
+    setReminderToast(successMsg);
+    setTimeout(() => setReminderToast(""), 4500);
+  };
+
+  const handleCompleteReminder = (id) => {
+    setSprayReminders((prev) => {
+      const updated = prev.filter((r) => r.id !== id);
+      try {
+        localStorage.setItem("agrolens_spray_reminders", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  // Speech Recognition for "Others (Type Crop)" in Step 1
+  const [isListeningCrop, setIsListeningCrop] = useState(false);
+  const [speechCropError, setSpeechCropError] = useState("");
+  const cropSpeechRecRef = useRef(null);
+
+  const handleToggleCropSpeech = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechCropError("Voice input is not supported in this browser. Please use Chrome or Edge.");
+      setTimeout(() => setSpeechCropError(""), 4000);
+      return;
+    }
+
+    if (isListeningCrop && cropSpeechRecRef.current) {
+      try {
+        cropSpeechRecRef.current.stop();
+      } catch {}
+      setIsListeningCrop(false);
+      return;
+    }
+
+    setSpeechCropError("");
+    try {
+      const recognition = new SpeechRecognition();
+      cropSpeechRecRef.current = recognition;
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = cropLang === "ta" ? "ta-IN" : cropLang === "hi" ? "hi-IN" : "en-IN";
+
+      recognition.onstart = () => {
+        setIsListeningCrop(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (transcript) {
+          const cleaned = transcript.replace(/[.,!?;:]/g, "").trim();
+          setCustomCrop(cleaned);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("Crop SpeechRecognition error:", event.error);
+        if (event.error !== "no-speech") {
+          setSpeechCropError(event.error === "not-allowed" ? "Microphone access blocked." : "Could not hear audio. Try again.");
+          setTimeout(() => setSpeechCropError(""), 4000);
+        }
+        setIsListeningCrop(false);
+      };
+
+      recognition.onend = () => {
+        setIsListeningCrop(false);
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.error("SpeechRecognition start failed:", e);
+      setSpeechCropError("Microphone initialization error.");
+      setIsListeningCrop(false);
+      setTimeout(() => setSpeechCropError(""), 4000);
+    }
+  };
+
   const selectedCropObj = CROPS_LIST.find((c) => c.id === selectedCropId) || CROPS_LIST[0];
-  const selectedCropName = selectedCropId === "Others" ? (customCrop.trim() || "Others") : selectedCropObj.en;
+  const selectedCropName = selectedCropId === "Others"
+    ? getCropNameInLang(customCrop.trim() || "Others", activeLang)
+    : (selectedCropObj[activeLang] || selectedCropObj.en);
+
+  const canonicalEnglishCrop = selectedCropId === "Others"
+    ? getCropNameInLang(customCrop.trim() || "Others", "en")
+    : selectedCropObj.en;
 
   const activeItem = activeIndex >= 0 && activeIndex < batchFiles.length ? batchFiles[activeIndex] : null;
 
@@ -401,6 +677,36 @@ export const DashboardPage = () => {
       console.log("[AgroLens Engine]", status);
     }).catch((e) => console.warn("ONNX background load:", e));
   }, []);
+
+  // Fetch active regional outbreak alert matching selected crop & district
+  useEffect(() => {
+    let isMounted = true;
+    const fetchOutbreakAlert = async () => {
+      try {
+        const cropQuery = selectedCropName || "Rice";
+        const districtQuery = liveWeather?.district || "";
+        const res = await fetch(`/api/farmer/outbreak_alerts?crop=${encodeURIComponent(cropQuery)}&district=${encodeURIComponent(districtQuery)}&lang=${activeLang}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            if (data.has_alert && data.alert) {
+              setOutbreakAlert(data.alert);
+              setAlertDismissed(false);
+            } else {
+              setOutbreakAlert(null);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Outbreak alert check:", err);
+      }
+    };
+
+    fetchOutbreakAlert();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCropName, activeLang, liveWeather]);
 
   const handleSelectCrop = (id) => {
     setSelectedCropId(id);
@@ -749,7 +1055,7 @@ export const DashboardPage = () => {
               credentials: "include",
               body: JSON.stringify({
                 image: item.dataUrl || item.url,
-                selected_crop: selectedCropName
+                selected_crop: canonicalEnglishCrop
               })
             });
 
@@ -834,7 +1140,7 @@ export const DashboardPage = () => {
 
             const isH = Boolean(advData?.healthy || raw.toLowerCase().includes("healthy"));
             const p = {
-              crop: advData?.crop || selectedCropName,
+              crop: getCropNameInLang(advData?.crop || selectedCropName, activeLang),
               cond: advData?.disease || raw,
               healthy: isH,
               severity: advData?.severity || (isH ? "Optimal Health" : "High Severity"),
@@ -903,7 +1209,7 @@ export const DashboardPage = () => {
         const isH = Boolean(adv.healthy || activeItem.result.raw.toLowerCase().includes("healthy"));
         activeItem.result.p = {
           ...activeItem.result.p,
-          crop: adv.crop || selectedCropName,
+          crop: getCropNameInLang(adv.crop || selectedCropName, activeLang),
           cond: adv.disease || activeItem.result.raw,
           healthy: isH,
           severity: adv.severity || activeItem.result.p.severity,
@@ -931,7 +1237,7 @@ export const DashboardPage = () => {
               const isH = Boolean(advData.healthy || activeItem.result.raw.toLowerCase().includes("healthy"));
               activeItem.result.p = {
                 ...activeItem.result.p,
-                crop: advData.crop || selectedCropName,
+                crop: getCropNameInLang(advData.crop || selectedCropName, activeLang),
                 cond: advData.disease || activeItem.result.raw,
                 healthy: isH,
                 severity: advData.severity || activeItem.result.p.severity,
@@ -1096,12 +1402,19 @@ export const DashboardPage = () => {
   const handleShareDiseaseWhatsApp = () => {
     if (!activeItem || !activeItem.result) return;
     const p = activeItem.result.p || {};
+    const confVal = activeItem.result.confidence
+      ? Math.round(activeItem.result.confidence > 1 ? activeItem.result.confidence : activeItem.result.confidence * 100)
+      : (p.conf ? Math.round(p.conf > 1 ? p.conf : p.conf * 100) : null);
+
     shareToWhatsApp({
       isStage: false,
       language: activeLang,
       crop: p.crop || selectedCropName,
       condition: p.healthy ? `${p.crop} · Healthy` : p.cond,
       severity: p.severity,
+      confidence: confVal,
+      district: user?.district || liveWeather?.district || "Tamil Nadu",
+      dateStr: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       diagnosis: p.diagnosis,
       treatment: p.treatment,
       fertilizer: p.fertilizer,
@@ -1151,6 +1464,8 @@ export const DashboardPage = () => {
       fertilizer: adv.fertilizer,
       pestWatch: adv.pest_disease_watch,
       priorityAction: adv.priority_action,
+      district: user?.district || liveWeather?.district || "Tamil Nadu",
+      dateStr: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       imageSrc: activeItem.dataUrl || activeItem.url,
       farmerName: user?.name || "AgroLens Farmer"
     });
@@ -1243,21 +1558,30 @@ export const DashboardPage = () => {
                 <button
                   type="button"
                   className={`lang-pill ${cropLang === "en" ? "active" : ""}`}
-                  onClick={() => setCropLang("en")}
+                  onClick={() => {
+                    setCropLang("en");
+                    setActiveLang("en");
+                  }}
                 >
                   English
                 </button>
                 <button
                   type="button"
                   className={`lang-pill ${cropLang === "ta" ? "active" : ""}`}
-                  onClick={() => setCropLang("ta")}
+                  onClick={() => {
+                    setCropLang("ta");
+                    setActiveLang("ta");
+                  }}
                 >
                   தமிழ்
                 </button>
                 <button
                   type="button"
                   className={`lang-pill ${cropLang === "hi" ? "active" : ""}`}
-                  onClick={() => setCropLang("hi")}
+                  onClick={() => {
+                    setCropLang("hi");
+                    setActiveLang("hi");
+                  }}
                 >
                   हिन्दी
                 </button>
@@ -1284,18 +1608,61 @@ export const DashboardPage = () => {
               })}
             </div>
 
-            {/* Others: custom crop input */}
+            {/* Others: custom crop input with Speech-to-Text Microphone */}
             <div id="othersInputBox" className={selectedCropId === "Others" ? "show" : ""}>
               <label id="othersInputLabel">{CROP_HEADER_STRINGS[cropLang]?.othersLabel}</label>
-              <input
-                type="text"
-                id="othersCropInput"
-                placeholder="e.g. Wheat, गेहूं, கோதுமை…"
-                autoComplete="off"
-                value={customCrop}
-                onChange={(e) => setCustomCrop(e.target.value)}
-              />
-              <div id="othersTranslateStatus"></div>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                <input
+                  type="text"
+                  id="othersCropInput"
+                  placeholder={
+                    cropLang === "ta"
+                      ? "உதா. கத்தரிக்காய், தக்காளி, கோதுமை..."
+                      : cropLang === "hi"
+                      ? "उदा. गेहूं, बैंगन, टमाटर..."
+                      : "e.g. Wheat, Brinjal, Tomato..."
+                  }
+                  autoComplete="off"
+                  value={customCrop}
+                  onChange={(e) => setCustomCrop(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  id="othersCropMicBtn"
+                  onClick={handleToggleCropSpeech}
+                  title={isListeningCrop ? "Listening... click to stop" : "Speak crop name"}
+                  style={{
+                    background: isListeningCrop ? "#ef4444" : "var(--paper-2)",
+                    color: isListeningCrop ? "#ffffff" : "var(--ink)",
+                    border: isListeningCrop ? "1.5px solid #ef4444" : "1px solid var(--line)",
+                    borderRadius: "10px",
+                    padding: "9px 14px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    boxShadow: isListeningCrop ? "0 0 12px rgba(239, 68, 68, 0.45)" : "none",
+                    animation: isListeningCrop ? "voicePulse 1s infinite alternate" : "none",
+                    transition: "all 0.2s ease",
+                    flexShrink: 0
+                  }}
+                >
+                  <span style={{ fontSize: "1rem" }}>{isListeningCrop ? "🔴" : "🎙️"}</span>
+                  <span style={{ fontSize: "0.8rem" }}>
+                    {isListeningCrop
+                      ? (cropLang === "ta" ? "கேட்கிறது..." : cropLang === "hi" ? "सुन रहे हैं..." : "Listening...")
+                      : (cropLang === "ta" ? "பேசுக" : cropLang === "hi" ? "बोलें" : "Voice")}
+                  </span>
+                </button>
+              </div>
+              <div id="othersTranslateStatus" style={{ marginTop: "4px" }}>
+                {speechCropError && (
+                  <span style={{ color: "#dc2626", fontSize: "0.8rem", fontWeight: 600 }}>{speechCropError}</span>
+                )}
+              </div>
             </div>
 
             <button
@@ -1324,11 +1691,304 @@ export const DashboardPage = () => {
               }}
             >
               <span>{selectedCropObj.icon}</span> <span id="selectedCropChipLabel">{selectedCropName}</span>
-              <span style={{ fontSize: ".72rem", fontWeight: 500, color: "var(--muted)", marginLeft: "4px" }}>✕ Change</span>
+              <span style={{ fontSize: ".72rem", fontWeight: 500, color: "var(--muted)", marginLeft: "4px" }}>{ui.changeCrop}</span>
             </button>
 
             {/* Live Microclimate & Outbreak Alert Widget */}
-            <WeatherRiskCard selectedCrop={selectedCropName} activeLang={activeLang} onWeatherUpdate={setLiveWeather} />
+            <WeatherRiskCard
+              selectedCrop={selectedCropName}
+              activeLang={activeLang}
+              userDistrict={user?.district}
+              onDistrictChange={handleDistrictChange}
+              onWeatherUpdate={setLiveWeather}
+            />
+
+            {/* Reminder Toast Notification */}
+            {reminderToast && (
+              <div
+                style={{
+                  margin: "10px 0 14px 0",
+                  padding: "10px 16px",
+                  borderRadius: "10px",
+                  background: "rgba(16, 185, 129, 0.15)",
+                  border: "1.5px solid var(--green)",
+                  color: "var(--green)",
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  boxShadow: "0 2px 8px rgba(16, 185, 129, 0.2)"
+                }}
+              >
+                <span>{reminderToast}</span>
+              </div>
+            )}
+
+            {/* Active 7-Day Foliar Spray & Treatment Reminders Banner */}
+            {sprayReminders && sprayReminders.length > 0 && (
+              <div
+                id="activeSprayRemindersContainer"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  margin: "12px 0 16px 0"
+                }}
+              >
+                {sprayReminders.map((rem) => {
+                  const now = new Date();
+                  const due = new Date(rem.dueDate);
+                  const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+                  const isDue = diffDays <= 0;
+                  const dateLabel = due.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+                  return (
+                    <div
+                      key={rem.id}
+                      style={{
+                        background: isDue ? "rgba(239, 68, 68, 0.08)" : "var(--paper-2)",
+                        border: isDue ? "1.5px solid #ef4444" : "1.5px solid var(--green)",
+                        borderRadius: "14px",
+                        padding: "12px 16px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "12px",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span style={{ fontSize: "1.45rem" }}>{isDue ? "🚨" : "⏰"}</span>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: "0.9rem", color: isDue ? "#dc2626" : "var(--ink)", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            <span>
+                              {isDue
+                                ? (activeLang === "ta" ? "இன்று தெளிக்க வேண்டிய நாள்!" : activeLang === "hi" ? "आज छिड़काव का दिन है!" : "Foliar Respray Due Today!")
+                                : (activeLang === "ta" ? `அடுத்த தெளிப்பு ${diffDays} நாட்களில் (${dateLabel})` : activeLang === "hi" ? `अगला छिड़काव ${diffDays} दिनों में (${dateLabel})` : `Follow-up Spray Due in ${diffDays} Day${diffDays === 1 ? "" : "s"} (${dateLabel})`)}
+                            </span>
+                            <span style={{ fontSize: "0.78rem", fontWeight: 700, padding: "2px 8px", borderRadius: "99px", background: "rgba(45, 70, 39, 0.1)", color: "var(--green)" }}>
+                              🌾 {rem.crop} · {rem.condition}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: "3px" }}>
+                            🎯 <strong>{activeLang === "ta" ? "மருந்து:" : activeLang === "hi" ? "दवा:" : "Target Chemical:"}</strong> {rem.chemical}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleCompleteReminder(rem.id)}
+                          style={{
+                            background: "var(--green)",
+                            color: "#ffffff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "6px 12px",
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                        >
+                          <span>✓</span>
+                          <span>{activeLang === "ta" ? "முடிந்தது" : activeLang === "hi" ? "पूर्ण हुआ" : "Mark Done"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCompleteReminder(rem.id)}
+                          title="Dismiss reminder"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "var(--muted)",
+                            cursor: "pointer",
+                            fontSize: "1rem",
+                            padding: "4px 8px"
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Regional Geofenced Outbreak Alert Banner (Multilingual) */}
+            {outbreakAlert && !alertDismissed && (
+              <div
+                id="farmerOutbreakBanner"
+                className="farmer-outbreak-banner"
+                style={{
+                  margin: "12px 0 16px 0",
+                  background: "linear-gradient(135deg, rgba(239, 68, 68, 0.09) 0%, rgba(185, 28, 28, 0.04) 100%)",
+                  border: "1.5px solid #ef4444",
+                  borderRadius: "14px",
+                  padding: "12px 18px",
+                  boxShadow: "0 4px 14px rgba(239, 68, 68, 0.12)",
+                  transition: "all 0.25s ease"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <span
+                      style={{
+                        background: "#ef4444",
+                        color: "#ffffff",
+                        padding: "3px 9px",
+                        borderRadius: "12px",
+                        fontSize: "0.74rem",
+                        fontWeight: 800,
+                        letterSpacing: ".04em",
+                        textTransform: "uppercase",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        boxShadow: "0 2px 6px rgba(239, 68, 68, 0.35)"
+                      }}
+                    >
+                      <span>🚨</span>
+                      <span>{outbreakAlert.badge}</span>
+                    </span>
+                    <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>
+                      {outbreakAlert.title}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {/* Inline Multilingual Switcher for Regional Farmers */}
+                    <div style={{ display: "inline-flex", background: "rgba(0,0,0,0.06)", padding: "2px", borderRadius: "99px", gap: "2px", border: "1px solid var(--line)" }}>
+                      {[
+                        { code: "en", label: "EN" },
+                        { code: "ta", label: "தமிழ்" },
+                        { code: "hi", label: "हिन्दी" }
+                      ].map((l) => (
+                        <button
+                          key={l.code}
+                          type="button"
+                          id={`alertLangBtn_${l.code}`}
+                          onClick={() => {
+                            setActiveLang(l.code);
+                            setCropLang(l.code);
+                          }}
+                          style={{
+                            border: "none",
+                            background: activeLang === l.code ? "#ffffff" : "transparent",
+                            color: activeLang === l.code ? "#000000" : "var(--muted)",
+                            fontSize: "0.74rem",
+                            fontWeight: activeLang === l.code ? 800 : 500,
+                            padding: "2px 9px",
+                            borderRadius: "99px",
+                            cursor: "pointer",
+                            boxShadow: activeLang === l.code ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          {l.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      id="toggleAlertAdvisoryBtn"
+                      onClick={() => setAlertExpanded(!alertExpanded)}
+                      style={{
+                        background: alertExpanded ? "#ffffff" : "rgba(239, 68, 68, 0.12)",
+                        color: alertExpanded ? "#000000" : "#dc2626",
+                        border: alertExpanded ? "1.5px solid #ef4444" : "1px solid #ef4444",
+                        borderRadius: "20px",
+                        padding: "4px 13px",
+                        fontSize: "0.78rem",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        boxShadow: alertExpanded ? "0 1px 4px rgba(0,0,0,0.18)" : "none",
+                        transition: "all 0.15s ease"
+                      }}
+                    >
+                      <span>{alertExpanded ? outbreakAlert.hide_btn : outbreakAlert.view_btn}</span>
+                    </button>
+                    <button
+                      type="button"
+                      id="dismissAlertBtn"
+                      onClick={() => setAlertDismissed(true)}
+                      title="Dismiss alert"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--ink)",
+                        opacity: 0.8,
+                        fontSize: "1.1rem",
+                        cursor: "pointer",
+                        padding: "2px 6px",
+                        lineHeight: 1
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {alertExpanded && (
+                  <div
+                    id="alertAdvisoryDetailBox"
+                    style={{
+                      marginTop: "12px",
+                      paddingTop: "12px",
+                      borderTop: "1px solid rgba(239, 68, 68, 0.2)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                      fontSize: "0.88rem"
+                    }}
+                  >
+                    {/* Heading on its own line, text on next line */}
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--ink)", marginBottom: "4px" }}>
+                        🔍 {outbreakAlert.surveillance_label || (activeLang === "ta" ? "களக் கண்காணிப்பு விவரங்கள்:" : activeLang === "hi" ? "निगरानी एवं प्रकोप विवरण:" : "Surveillance Details:")}
+                      </div>
+                      <div style={{ fontSize: "0.85rem", color: "var(--ink)", lineHeight: 1.55 }}>
+                        {outbreakAlert.message}
+                      </div>
+                    </div>
+
+                    {/* Prescribed action: heading on its own line, text on next line */}
+                    <div
+                      style={{
+                        background: "var(--paper)",
+                        border: "1px solid #fca5a5",
+                        borderRadius: "8px",
+                        padding: "12px 14px"
+                      }}
+                    >
+                      <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "#dc2626", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span>🌾</span>
+                        <span>{outbreakAlert.action_label || (activeLang === "ta" ? "பரிந்துரைக்கப்பட்ட களத் தடுப்பு நடவடிக்கை மற்றும் தெளிப்பு:" : activeLang === "hi" ? "अनुशंसित निवारक कार्रवाई एवं छिड़काव:" : "Prescribed Action & Spraying:")}</span>
+                      </div>
+                      <div style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 500, lineHeight: 1.6 }}>
+                        {outbreakAlert.advisory || (
+                          activeLang === "ta"
+                            ? "உடனடியாக மான்கோசெப் (Mancozeb 75% WP) 2 கிராம்/லிட்டர் அல்லது மெட்டலாக்சில் + மான்கோசெப் (Ridomil MZ) 2.5 கிராம்/லிட்டர் சரியான அளவில் தெளிக்கவும். வயலில் தேங்கியுள்ள நீரை உடனடியாக வடிகட்டி, பூஞ்சாண வித்துக்கள் பரவுவதைத் தடுக்க தெளிப்பு நீர்ப்பாசனத்தைத் தவிர்க்கவும்."
+                            : activeLang === "hi"
+                            ? "तुरंत मैंकोजेब (Mancozeb 75% WP) 2 ग्राम/लीटर या मेटालेक्सिल + मैंकोजेब (Ridomil MZ) 2.5 ग्राम/लीटर का छिड़काव करें। खेत में जल निकासी सुनिश्चित करें और कवक बीजाणुओं के प्रसार को रोकने के लिए ऊपर से फव्वारा सिंचाई से बचें।"
+                            : "Apply Mancozeb 75% WP @ 2g/L or Metalaxyl + Mancozeb (Ridomil MZ) @ 2.5g/L immediately. Maintain furrow drainage and avoid overhead sprinkler watering to prevent foliar spore dispersal."
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid">
               {/* LEFT PANEL: UPLOAD & ACTIVE LEAF */}
@@ -1341,7 +2001,7 @@ export const DashboardPage = () => {
                     id="modeBtnDisease"
                     onClick={() => setMode("disease")}
                   >
-                    <span>🦠</span> <span id="lblModeDisease">Crop Disease</span>
+                    <span>🦠</span> <span id="lblModeDisease">{ui.modeDisease}</span>
                   </button>
                   <button
                     type="button"
@@ -1349,12 +2009,12 @@ export const DashboardPage = () => {
                     id="modeBtnStage"
                     onClick={() => setMode("stage")}
                   >
-                    <span>🌱</span> <span id="lblModeStage">Growth Stage</span>
+                    <span>🌱</span> <span id="lblModeStage">{ui.modeStage}</span>
                   </button>
                 </div>
 
-                <span className="eyebrow" id="scannerEyebrow">AI Agricultural Intelligence</span>
-                <h2 id="scannerHeading">Upload Plant Photo</h2>
+                <span className="eyebrow" id="scannerEyebrow">{ui.eyebrow}</span>
+                <h2 id="scannerHeading">{mode === "disease" ? ui.uploadTitleDisease : ui.uploadTitleStage}</h2>
                 <p className="sub" id="uploadHelpTxt">
                   {mode === "disease" ? stageUi.uploadHelpDisease : stageUi.uploadHelpStage}
                 </p>
@@ -1421,8 +2081,8 @@ export const DashboardPage = () => {
                       <svg viewBox="0 0 24 24" fill="none" stroke="#2d4627" strokeWidth="1.4">
                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v13" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      <p><b>Click to choose</b> or drop leaf photos here</p>
-                      <p style={{ fontSize: ".8rem", opacity: .7 }}>Single photo or batch upload · JPG or PNG</p>
+                      <p><b>{activeLang === "ta" ? "தேர்ந்தெடுக்க கிளிக் செய்யவும்" : activeLang === "hi" ? "चुनने के लिए क्लिक करें" : "Click to choose"}</b> {activeLang === "ta" ? "அல்லது இலை புகைப்படங்களை இங்கே இழுத்து விடவும்" : activeLang === "hi" ? "या पत्ती की फोटो यहां खींचें" : "or drop leaf photos here"}</p>
+                      <p style={{ fontSize: ".8rem", opacity: .7 }}>{activeLang === "ta" ? "ஒற்றை புகைப்படம் அல்லது தொகுதி பதிவேற்றம் · JPG அல்லது PNG" : activeLang === "hi" ? "एकल फोटो या बैच अपलोड · JPG या PNG" : "Single photo or batch upload · JPG or PNG"}</p>
                     </div>
 
                     {/* Quick Camera Action Pill */}
@@ -1434,7 +2094,7 @@ export const DashboardPage = () => {
                         disabled={cameraLoading}
                       >
                         <span style={{ fontSize: "1.1rem" }}>📷</span>
-                        <span>{cameraLoading ? "Starting Camera..." : "Open Camera & Snap Leaf"}</span>
+                        <span>{cameraLoading ? ui.startingCamera : ui.openCamera}</span>
                       </button>
                     </div>
                   </div>
@@ -1467,8 +2127,8 @@ export const DashboardPage = () => {
                 {batchFiles.length > 1 && (
                   <div className="batch-section show" id="batchSection">
                     <div className="batch-header">
-                      <span>Batch Queue (<span className="count" id="batchCount">{batchFiles.length}</span>)</span>
-                      <span style={{ fontSize: ".78rem", color: "var(--muted)" }}>Click any thumbnail to inspect</span>
+                      <span>{ui.batchQueueTitle} (<span className="count" id="batchCount">{batchFiles.length}</span>)</span>
+                      <span style={{ fontSize: ".78rem", color: "var(--muted)" }}>{ui.batchQueueSub}</span>
                     </div>
                     <div className="batch-grid" id="batchGrid">
                       {batchFiles.map((item, idx) => {
@@ -1493,13 +2153,13 @@ export const DashboardPage = () => {
                             <img src={item.url} alt={item.name} />
                             {item.isNonCrop && (
                               <div className="batch-badge" style={{ color: "var(--rust)", background: "rgba(176,85,46,.9)", fontWeight: 700 }}>
-                                🚫 Not Crop
+                                🚫 {activeLang === "ta" ? "பயிர் அல்ல" : activeLang === "hi" ? "फसल नहीं" : "Not Crop"}
                               </div>
                             )}
                             {!item.isNonCrop && item.result?.p && (
                               <div className={`batch-badge ${isH ? "healthy" : ""}`}>
                                 {isOpenWorld ? "🌐 " : isTeacher ? "🎓 " : isH ? "🌱 " : "🦠 "}
-                                {isH ? "Healthy" : item.result.p.cond}
+                                {isH ? (activeLang === "ta" ? "ஆரோக்கியமானது" : activeLang === "hi" ? "स्वस्थ" : "Healthy") : formatLocalizedCondition(item.result.p.cond, activeLang)}
                               </div>
                             )}
                             {!item.isNonCrop && isStageMode && (
@@ -1543,7 +2203,7 @@ export const DashboardPage = () => {
                       onClick={handleRunDiagnosis}
                       style={{ flex: 1 }}
                     >
-                      {loading ? "Analyzing..." : (mode === "disease" ? stageUi.btnRunDisease : stageUi.btnRunStage)}
+                      {loading ? ui.analyzing : (mode === "disease" ? stageUi.btnRunDisease : stageUi.btnRunStage)}
                     </button>
                     {activeItem && !isCameraActive && (
                       <button
@@ -1553,7 +2213,7 @@ export const DashboardPage = () => {
                         title="Open Camera & Snap Another Leaf"
                         style={{ flex: "0 0 auto", display: "flex", alignItems: "center", gap: "6px" }}
                       >
-                        <span>📷</span> Snap Another
+                        <span>📷</span> {ui.snapAnother}
                       </button>
                     )}
                     <button
@@ -1565,27 +2225,27 @@ export const DashboardPage = () => {
                       }}
                       style={{ flex: "0 0 auto" }}
                     >
-                      Clear All
+                      {ui.clearAll}
                     </button>
                   </div>
                 </div>
 
                 <div className={`status ${loading ? "load" : "ok"}`} id="status">
                   <span className="led"></span>
-                  <span id="statusTxt">{statusText}</span>
+                  <span id="statusTxt">{getLocalizedStatusText(statusText, activeLang)}</span>
                 </div>
 
                 {/* Grad-CAM Heatmap Box */}
                 {activeItem?.result && mode === "disease" && (
                   <div id="gradcamBox" style={{ display: "block", marginTop: "22px", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "var(--r)", padding: "18px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: ".88rem", fontWeight: 700, color: "var(--rust)", textTransform: "uppercase", letterSpacing: ".6px", marginBottom: "10px" }}>
-                      <span>🔥</span> Grad-CAM Heatmap
+                      <span>🔥</span> {ui.gradcamTitle}
                     </div>
                     <div style={{ borderRadius: "12px", overflow: "hidden", background: "#000", position: "relative" }}>
                       <canvas ref={gradcamCanvasRef} id="gradcamCanvas" style={{ width: "100%", maxHeight: "260px", objectFit: "contain", display: "block" }} />
                     </div>
                     <p style={{ fontSize: ".76rem", color: "var(--muted)", marginTop: "8px", textAlign: "center" }}>
-                      Red areas indicate regions the model focused on for diagnosis
+                      {ui.gradcamCaption}
                     </p>
                   </div>
                 )}
@@ -1597,7 +2257,7 @@ export const DashboardPage = () => {
                 {(!activeItem || (!currentResult && !currentStageResult && !activeItem.isNonCrop)) && (
                   <div className="empty" id="empty">
                     <BrandLogo size={56} style={{ marginBottom: "14px", opacity: 0.75 }} />
-                    <p>Results will appear here once you run a leaf photo through the model.</p>
+                    <p>{ui.emptyTitle}</p>
                   </div>
                 )}
 
@@ -1605,13 +2265,21 @@ export const DashboardPage = () => {
                 {activeItem?.isNonCrop && (
                   <div id="cropGateAlert" style={{ display: "block", background: "rgba(176,85,46,.12)", border: "1.5px solid var(--rust)", borderRadius: "var(--r)", padding: "22px", marginTop: "20px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: ".9rem", fontWeight: 700, color: "var(--rust)", textTransform: "uppercase", letterSpacing: ".6px" }}>
-                      <span>🚫</span> Non-Crop Image Detected
+                      <span>🚫</span> {ui.nonCropDetected}
                     </div>
                     <p id="cropGateAlertMsg" style={{ fontSize: ".92rem", color: "var(--ink)", marginTop: "8px", lineHeight: 1.5 }}>
-                      The Zero-Shot Crop Gate evaluated <b>{activeItem.name}</b> (crop score: <b>{activeItem.cropScore || 0}%</b>) and determined it is not an agricultural plant or crop leaf.
+                      {activeLang === "ta"
+                        ? <>ஜீரோ-ஷாட் பயிர் பாதுகாப்பு வாயில் <b>{activeItem.name}</b> (பயிர் மதிப்பெண்: <b>{activeItem.cropScore || 0}%</b>) பரிசோதித்து, இது விவசாய பயிர் இலை அல்ல என தீர்மானித்தது.</>
+                        : activeLang === "hi"
+                        ? <>जीरो-शॉट क्रॉप गेट ने <b>{activeItem.name}</b> (फसल स्कोर: <b>{activeItem.cropScore || 0}%</b>) का मूल्यांकन किया और पाया कि यह कृषि पौधा या पत्ती नहीं है।</>
+                        : <>The Zero-Shot Crop Gate evaluated <b>{activeItem.name}</b> (crop score: <b>{activeItem.cropScore || 0}%</b>) and determined it is not an agricultural plant or crop leaf.</>}
                     </p>
                     <p style={{ fontSize: ".82rem", color: "var(--muted)", marginTop: "8px" }}>
-                      🌿 AgroLens is designed specifically for crop pathology. Please upload a clear photo of an agricultural plant leaf or crop foliage.
+                      {activeLang === "ta"
+                        ? "🌿 AgroLens பயிர் நோயியலுக்காக பிரத்யேகமாக உருவாக்கப்பட்டது. தெளிவான பயிர் இலை புகைப்படத்தைப் பதிவேற்றவும்."
+                        : activeLang === "hi"
+                        ? "🌿 AgroLens विशेष रूप से फसल रोग विज्ञान के लिए डिज़ाइन किया गया है। कृपया पौधे की पत्ती की स्पष्ट फोटो अपलोड करें।"
+                        : "🌿 AgroLens is designed specifically for crop pathology. Please upload a clear photo of an agricultural plant leaf or crop foliage."}
                     </p>
                   </div>
                 )}
@@ -1684,9 +2352,13 @@ export const DashboardPage = () => {
                               <span>🔊</span>
                             </button>
                           </div>
-                          <h3 id="vname" style={{ color: "#ffffff", fontFamily: "'Fraunces', serif" }}>{p.healthy ? `${p.crop} · Healthy` : p.cond}</h3>
+                          <h3 id="vname" style={{ color: "#ffffff", fontFamily: "'Fraunces', serif" }}>
+                            {p.healthy
+                              ? `${getCropNameInLang(p.crop || selectedCropName, activeLang)} · ${activeLang === "ta" ? "ஆரோக்கியமானது" : activeLang === "hi" ? "स्वस्थ" : "Healthy"}`
+                              : formatLocalizedCondition(p.cond, activeLang)}
+                          </h3>
                           <p className="crop" id="vcrop" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                            {formatClassDisplay(currentResult.raw)}
+                            {formatClassDisplay(currentResult.raw, activeLang)}
                           </p>
                           <div className="confwrap">
                             <div className="tr">
@@ -1745,7 +2417,7 @@ export const DashboardPage = () => {
                                   color: p.healthy ? "var(--green)" : "var(--rust)"
                                 }}
                               >
-                                {p.severity}
+                                {localizeSeverity(p.severity, activeLang)}
                               </span>
                             </div>
                             <span
@@ -1763,7 +2435,7 @@ export const DashboardPage = () => {
                                 gap: "4px"
                               }}
                             >
-                              {currentResult.isOpenWorld ? "🌐 Open-World Nova Lite + Groq" : (currentResult.teacherModelUsed ? "🎓 Nova Lite Teacher + Groq" : "🌿 Ground-Truth Advisory")}
+                              {currentResult.isOpenWorld ? ui.openWorldBadge : (currentResult.teacherModelUsed ? ui.novaLiteBadge : ui.groundTruthBadge)}
                             </span>
                           </div>
 
@@ -1945,6 +2617,40 @@ export const DashboardPage = () => {
                             </button>
                           </div>
 
+                          {!p.healthy && (
+                            <button
+                              className="btn spray-reminder-btn"
+                              id="setSprayReminderBtn"
+                              type="button"
+                              onClick={() => handleSetSprayReminder(p.crop || selectedCropName, p.cond, p.treatment)}
+                              style={{
+                                width: "100%",
+                                padding: "11px 16px",
+                                fontSize: ".88rem",
+                                background: "rgba(45,70,39,.08)",
+                                border: "1.5px solid var(--green)",
+                                color: "var(--green)",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "8px",
+                                borderRadius: "12px",
+                                transition: "all .2s"
+                              }}
+                            >
+                              <span>⏰</span>
+                              <span>
+                                {activeLang === "ta"
+                                  ? "7 நாள் தெளிப்பு நினைவூட்டல் அமைக்கவும்"
+                                  : activeLang === "hi"
+                                  ? "7 दिन छिड़काव रिमाइंडर सेट करें"
+                                  : "Set 7-Day Spray Follow-up Reminder"}
+                              </span>
+                            </button>
+                          )}
+
                           <button
                             className="btn"
                             id="reportDiagnosisBtn"
@@ -1952,7 +2658,7 @@ export const DashboardPage = () => {
                             onClick={handleReportDiagnosis}
                             style={{ width: "100%", padding: "10px 16px", fontSize: ".86rem", background: "var(--paper)", border: "1.5px solid var(--line)", color: "var(--muted)", cursor: "pointer", borderRadius: "99px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "all .2s" }}
                           >
-                            <span>⚠️</span> <span>Report Inaccurate Diagnosis (Send to Admin Staging)</span>
+                            <span>⚠️</span> <span>{ui.reportInaccurate}</span>
                           </button>
 
                           {savedMsg && (

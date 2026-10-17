@@ -4,6 +4,8 @@
  * both Foliar Disease and Crop Growth Stage phenology reports.
  */
 
+import { getCropNameInLang, formatLocalizedCondition } from "./cropLexicon";
+
 // Helper to remove any HTML tags from raw texts
 export function stripHtml(html) {
   if (!html) return "";
@@ -52,7 +54,12 @@ export const EXPORT_TRANSLATIONS = {
     tankCapLabel: "Sprayer Tank Size",
     tanksNeededLabel: "Tanks Required",
     dosePerTankLabel: "Dosage Per Tank",
-    safetyPpeNotice: "⚠️ Safety Reminder: Wear protective gloves and face mask. Spray early morning (6–9 AM) or late afternoon (4–6 PM) with wind at your back."
+    safetyPpeNotice: "⚠️ Safety Reminder: Wear protective gloves and face mask. Spray early morning (6–9 AM) or late afternoon (4–6 PM) with wind at your back.",
+    locationLabel: "Field Location",
+    confidenceLabel: "Diagnostic Accuracy",
+    followUpLabel: "Next Follow-Up Spray",
+    followUpNotice: "Re-inspect foliage in 7 days for fungal lesion cessation.",
+    dosageChemicalLabel: "Target Chemical"
   },
   ta: {
     reportTitle: "AgroLens பயிர் மருத்துவர் பரிந்துரை & பாதுகாப்பு அறிக்கை",
@@ -92,7 +99,12 @@ export const EXPORT_TRANSLATIONS = {
     tankCapLabel: "தெளிப்பான் டேங்க் அளவு",
     tanksNeededLabel: "தேவைப்படும் டேங்குகள்",
     dosePerTankLabel: "ஒரு டேங்கிற்கு போட வேண்டிய மருந்து",
-    safetyPpeNotice: "⚠️ பாதுகாப்பு எச்சரிக்கை: கையுறை மற்றும் முகக்கவசம் அணியவும். அதிகாலை (6–9 மணி) அல்லது மாலை (4–6 மணி) வேளையில் காற்றின் திசையில் தெளிக்கவும்."
+    safetyPpeNotice: "⚠️ பாதுகாப்பு எச்சரிக்கை: கையுறை மற்றும் முகக்கவசம் அணியவும். அதிகாலை (6–9 மணி) அல்லது மாலை (4–6 மணி) வேளையில் காற்றின் திசையில் தெளிக்கவும்.",
+    locationLabel: "வயல் இருப்பிடம் / மாவட்டம்",
+    confidenceLabel: "கண்டறிதல் துல்லியம்",
+    followUpLabel: "அடுத்த தெளிப்பு ஆய்வு",
+    followUpNotice: "7 நாட்களுக்குப் பிறகு இலை பாதிப்பு குறைகிறதா என மீண்டும் பரிசோதிக்கவும்.",
+    dosageChemicalLabel: "பரிந்துரைக்கப்பட்ட மருந்து"
   },
   hi: {
     reportTitle: "AgroLens फसल डॉक्टर परामर्श एवं सुरक्षा रिपोर्ट",
@@ -132,7 +144,12 @@ export const EXPORT_TRANSLATIONS = {
     tankCapLabel: "स्प्रे टंकी क्षमता",
     tanksNeededLabel: "आवश्यक टंकियां",
     dosePerTankLabel: "प्रति टंकी कीटनाशक मात्रा",
-    safetyPpeNotice: "⚠️ सुरक्षा निर्देश: दस्ताने और मास्क पहनें। सुबह (6-9 बजे) या शाम (4-6 बजे) हवा की दिशा में छिड़काव करें।"
+    safetyPpeNotice: "⚠️ सुरक्षा निर्देश: दस्ताने और मास्क पहनें। सुबह (6-9 बजे) या शाम (4-6 बजे) हवा की दिशा में छिड़काव करें।",
+    locationLabel: "खेत का स्थान / जिला",
+    confidenceLabel: "नैदानिक सटीकता",
+    followUpLabel: "अगला छिड़काव निरीक्षण",
+    followUpNotice: "7 दिनों के बाद पत्तियों की स्थिति का पुनः निरीक्षण करें।",
+    dosageChemicalLabel: "अनुशंसित कीटनाशक"
   }
 };
 
@@ -145,24 +162,45 @@ export function shareToWhatsApp(data) {
   const isStage = Boolean(data.isStage);
 
   let msg = `🌿 *${isStage ? t.stageReportTitle : t.reportTitle}*\n`;
-  msg += `🌾 *${t.crop}:* ${data.crop || "—"}\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if (data.farmerName) {
+    msg += `👨‍🌾 *${t.farmerLabel || "Farmer"}:* ${data.farmerName}\n`;
+  }
+  if (data.district) {
+    msg += `📍 *${t.locationLabel || "Location"}:* ${data.district}\n`;
+  }
+  if (data.dateStr) {
+    msg += `📅 *${t.dateLabel || "Date"}:* ${data.dateStr}\n`;
+  }
+
+  const cropName = getCropNameInLang(data.crop || "—", lang);
+  msg += `🌾 *${t.crop}:* ${cropName}\n`;
 
   if (isStage) {
     msg += `🌱 *${t.stage}:* ${data.condition || data.phase || "—"}\n`;
     if (data.subStage) msg += `📍 *${t.subStage}:* ${data.subStage}\n`;
     if (data.daysToHarvest) msg += `⏳ *${t.daysToHarvest}:* ${data.daysToHarvest}\n`;
   } else {
-    msg += `🦠 *${t.condition}:* ${data.condition || "—"}\n`;
+    const condName = formatLocalizedCondition(data.condition || "—", lang);
+    msg += `🦠 *${t.condition}:* ${condName}\n`;
+    if (data.confidence) msg += `🎯 *${t.confidenceLabel || "Confidence"}:* ${data.confidence}%\n`;
     if (data.severity) msg += `⚠️ *${t.severity}:* ${data.severity}\n`;
   }
 
-  msg += `---------------------------------\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
   if (data.diagnosis) {
     msg += `🔍 *${t.diagnosisHeader}:*\n${stripHtml(data.diagnosis)}\n\n`;
   }
   if (data.treatment) {
     msg += `💡 *${t.treatmentHeader}:*\n${stripHtml(data.treatment)}\n\n`;
+  }
+  if (data.dosage) {
+    msg += `🧪 *${t.dosageHeader || "Dosage & Dilution"}:*\n${stripHtml(data.dosage)}\n\n`;
+  }
+  if (!isStage) {
+    msg += `⏰ *${t.followUpLabel || "Follow-up Spray"}:* ${t.followUpNotice || "Inspect foliage in 7 days for fungal lesion cessation."}\n\n`;
   }
   if (data.irrigation) {
     msg += `💧 *${t.irrigationHeader}:*\n${stripHtml(data.irrigation)}\n\n`;
@@ -180,8 +218,9 @@ export function shareToWhatsApp(data) {
     msg += `⚡ *${t.priorityHeader}:*\n${stripHtml(data.priorityAction)}\n\n`;
   }
 
-  msg += `---------------------------------\n`;
-  msg += `🌾 ${t.footerNotice}`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🌾 ${t.footerNotice}\n`;
+  msg += `📲 *AgroLens AI Pathology Intelligence*`;
 
   const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
   window.open(url, "_blank");
@@ -212,12 +251,14 @@ export function exportToPdf(data) {
   const farmerName = data.farmerName || "AgroLens Farmer";
 
   const title = isStage ? t.stageReportTitle : t.reportTitle;
+  const cropName = getCropNameInLang(data.crop || "Crop", lang);
+  const condName = isStage ? (data.condition || "—") : formatLocalizedCondition(data.condition || "—", lang);
 
   const html = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
 <meta charset="UTF-8">
-<title>${title} — ${data.crop || "AgroLens"}</title>
+<title>${title} — ${cropName}</title>
 <style>
   @page {
     size: A4 portrait;
@@ -510,11 +551,11 @@ export function exportToPdf(data) {
   <div class="summary-grid">
     <div class="sum-card">
       <div class="sum-label">${t.crop}</div>
-      <div class="sum-value">${data.crop || "Crop"}</div>
+      <div class="sum-value">${cropName}</div>
     </div>
     <div class="sum-card">
       <div class="sum-label">${isStage ? t.stage : t.condition}</div>
-      <div class="sum-value" style="font-size:13px;">${data.condition || "—"}</div>
+      <div class="sum-value" style="font-size:13px;">${condName}</div>
     </div>
     <div class="sum-card">
       <div class="sum-label">${isStage ? t.daysToHarvest : t.severity}</div>
@@ -707,3 +748,267 @@ export function exportToPdf(data) {
     alert("Please allow pop-ups to export the PDF advisory report.");
   }
 }
+
+/**
+ * AgroLens Admin Dossier Export:
+ * Generates an official printable PDF summary dossier for a specific farmer profile
+ * containing their account info, diagnostic statistics, and comprehensive scan history table.
+ */
+export function exportFarmerSummaryPdf({ farmer, scans = [] }) {
+  if (!farmer) return;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // Calculate high-level metrics
+  const totalScans = scans.length;
+  let healthyCount = 0;
+  let diseasedCount = 0;
+  const cropCounts = {};
+  let totalConf = 0;
+
+  scans.forEach((s) => {
+    const isHealthy = (s.predicted_disease || "").toLowerCase().includes("healthy");
+    if (isHealthy) healthyCount++;
+    else diseasedCount++;
+    const crop = s.crop || "Crop";
+    cropCounts[crop] = (cropCounts[crop] || 0) + 1;
+    totalConf += Number(s.confidence) || 0;
+  });
+
+  const avgConf = totalScans > 0 ? (totalConf / totalScans).toFixed(1) : "0.0";
+  let topCrop = "—";
+  let maxCropCount = 0;
+  Object.entries(cropCounts).forEach(([crop, count]) => {
+    if (count > maxCropCount) {
+      maxCropCount = count;
+      topCrop = crop;
+    }
+  });
+
+  // Build rows for each scan
+  const rowsHtml = scans
+    .map((s, idx) => {
+      const isHealthy = (s.predicted_disease || "").toLowerCase().includes("healthy");
+      const sev = s.severity || (isHealthy ? "Optimal" : "Standard");
+      let sevBadgeColor = "#2563eb";
+      let sevBg = "#eff6ff";
+      if (sev === "High" || sev === "Critical") {
+        sevBadgeColor = "#dc2626";
+        sevBg = "#fef2f2";
+      } else if (sev === "Medium" || sev === "Moderate") {
+        sevBadgeColor = "#d97706";
+        sevBg = "#fffbeb";
+      } else if (isHealthy || sev === "Optimal" || sev === "Low") {
+        sevBadgeColor = "#16a34a";
+        sevBg = "#f0fdf4";
+      }
+
+      return `
+        <tr style="border-bottom: 1px solid #e5e7eb;">
+          <td style="padding: 10px 12px; font-size: 12px; color: #4b5563; white-space: nowrap;">
+            <b>#${idx + 1}</b><br>
+            <span style="font-size: 11px; color: #9ca3af;">${s.created_at || "—"}</span>
+          </td>
+          <td style="padding: 10px 12px; font-size: 13px; font-weight: 600; color: #111827;">
+            🌱 ${s.crop || "Foliage"}
+          </td>
+          <td style="padding: 10px 12px; font-size: 13px;">
+            <strong style="color: ${isHealthy ? "#15803d" : "#991b1b"};">${s.predicted_disease}</strong>
+            ${
+              s.diagnosis
+                ? `<div style="font-size: 11px; color: #4b5563; margin-top: 4px; max-width: 360px; line-height: 1.4;">${stripHtml(
+                    s.diagnosis
+                  ).slice(0, 150)}${s.diagnosis.length > 150 ? "…" : ""}</div>`
+                : ""
+            }
+          </td>
+          <td style="padding: 10px 12px; font-size: 12px; text-align: center;">
+            <span style="display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
+              ${s.confidence}%
+            </span>
+          </td>
+          <td style="padding: 10px 12px; font-size: 12px; text-align: center;">
+            <span style="display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; background: ${sevBg}; color: ${sevBadgeColor}; border: 1px solid ${sevBadgeColor}33;">
+              ${sev}
+            </span>
+          </td>
+          <td style="padding: 10px 12px; font-size: 12px; color: #374151; max-width: 260px; line-height: 1.4;">
+            ${
+              s.treatment
+                ? stripHtml(s.treatment).slice(0, 130) + (s.treatment.length > 130 ? "…" : "")
+                : "Standard agricultural observation"
+            }
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AgroLens Diagnostic Dossier · ${farmer.name || farmer.email}</title>
+  <style>
+    @page { size: A4 portrait; margin: 14mm 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      color: #1f2937;
+      background: #fff;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .header-table { width: 100%; border-bottom: 2px solid #16a34a; padding-bottom: 14px; margin-bottom: 20px; }
+    .brand-title { font-size: 22px; font-weight: 800; color: #166534; letter-spacing: -0.02em; }
+    .brand-sub { font-size: 11px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.08em; font-weight: 700; margin-top: 2px; }
+    .doc-badge { text-align: right; }
+    .doc-badge span { background: #dcfce7; color: #15803d; font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 99px; border: 1px solid #86efac; text-transform: uppercase; }
+    .farmer-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .farmer-info h2 { margin: 0 0 4px 0; font-size: 17px; color: #0f172a; font-weight: 700; }
+    .farmer-info p { margin: 0; font-size: 12px; color: #64748b; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .kpi-val { font-size: 20px; font-weight: 800; color: #166534; margin-bottom: 2px; }
+    .kpi-lbl { font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: 700; letter-spacing: 0.04em; }
+    .table-wrap { width: 100%; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background: #f9fafb; padding: 10px 12px; font-size: 11px; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }
+    .footer-note {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 10px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <table class="header-table">
+    <tr>
+      <td>
+        <div class="brand-title">🌿 AgroLens Botanical Pathology Intelligence</div>
+        <div class="brand-sub">Comprehensive Agronomic Field Diagnostic Dossier</div>
+      </td>
+      <td class="doc-badge">
+        <span>Verified Registry Record</span>
+        <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">Generated: ${dateStr}</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="farmer-card">
+    <div class="farmer-info">
+      <h2>👨‍🌾 Farmer: ${farmer.name || "Registered Farmer"}</h2>
+      <p>✉️ ${farmer.email} &bull; Account ID: #${farmer.id || "REG"} &bull; Registered Member: ${farmer.joined_at || "Active"}</p>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 11px; font-weight: 600; color: #475569;">Total Lifetime Field Scans</div>
+      <div style="font-size: 22px; font-weight: 800; color: #166534;">${farmer.total_scans || totalScans}</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-val">${totalScans}</div>
+      <div class="kpi-lbl">Total Recorded Scans</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val">${topCrop}</div>
+      <div class="kpi-lbl">Primary Crop Cultivated</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val" style="color: ${diseasedCount > 0 ? '#b91c1c' : '#15803d'};">${diseasedCount} / ${totalScans}</div>
+      <div class="kpi-lbl">Diseases Detected</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val">${avgConf}%</div>
+      <div class="kpi-lbl">Avg Model Confidence</div>
+    </div>
+  </div>
+
+  <div style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">
+    📋 Historical Diagnostic Registry Records
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th># / Date</th>
+          <th>Crop</th>
+          <th>Condition / Symptoms</th>
+          <th style="text-align: center;">Confidence</th>
+          <th style="text-align: center;">Severity</th>
+          <th>Clinical Treatment Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml || '<tr><td colspan="6" style="text-align:center; padding: 24px; color: #9ca3af;">No scans recorded for this farmer.</td></tr>'}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    <div>Generated by AgroLens AI Agricultural Intelligence &bull; Official Administrator Dossier</div>
+    <div>Confidential agronomic advisory &bull; Page 1 of 1</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.focus();
+        window.print();
+      }, 450);
+    };
+  </script>
+</body>
+</html>`;
+
+  const printWin = window.open("", "_blank");
+  if (printWin) {
+    printWin.document.open();
+    printWin.document.write(html);
+    printWin.document.close();
+  } else {
+    alert("Please allow pop-ups to export the Farmer PDF Dossier.");
+  }
+}
+

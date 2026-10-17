@@ -46,18 +46,36 @@ verify_*.png
 crop_grid_*.png
 clerk_modal_open.png
 direct_google_redirect.png
+screenshot_*.png
+diagnosis_verification.png
+navbar_logo_verification.png
+confusion_matrix_*.png
+test.mp3
+test_*.py
+verify_*.py
+eval_confusion_matrix.py
+generate_app_icons.py
+backend/checkpoints/
+backend/test_retrain_pipeline.py
 *.log
 
 # Training pool images (keep directory)
 training_pool/pending/*
 training_pool/approved/*
 training_pool/rejected/*
+backend/training_pool/pending/*
+backend/training_pool/approved/*
+backend/training_pool/rejected/*
 !training_pool/pending/.gitkeep
 !training_pool/approved/.gitkeep
 !training_pool/rejected/.gitkeep
+!backend/training_pool/pending/.gitkeep
+!backend/training_pool/approved/.gitkeep
+!backend/training_pool/rejected/.gitkeep
 
 # IDE / System
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+screenshot_calculator.py
