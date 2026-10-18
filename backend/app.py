@@ -1739,6 +1739,44 @@ def load_native_stage_model():
 
 load_native_stage_model()
 
+def migrate_stage_seed_if_trained():
+    """
+    If stage_model.pth is trained and approved/rice_reproductive_phase has seed images,
+    archive them to trained/rice_reproductive_phase so approved count resets to 0 for incoming images.
+    """
+    try:
+        approved_dir = TRAINING_POOL / "approved" / "rice_reproductive_phase"
+        trained_dir = TRAINING_POOL / "trained" / "rice_reproductive_phase"
+        if STAGE_MODEL_PATH.exists() and approved_dir.exists():
+            files = [f for f in approved_dir.iterdir() if f.is_file()]
+            if files:
+                trained_dir.mkdir(parents=True, exist_ok=True)
+                for f in files:
+                    shutil.move(str(f), str(trained_dir / f.name))
+                print(f"[OK] Archived {len(files)} trained images from approved/ to trained/.")
+                with db() as conn:
+                    conn.execute("""
+                        INSERT INTO model_training_history (
+                            target_class, images_count, train_loss, val_accuracy,
+                            checkpoint_path, onnx_path, trained_by
+                        )
+                        SELECT 'Rice · Reproductive Phase', %s, 0.0000, 100.0,
+                               %s, %s, 1
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM model_training_history WHERE target_class = 'Rice · Reproductive Phase'
+                        );
+                    """, (len(files), str(STAGE_MODEL_PATH), str(STAGE_CLASSES_JSON)))
+                    conn.execute("""
+                        UPDATE training_queue
+                        SET status = 'trained', updated_at = NOW()
+                        WHERE (proposed_class = 'Rice · Reproductive Phase' OR proposed_class ILIKE '%reproductive%')
+                          AND status = 'approved';
+                    """)
+    except Exception as e:
+        print(f"[warn] Failed migrate_stage_seed_if_trained: {e}")
+
+migrate_stage_seed_if_trained()
+
 # ── Zero-shot Crop Gate using CLIP ─────────────────────────
 CLIP_MODEL_NAME = "openai/clip-vit-base-patch32"
 CLIP_THRESHOLD = 0.70  # crop_score >= THRESHOLD -> accepted as crop image
@@ -2372,6 +2410,11 @@ def predict_stage_endpoint():
         if (STAGE_MODEL is None or len(STAGE_CLASS_NAMES) == 0) and STAGE_MODEL_PATH.exists():
             load_native_stage_model()
 
+        crop_mismatch = False
+        parsed_crop = selected_crop or "Crop"
+        clean_phase = "Vegetative"
+        local_conf = 0.0
+
         if STAGE_MODEL is not None and len(STAGE_CLASS_NAMES) > 0:
             try:
                 input_tensor = PREPROCESS_TRANSFORM(pil_img).unsqueeze(0).to(DEVICE)
@@ -2387,21 +2430,44 @@ def predict_stage_endpoint():
                 local_conf = round(conf.item() * 100.0, 1)
                 predicted_phase = STAGE_CLASS_NAMES[class_idx.item()]
 
-                # If local confidence is strong (>= 80%), use local result instantly!
-                if local_conf >= 80.0:
-                    parsed_crop = selected_crop or "Crop"
-                    clean_phase = predicted_phase
-                    if "·" in predicted_phase:
-                        parts = [p.strip() for p in predicted_phase.split("·", 1)]
+                # Parse crop and phase from class label (e.g. "Rice · Reproductive Phase")
+                if "·" in predicted_phase:
+                    parts = [p.strip() for p in predicted_phase.split("·", 1)]
+                    parsed_crop = parts[0]
+                    clean_phase = parts[1].replace("Phase", "").replace("phase", "").strip()
+                elif " " in predicted_phase:
+                    parts = predicted_phase.split(" ", 1)
+                    if parts[0].lower() in ["rice", "wheat", "corn", "maize", "cotton", "sugarcane", "tomato", "potato", "soybean", "groundnut", "peanut"]:
                         parsed_crop = parts[0]
                         clean_phase = parts[1].replace("Phase", "").replace("phase", "").strip()
-                    elif " " in predicted_phase:
-                        parts = predicted_phase.split(" ", 1)
-                        if parts[0].lower() in ["rice", "wheat", "corn", "maize", "cotton", "sugarcane", "tomato", "potato", "soybean"]:
-                            parsed_crop = parts[0]
-                            clean_phase = parts[1].replace("Phase", "").replace("phase", "").strip()
+                    else:
+                        clean_phase = predicted_phase
+                else:
+                    clean_phase = predicted_phase
 
-                    print(f"[Stage] Local Stage Model predicted '{clean_phase}' ({local_conf}%)")
+                # Crop Consistency Check (identical to Disease Pipeline)
+                if selected_crop and selected_crop.lower() not in ("others", "all", ""):
+                    sel_norm = normalize_crop_name(selected_crop).lower()
+                    pred_crop_norm = normalize_crop_name(parsed_crop).lower()
+                    crop_aliases = {
+                        "corn": ["corn", "maize"],
+                        "maize": ["corn", "maize"],
+                        "groundnut": ["groundnut", "peanut"],
+                        "peanut": ["groundnut", "peanut"],
+                        "cassava": ["cassava", "tapioca"],
+                        "tapioca": ["cassava", "tapioca"],
+                        "rice": ["rice", "paddy"],
+                        "paddy": ["rice", "paddy"],
+                    }
+                    allowed = crop_aliases.get(sel_norm, [sel_norm])
+                    crop_matches = any(a == pred_crop_norm or a in pred_crop_norm for a in allowed)
+                    if not crop_matches:
+                        crop_mismatch = True
+                        print(f"[Stage] Crop mismatch: Selected '{selected_crop}' but stage model predicted '{parsed_crop}'. Escalating to Nova Lite...")
+
+                # If local confidence is strong (>= 80%) AND crop matches selected crop, use local result instantly!
+                if local_conf >= 80.0 and not crop_mismatch:
+                    print(f"[Stage] Local Stage Model predicted '{clean_phase}' for '{parsed_crop}' ({local_conf}%)")
                     return jsonify({
                         "ok": True,
                         "is_crop": True,
@@ -2414,6 +2480,8 @@ def predict_stage_endpoint():
                         "model_used": "Edge Stage Model (ConvNeXt-Tiny)",
                         "teacher_escalated": False
                     })
+                elif crop_mismatch:
+                    print(f"[Stage] Crop mismatch detected (selected '{selected_crop}' vs '{parsed_crop}'). Escalating canopy photo to Amazon Nova Lite...")
                 else:
                     print(f"[Stage] Local model uncertain ({local_conf}% < 80%). Escalating to Nova Lite teacher...")
             except Exception as e:
@@ -2453,6 +2521,23 @@ def predict_stage_endpoint():
                 "visual_clues": visual_clues,
                 "model_used": teacher_result["model_used"],
                 "teacher_escalated": True
+            })
+
+        # Fallback if Bedrock unreachable:
+        # If crop mismatch occurred, DO NOT show wrong crop: show Suspected Growth Phase for selected crop!
+        if crop_mismatch and selected_crop:
+            norm_crop = normalize_crop_name(selected_crop)
+            return jsonify({
+                "ok": True,
+                "is_crop": True,
+                "crop_score": round(crop_score * 100, 1),
+                "crop": norm_crop,
+                "phase": "Suspected Phase",
+                "sub_stage": f"{norm_crop} · Suspected Growth Phase",
+                "confidence": 70.0,
+                "visual_clues": f"Foliage evaluated for {norm_crop}. Inconclusive local phenology matching; follow standard crop calendar.",
+                "model_used": "Edge Stage Model (Suspected Condition)",
+                "teacher_escalated": False
             })
 
         # Fallback if Bedrock unreachable: baseline estimate
@@ -3407,6 +3492,14 @@ def admin_get_classes():
             folder_dir = approved_root / folder
             approved_count = len([f for f in folder_dir.iterdir() if f.is_file()]) if folder_dir.exists() else 0
             pending_count = pending_map.get(stage_cname, 0)
+            is_trained_stage = (
+                stage_cname in STAGE_CLASS_NAMES or
+                any(sc.lower() == stage_cname.lower() or stage_cname.lower() in sc.lower() for sc in STAGE_CLASS_NAMES) or
+                stage_cname in latest_acc_map or
+                (TRAINING_POOL / "trained" / folder).exists()
+            )
+            stage_acc = latest_acc_map.get(stage_cname, 100.0 if is_trained_stage else 0.0)
+            stage_thresh = 50
             stage_classes.append({
                 "class_name": stage_cname,
                 "display_name": f"{crop_key} · {phase_key} Phase",
@@ -3415,12 +3508,13 @@ def admin_get_classes():
                 "folder": folder,
                 "approved_count": approved_count,
                 "pending_count": pending_count,
-                "threshold": 100,
-                "progress_pct": min(100, round((approved_count / 100.0) * 100, 1)),
-                "current_accuracy": 0.0,
+                "threshold": stage_thresh,
+                "progress_pct": min(100, round((approved_count / float(stage_thresh)) * 100, 1)),
+                "current_accuracy": stage_acc,
                 "is_stage": True,
-                "is_new_class": True,
-                "can_train": False,
+                "is_new_class": not is_trained_stage,
+                "is_trained": is_trained_stage,
+                "can_train": approved_count >= stage_thresh,
                 "category": "stage"
             })
 
@@ -3463,6 +3557,14 @@ def admin_get_classes():
         is_stage = any(k in f_lower for k in STAGE_KEYWORDS) or any(k in c_lower for k in STAGE_KEYWORDS)
 
         if is_stage:
+            is_trained_stage = (
+                raw_cname in STAGE_CLASS_NAMES or
+                any(sc.lower() == raw_cname.lower() or raw_cname.lower() in sc.lower() for sc in STAGE_CLASS_NAMES) or
+                raw_cname in latest_acc_map or
+                (TRAINING_POOL / "trained" / folder).exists()
+            )
+            stage_acc = latest_acc_map.get(raw_cname, 100.0 if is_trained_stage else 0.0)
+            stage_thresh = 50
             stage_classes.append({
                 "class_name": raw_cname,
                 "display_name": raw_cname if "Phase" in raw_cname or "Stage" in raw_cname else f"{raw_cname} Phase",
@@ -3471,12 +3573,13 @@ def admin_get_classes():
                 "folder": folder,
                 "approved_count": approved_count,
                 "pending_count": pending_map.get(raw_cname, 0),
-                "threshold": 100,
-                "progress_pct": min(100, round((approved_count / 100.0) * 100, 1)),
-                "current_accuracy": 0.0,
+                "threshold": stage_thresh,
+                "progress_pct": min(100, round((approved_count / float(stage_thresh)) * 100, 1)),
+                "current_accuracy": stage_acc,
                 "is_stage": True,
-                "is_new_class": True,
-                "can_train": False,
+                "is_new_class": not is_trained_stage,
+                "is_trained": is_trained_stage,
+                "can_train": approved_count >= stage_thresh,
                 "category": "stage"
             })
         else:

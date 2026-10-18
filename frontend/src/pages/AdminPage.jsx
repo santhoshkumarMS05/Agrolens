@@ -1784,16 +1784,29 @@ export const AdminPage = () => {
                             <div className="class-title-row">
                               <div className="class-title">{c.display_name}</div>
                               {isStage ? (
-                                <span
-                                  className="badge-status new-class"
-                                  style={{
-                                    background: "rgba(22,163,74,.12)",
-                                    color: "#15803d",
-                                    borderColor: "rgba(22,163,74,.3)",
-                                  }}
-                                >
-                                  🌱 Growth Stage · Base Pending
-                                </span>
+                                c.is_new_class ? (
+                                  <span
+                                    className="badge-status new-class"
+                                    style={{
+                                      background: "rgba(234, 179, 8, .12)",
+                                      color: "#ca8a04",
+                                      borderColor: "rgba(234, 179, 8, .3)",
+                                    }}
+                                  >
+                                    🌱 Growth Stage · Base Pending
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="badge-status maintenance"
+                                    style={{
+                                      background: "rgba(22,163,74,.12)",
+                                      color: "#15803d",
+                                      borderColor: "rgba(22,163,74,.3)",
+                                    }}
+                                  >
+                                    🌿 Active Stage Model (Deployed)
+                                  </span>
+                                )
                               ) : c.is_new_class ? (
                                 <span className="badge-status new-class">✨ New Class · Untrained</span>
                               ) : isMaintenance ? (
@@ -1823,7 +1836,7 @@ export const AdminPage = () => {
                           <div className="class-metrics">
                             <div className="metric-item">
                               <span className="m-lbl">{isStage ? "Model Type" : "Model Accuracy"}</span>
-                              <span className={`m-val ${isMaintenance ? "acc-high" : "acc-staging"}`}>
+                              <span className={`m-val ${isMaintenance || (isStage && !c.is_new_class) ? "acc-high" : "acc-staging"}`}>
                                 {isStage
                                   ? (c.is_new_class ? "Nova Lite (Zero-Shot)" : "ConvNeXt-Tiny Stage Head")
                                   : c.is_new_class
@@ -1839,7 +1852,9 @@ export const AdminPage = () => {
                                 {isStage
                                   ? c.approved_count >= 50
                                     ? "Ready to Retrain (≥50)"
-                                    : `Collecting (≥85%): ${c.approved_count}/50`
+                                    : c.is_new_class
+                                    ? `Collecting (≥85%): ${c.approved_count}/50`
+                                    : `Collecting New (≥85%): ${c.approved_count}/50`
                                   : c.approved_count > 0
                                   ? "Ready to Retrain"
                                   : isMaintenance
@@ -1873,7 +1888,11 @@ export const AdminPage = () => {
                               >
                                 <span>⏳</span>{" "}
                                 <span>
-                                  Collecting Samples ({c.approved_count}/{isStage ? 50 : (c.threshold || 100)})
+                                  {isStage
+                                    ? c.is_new_class
+                                      ? `Collecting (${c.approved_count}/50)`
+                                      : `Collecting New (${c.approved_count}/50)`
+                                    : `Collecting (${c.approved_count}/${c.threshold || 100})`}
                                 </span>
                               </button>
                             )}

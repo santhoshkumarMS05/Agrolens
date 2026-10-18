@@ -140,20 +140,24 @@ def get_stage_transforms():
 def gather_stage_training_samples(target_class: str, stage_class_list: List[str]) -> tuple:
     """
     Gathers approved samples across all stage classes in the pool.
+    Also incorporates historical trained samples so previous knowledge is retained.
     """
     all_samples = []
     target_idx = stage_class_list.index(target_class)
     approved_base = TRAINING_POOL_DIR / "approved"
+    trained_base = TRAINING_POOL_DIR / "trained"
 
     for idx, c_name in enumerate(stage_class_list):
-        folder = approved_base / sanitize_folder_name(c_name)
-        if folder.exists():
-            for p in folder.glob("*.*"):
-                if p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp"]:
-                    all_samples.append((str(p), idx))
+        folder_name = sanitize_folder_name(c_name)
+        for base_dir in [approved_base, trained_base]:
+            folder = base_dir / folder_name
+            if folder.exists():
+                for p in folder.glob("*.*"):
+                    if p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp"]:
+                        all_samples.append((str(p), idx))
 
     if not all_samples:
-        raise ValueError(f"No approved stage training samples found for '{target_class}'.")
+        raise ValueError(f"No stage training samples found for '{target_class}'.")
 
     import random
     random.seed(42)
@@ -425,6 +429,20 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
                         SET status = 'trained', updated_at = NOW()
                         WHERE (proposed_class = %s OR proposed_class ILIKE %s) AND status = 'approved'
                     """, (target_class, f"%{target_class}%"))
+
+                # Archive trained images from approved/ to trained/
+                try:
+                    target_folder = sanitize_folder_name(target_class)
+                    trained_dir = TRAINING_POOL_DIR / "trained" / target_folder
+                    trained_dir.mkdir(parents=True, exist_ok=True)
+                    approved_dir = TRAINING_POOL_DIR / "approved" / target_folder
+                    if approved_dir.exists():
+                        for f in approved_dir.glob("*.*"):
+                            if f.is_file():
+                                shutil.move(str(f), str(trained_dir / f.name))
+                        print(f"[OK] Archived trained stage images for '{target_class}' to {trained_dir}")
+                except Exception as archive_err:
+                    print(f"[warn] Could not archive trained stage images: {archive_err}")
             except Exception as reload_err:
                 print(f"[warn] Could not log stage training history or hot-reload: {reload_err}")
 
