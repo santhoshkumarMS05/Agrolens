@@ -2961,6 +2961,32 @@ def admin_get_farmers():
     })
 
 
+@app.delete("/api/admin/farmers/<int:farmer_id>")
+def admin_delete_farmer(farmer_id):
+    """Allows an administrator to delete a registered farmer/user account."""
+    admin_user, err_resp = require_admin()
+    if err_resp:
+        return err_resp
+
+    if farmer_id == admin_user["id"]:
+        return jsonify({"ok": False, "error": "You cannot delete your own administrator account."}), 400
+
+    with db() as conn:
+        target = conn.execute("SELECT id, email, role FROM users WHERE id = %s", (farmer_id,)).fetchone()
+        if not target:
+            return jsonify({"ok": False, "error": "User account not found."}), 404
+
+        if (target[1] or "").lower() == PRIMARY_ADMIN_EMAIL.lower() or target[2] == "admin":
+            return jsonify({"ok": False, "error": "Cannot delete administrator accounts."}), 403
+
+        # Delete user's scans first
+        conn.execute("DELETE FROM disease_history WHERE user_id = %s", (farmer_id,))
+        # Delete user account
+        conn.execute("DELETE FROM users WHERE id = %s", (farmer_id,))
+
+    return jsonify({"ok": True, "message": "User account and all associated scans deleted successfully."})
+
+
 @app.get("/api/admin/farmers/<int:farmer_id>/scans")
 def admin_get_farmer_scans(farmer_id):
     """Paginated scan history (15 per page) for a specific farmer with diagnosis and heatmaps."""
@@ -3499,7 +3525,7 @@ def admin_get_classes():
                 (TRAINING_POOL / "trained" / folder).exists()
             )
             stage_acc = latest_acc_map.get(stage_cname, 100.0 if is_trained_stage else 0.0)
-            stage_thresh = 50
+            stage_thresh = 100
             stage_classes.append({
                 "class_name": stage_cname,
                 "display_name": f"{crop_key} · {phase_key} Phase",
@@ -3564,7 +3590,7 @@ def admin_get_classes():
                 (TRAINING_POOL / "trained" / folder).exists()
             )
             stage_acc = latest_acc_map.get(raw_cname, 100.0 if is_trained_stage else 0.0)
-            stage_thresh = 50
+            stage_thresh = 100
             stage_classes.append({
                 "class_name": raw_cname,
                 "display_name": raw_cname if "Phase" in raw_cname or "Stage" in raw_cname else f"{raw_cname} Phase",
@@ -3724,7 +3750,7 @@ def admin_train_class():
     folder_dir = TRAINING_POOL / "approved" / clean_folder
     approved_count = len([f for f in folder_dir.iterdir() if f.is_file()]) if folder_dir.exists() else 0
 
-    threshold = 50 if is_stage_class else 100
+    threshold = 100
     if approved_count < threshold:
         return jsonify({
             "ok": False,

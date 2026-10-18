@@ -712,6 +712,38 @@ export const AdminPage = () => {
     }
   };
 
+  const handleDeleteFarmer = async (farmer, e) => {
+    if (e) e.stopPropagation();
+    if (!farmer) return;
+    const name = farmer.name || farmer.email || "this user";
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete user account "${name}" (${farmer.email})?\n\nThis will remove the user profile and all their diagnostic scans permanently.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/admin/farmers/${farmer.id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        alert("User account deleted successfully.");
+        if (farmerView === "scans" && activeFarmer?.id === farmer.id) {
+          setFarmerView("list");
+          setActiveFarmer(null);
+        }
+        loadFarmers(farmersPage, farmerSearch);
+        loadOverview();
+      } else {
+        alert(data.error || "Failed to delete user account.");
+      }
+    } catch (err) {
+      console.error("Delete farmer error:", err);
+      alert("Network error while deleting user account.");
+    }
+  };
+
 
   // Filtered Queue
   const filteredQueue = queueItems.filter((item) => {
@@ -1850,11 +1882,11 @@ export const AdminPage = () => {
                               <span className="m-lbl">Staging Status</span>
                               <span className="m-val" style={{ fontSize: ".85rem", color: "var(--ink)" }}>
                                 {isStage
-                                  ? c.approved_count >= 50
-                                    ? "Ready to Retrain (≥50)"
+                                  ? c.approved_count >= (c.threshold || 100)
+                                    ? `Ready to Retrain (≥${c.threshold || 100})`
                                     : c.is_new_class
-                                    ? `Collecting (≥85%): ${c.approved_count}/50`
-                                    : `Collecting New (≥85%): ${c.approved_count}/50`
+                                    ? `Collecting (≥85%): ${c.approved_count}/${c.threshold || 100}`
+                                    : `Collecting New (≥85%): ${c.approved_count}/${c.threshold || 100}`
                                   : c.approved_count > 0
                                   ? "Ready to Retrain"
                                   : isMaintenance
@@ -1871,7 +1903,7 @@ export const AdminPage = () => {
                           </div>
 
                           <div className="class-card-actions">
-                            {c.approved_count >= (isStage ? 50 : (c.threshold || 100)) ? (
+                            {c.approved_count >= (c.threshold || 100) ? (
                               <button
                                 type="button"
                                 className="retrain-btn primary"
@@ -1884,14 +1916,14 @@ export const AdminPage = () => {
                                 type="button"
                                 className="retrain-btn secondary"
                                 disabled
-                                title={`Threshold not reached. ${isStage ? 50 : (c.threshold || 100)} approved samples required before fine-tuning.`}
+                                title={`Threshold not reached. ${c.threshold || 100} approved samples required before fine-tuning.`}
                               >
                                 <span>⏳</span>{" "}
                                 <span>
                                   {isStage
                                     ? c.is_new_class
-                                      ? `Collecting (${c.approved_count}/50)`
-                                      : `Collecting New (${c.approved_count}/50)`
+                                      ? `Collecting (${c.approved_count}/${c.threshold || 100})`
+                                      : `Collecting New (${c.approved_count}/${c.threshold || 100})`
                                     : `Collecting (${c.approved_count}/${c.threshold || 100})`}
                                 </span>
                               </button>
@@ -2656,7 +2688,7 @@ export const AdminPage = () => {
                           </div>
                           <div className="farmer-card-bottom">
                             <span>Joined: {f.joined_at}</span>
-                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                               <span className="scans-count-pill">
                                 🌱 {f.total_scans} Scan{f.total_scans === 1 ? "" : "s"}
                               </span>
@@ -2668,6 +2700,30 @@ export const AdminPage = () => {
                                 onClick={(e) => handleExportFarmerPdf(f, e)}
                               >
                                 {exportingFarmerId === f.id ? "⏳ Dossier..." : "📄 Dossier"}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-farmer-delete"
+                                title={`Permanently delete account for ${f.name || f.email}`}
+                                onClick={(e) => handleDeleteFarmer(f, e)}
+                                style={{
+                                  background: "rgba(239, 68, 68, 0.12)",
+                                  color: "#ef4444",
+                                  border: "1px solid rgba(239, 68, 68, 0.35)",
+                                  borderRadius: "6px",
+                                  padding: "4px 8px",
+                                  fontSize: "0.76rem",
+                                  fontWeight: 600,
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "3px",
+                                  transition: "all 0.15s ease",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.22)")}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.12)")}
+                              >
+                                🗑️ Delete
                               </button>
                             </div>
                           </div>
@@ -2738,6 +2794,27 @@ export const AdminPage = () => {
                       onClick={() => exportFarmerSummaryPdf({ farmer: activeFarmer, scans: farmerScans })}
                     >
                       📄 Export PDF Dossier ({farmerScans.length})
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        padding: "8px 16px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        background: "rgba(239, 68, 68, 0.14)",
+                        color: "#ef4444",
+                        border: "1px solid rgba(239, 68, 68, 0.35)",
+                        borderRadius: "8px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        transition: "all 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.25)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.14)")}
+                      onClick={() => handleDeleteFarmer(activeFarmer)}
+                    >
+                      🗑️ Delete User Account
                     </button>
                   </div>
                 </div>
