@@ -404,10 +404,29 @@ def execute_stage_retraining(target_class: str, num_epochs: int = 5, batch_size:
 
             # Hot-reload in app.py
             try:
-                from app import load_native_stage_model
+                import sys
+                if "__main__" in sys.modules and hasattr(sys.modules["__main__"], "load_native_stage_model"):
+                    sys.modules["__main__"].load_native_stage_model()
+                from app import db, load_native_stage_model
                 load_native_stage_model()
+
+                with db() as conn:
+                    conn.execute("""
+                        INSERT INTO model_training_history (
+                            target_class, images_count, train_loss, val_accuracy,
+                            checkpoint_path, onnx_path, trained_by
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        target_class, len(train_samples), epoch_loss, best_acc,
+                        str(STAGE_MODEL_PATH), str(STAGE_ONNX_PATH), user_id
+                    ))
+                    conn.execute("""
+                        UPDATE training_queue
+                        SET status = 'trained', updated_at = NOW()
+                        WHERE (proposed_class = %s OR proposed_class ILIKE %s) AND status = 'approved'
+                    """, (target_class, f"%{target_class}%"))
             except Exception as reload_err:
-                print(f"[warn] Could not hot-reload stage model in app: {reload_err}")
+                print(f"[warn] Could not log stage training history or hot-reload: {reload_err}")
 
             STAGE_TRAINING_STATUS["completed"] = True
             STAGE_TRAINING_STATUS["step_description"] = f"Stage training completed successfully! Accuracy: {best_acc:.1f}%."

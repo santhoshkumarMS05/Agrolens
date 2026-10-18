@@ -2369,27 +2369,46 @@ def predict_stage_endpoint():
             }), 400
 
         # 2. Check for trained local stage model (ConvNeXt-Tiny)
+        if (STAGE_MODEL is None or len(STAGE_CLASS_NAMES) == 0) and STAGE_MODEL_PATH.exists():
+            load_native_stage_model()
+
         if STAGE_MODEL is not None and len(STAGE_CLASS_NAMES) > 0:
             try:
                 input_tensor = PREPROCESS_TRANSFORM(pil_img).unsqueeze(0).to(DEVICE)
                 with torch.no_grad():
                     outputs = STAGE_MODEL(input_tensor)
-                    probs = torch.softmax(outputs, dim=1)[0]
-                    conf, class_idx = torch.max(probs, dim=0)
+                    if outputs.shape[1] == 1:
+                        conf = torch.tensor(1.0)
+                        class_idx = torch.tensor(0)
+                    else:
+                        probs = torch.softmax(outputs, dim=1)[0]
+                        conf, class_idx = torch.max(probs, dim=0)
 
                 local_conf = round(conf.item() * 100.0, 1)
                 predicted_phase = STAGE_CLASS_NAMES[class_idx.item()]
 
                 # If local confidence is strong (>= 80%), use local result instantly!
                 if local_conf >= 80.0:
-                    print(f"[Stage] Local Stage Model predicted '{predicted_phase}' ({local_conf}%)")
+                    parsed_crop = selected_crop or "Crop"
+                    clean_phase = predicted_phase
+                    if "·" in predicted_phase:
+                        parts = [p.strip() for p in predicted_phase.split("·", 1)]
+                        parsed_crop = parts[0]
+                        clean_phase = parts[1].replace("Phase", "").replace("phase", "").strip()
+                    elif " " in predicted_phase:
+                        parts = predicted_phase.split(" ", 1)
+                        if parts[0].lower() in ["rice", "wheat", "corn", "maize", "cotton", "sugarcane", "tomato", "potato", "soybean"]:
+                            parsed_crop = parts[0]
+                            clean_phase = parts[1].replace("Phase", "").replace("phase", "").strip()
+
+                    print(f"[Stage] Local Stage Model predicted '{clean_phase}' ({local_conf}%)")
                     return jsonify({
                         "ok": True,
                         "is_crop": True,
                         "crop_score": round(crop_score * 100, 1),
-                        "crop": selected_crop or "Crop",
-                        "phase": predicted_phase,
-                        "sub_stage": f"Verified {predicted_phase} Phase",
+                        "crop": parsed_crop,
+                        "phase": clean_phase,
+                        "sub_stage": f"Verified {clean_phase} Phase",
                         "confidence": local_conf,
                         "visual_clues": f"Identified via local ConvNeXt-Tiny stage network ({local_conf}% confidence).",
                         "model_used": "Edge Stage Model (ConvNeXt-Tiny)",
