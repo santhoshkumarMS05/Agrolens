@@ -973,7 +973,10 @@ export const DashboardPage = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ image: item.dataUrl || item.url })
+            body: JSON.stringify({
+              image: item.dataUrl || item.url,
+              selected_crop: canonicalEnglishCrop
+            })
           });
           const predData = await res.json();
 

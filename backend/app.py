@@ -1703,6 +1703,7 @@ STAGE_MODEL = None
 STAGE_CLASS_NAMES = []
 STAGE_MODEL_PATH = BASE / "stage_model.pth"
 STAGE_CLASSES_JSON = BASE / "stage_classes.json"
+MIN_STAGE_CLASSES_FOR_EDGE = int(os.getenv("MIN_STAGE_CLASSES_FOR_EDGE", "5"))
 
 def load_native_stage_model():
     """
@@ -1728,7 +1729,10 @@ def load_native_stage_model():
             m.load_state_dict(torch.load(STAGE_MODEL_PATH, map_location=DEVICE))
             m.to(DEVICE).eval()
             STAGE_MODEL = m
-            print(f"[OK] Native Stage Model active ({len(STAGE_CLASS_NAMES)} classes: {STAGE_CLASS_NAMES}) on {DEVICE}.")
+            if len(STAGE_CLASS_NAMES) < MIN_STAGE_CLASSES_FOR_EDGE:
+                print(f"[info] Native Stage Model loaded with {len(STAGE_CLASS_NAMES)} class(es). Standby mode active (requires ≥{MIN_STAGE_CLASSES_FOR_EDGE} classes for edge deployment). Cloud Teacher Model (Amazon Nova Lite) handles all live stage diagnoses.")
+            else:
+                print(f"[OK] Native Stage Model active ({len(STAGE_CLASS_NAMES)} classes: {STAGE_CLASS_NAMES}) on {DEVICE}.")
             return
         except Exception as e:
             print(f"[warn] Failed loading local stage model: {e}")
@@ -2233,7 +2237,7 @@ def get_stage_knowledge_data():
     return {}
 
 
-def call_bedrock_stage_model(image_b64):
+def call_bedrock_stage_model(image_b64, selected_crop=None):
     """
     Calls Amazon Nova Lite (AWS Bedrock) to recognize crop species, growth phase,
     sub-stage, and visual indicators from a whole-plant or canopy photo.
@@ -2262,13 +2266,13 @@ def call_bedrock_stage_model(image_b64):
         "You are the AgroLens Expert Crop Phenologist & Growth Stage Specialist.\n"
         "You analyze an agricultural field image or whole-plant photo to identify the crop species and current growth stage.\n\n"
         "SUPPORTED CROPS:\n"
-        "- Rice, Corn, Cotton, Sugarcane, Groundnut, Sorghum, Cassava, Coconut (or any other crop if different).\n\n"
+        "- Rice, Corn, Cotton, Sugarcane, Groundnut, Sorghum, Cassava, Coconut, Wheat, Coffee, Tomato, Potato, Soybean, or ANY other agricultural crop shown in the photo.\n\n"
         "CORE 3 GROWTH PHASES:\n"
         "1. 'Vegetative' (Early seedling, tillering, branching, vegetative canopy, stem elongation)\n"
         "2. 'Reproductive' (Booting, heading, tasseling, flowering, pegging, boll development)\n"
         "3. 'Ripening' (Grain filling, dough, dent, pod maturity, boll bursting, leaf senescence, ready for harvest)\n\n"
         "DIAGNOSTIC PROTOCOL:\n"
-        "1. Identify the crop species.\n"
+        "1. Identify the true crop species based on visual botanical features (e.g. Wheat, Rice, Cotton, Coffee, Groundnut, Corn, Tomato, etc.).\n"
         "2. Determine the overarching phase (MUST be strictly one of: 'Vegetative', 'Reproductive', or 'Ripening').\n"
         "3. Identify the specific sub-stage name (e.g. 'Heading / Flowering', 'Active Tillering', 'Boll Opening', etc.).\n"
         "4. DYNAMIC CALIBRATED CONFIDENCE (DO NOT ANCHOR TO A FIXED NUMBER):\n"
@@ -2289,6 +2293,16 @@ def call_bedrock_stage_model(image_b64):
         "}"
     )
 
+    user_text = "Identify the agricultural crop and its current growth phase and stage from this photo."
+    if selected_crop and selected_crop.lower() not in ("others", "all", ""):
+        user_text = (
+            f"The farmer's selected crop is '{selected_crop}'. "
+            f"Carefully evaluate this photo: if the photo matches {selected_crop}, identify its specific growth phase and stage. "
+            f"However, if the photo actually depicts a DIFFERENT crop (e.g., Rice, Wheat, Cotton, Coffee, Corn, Groundnut, Tomato, etc.), "
+            f"you have full freedom to identify the actual true crop shown in the image and its corresponding growth stage. "
+            f"Do not force-match '{selected_crop}' if the plant in the photo is clearly a different crop."
+        )
+
     payload = {
         "system": [{"text": system_text}],
         "messages": [
@@ -2304,7 +2318,7 @@ def call_bedrock_stage_model(image_b64):
                         }
                     },
                     {
-                        "text": "Identify the agricultural crop and its current growth phase and stage from this photo."
+                        "text": user_text
                     }
                 ]
             }
@@ -2328,9 +2342,13 @@ def call_bedrock_stage_model(image_b64):
             content = res_data.get("output", {}).get("message", {}).get("content", [])
             if content and "text" in content[0]:
                 raw_text = content[0]["text"]
-                clean_json = re.sub(r"^```(?:json)?\s*", "", raw_text.strip())
-                clean_json = re.sub(r"\s*```$", "", clean_json)
-                parsed = json.loads(clean_json)
+                match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+                if match:
+                    parsed = json.loads(match.group(0))
+                else:
+                    clean_json = re.sub(r"^```(?:json)?\s*", "", raw_text.strip())
+                    clean_json = re.sub(r"\s*```$", "", clean_json)
+                    parsed = json.loads(clean_json)
 
                 crop = str(parsed.get("crop", "Crop")).strip()
                 phase_raw = str(parsed.get("phase", "Vegetative")).strip().capitalize()
@@ -2415,7 +2433,13 @@ def predict_stage_endpoint():
         clean_phase = "Vegetative"
         local_conf = 0.0
 
-        if STAGE_MODEL is not None and len(STAGE_CLASS_NAMES) > 0:
+        # Minimum class diversity guardrail:
+        # A single-class softmax model mathematically yields 100% on every image and cannot discriminate.
+        # Edge head requires at least MIN_STAGE_CLASSES_FOR_EDGE (5) classes to be active.
+        # Below that threshold, the edge model stays in standby and all stage requests are delegated to Amazon Nova Lite.
+        edge_head_active = (STAGE_MODEL is not None and len(STAGE_CLASS_NAMES) >= MIN_STAGE_CLASSES_FOR_EDGE)
+
+        if edge_head_active:
             try:
                 input_tensor = PREPROCESS_TRANSFORM(pil_img).unsqueeze(0).to(DEVICE)
                 with torch.no_grad():
@@ -2486,10 +2510,13 @@ def predict_stage_endpoint():
                     print(f"[Stage] Local model uncertain ({local_conf}% < 80%). Escalating to Nova Lite teacher...")
             except Exception as e:
                 print(f"[warn] Local stage inference failed: {e}")
+        else:
+            class_count = len(STAGE_CLASS_NAMES)
+            print(f"[Stage] Edge head in standby mode ({class_count} class(es) trained < {MIN_STAGE_CLASSES_FOR_EDGE} minimum threshold). Routing directly to Amazon Nova Lite...")
 
         # 3. Escalate to Amazon Nova Lite (Vision Teacher Model)
         print("[info] Running Stage Vision Model via Amazon Nova Lite (AWS Bedrock)...")
-        teacher_result = call_bedrock_stage_model(raw_b64)
+        teacher_result = call_bedrock_stage_model(raw_b64, selected_crop=selected_crop)
         if teacher_result and teacher_result.get("ok"):
             crop = teacher_result["crop"]
             phase = teacher_result["phase"]
@@ -2524,33 +2551,18 @@ def predict_stage_endpoint():
             })
 
         # Fallback if Bedrock unreachable:
-        # If crop mismatch occurred, DO NOT show wrong crop: show Suspected Growth Phase for selected crop!
-        if crop_mismatch and selected_crop:
-            norm_crop = normalize_crop_name(selected_crop)
-            return jsonify({
-                "ok": True,
-                "is_crop": True,
-                "crop_score": round(crop_score * 100, 1),
-                "crop": norm_crop,
-                "phase": "Suspected Phase",
-                "sub_stage": f"{norm_crop} · Suspected Growth Phase",
-                "confidence": 70.0,
-                "visual_clues": f"Foliage evaluated for {norm_crop}. Inconclusive local phenology matching; follow standard crop calendar.",
-                "model_used": "Edge Stage Model (Suspected Condition)",
-                "teacher_escalated": False
-            })
-
-        # Fallback if Bedrock unreachable: baseline estimate
+        # If crop mismatch occurred or edge model is standby, DO NOT show wrong crop: show Suspected Growth Phase for selected crop!
+        norm_crop = normalize_crop_name(selected_crop) if selected_crop else parsed_crop
         return jsonify({
             "ok": True,
             "is_crop": True,
             "crop_score": round(crop_score * 100, 1),
-            "crop": "Crop",
-            "phase": "Vegetative",
-            "sub_stage": "Vegetative Development",
-            "confidence": 75.0,
-            "visual_clues": "Canopy foliage indicates active vegetative growth.",
-            "model_used": "Agronomic Baseline",
+            "crop": norm_crop,
+            "phase": "Suspected Phase",
+            "sub_stage": f"{norm_crop} · Suspected Growth Phase",
+            "confidence": 70.0,
+            "visual_clues": f"Foliage evaluated for {norm_crop}. Inconclusive local phenology matching; follow standard crop calendar.",
+            "model_used": "Edge Stage Model (Suspected Condition)",
             "teacher_escalated": False
         })
     except Exception as e:
