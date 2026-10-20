@@ -57,6 +57,7 @@ from retrain_engine import (
     rollback_checkpoint,
     init_baseline_checkpoint_if_needed,
     get_model_evaluation_metrics,
+    get_stage_evaluation_metrics,
     MODEL_PATH,
     ONNX_PATH,
 )
@@ -3738,6 +3739,73 @@ def admin_get_class_samples(folder):
         "images": images
     })
 
+@app.delete("/api/admin/staging/folder/<folder_name>")
+def admin_delete_staging_folder(folder_name):
+    """Deletes an entire staging folder from training_pool/approved/ and purges records in training_queue."""
+    user, err_resp = require_admin()
+    if err_resp:
+        return err_resp
+
+    clean_folder = sanitize_folder_name(folder_name)
+    target_dir = TRAINING_POOL / "approved" / clean_folder
+    deleted_files = 0
+    if target_dir.exists():
+        deleted_files = len([f for f in target_dir.iterdir() if f.is_file()])
+        shutil.rmtree(str(target_dir), ignore_errors=True)
+
+    with db() as conn:
+        conn.execute("""
+            UPDATE training_queue
+            SET status = 'rejected', notes = 'Folder purged by admin'
+            WHERE image_path LIKE %s
+        """, (f"%approved/{clean_folder}/%",))
+
+    return jsonify({
+        "ok": True,
+        "message": f"Successfully deleted folder 'approved/{clean_folder}/' ({deleted_files} images removed)",
+        "folder": clean_folder,
+        "deleted_count": deleted_files
+    })
+
+
+@app.delete("/api/admin/staging/image")
+def admin_delete_staging_image():
+    """Deletes a specific approved image file from a staging folder."""
+    user, err_resp = require_admin()
+    if err_resp:
+        return err_resp
+
+    data = json_body() or {}
+    folder = (data.get("folder") or request.args.get("folder") or "").strip()
+    filename = (data.get("filename") or request.args.get("filename") or "").strip()
+
+    if not folder or not filename:
+        return jsonify({"ok": False, "error": "Missing folder or filename"}), 400
+
+    clean_folder = sanitize_folder_name(folder)
+    safe_filename = Path(filename).name
+    target_file = TRAINING_POOL / "approved" / clean_folder / safe_filename
+
+    if target_file.exists():
+        try:
+            target_file.unlink()
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Failed to delete file: {e}"}), 500
+
+    with db() as conn:
+        conn.execute("""
+            UPDATE training_queue
+            SET status = 'rejected', notes = 'Image deleted by admin from approved staging'
+            WHERE image_path LIKE %s
+        """, (f"%approved/{clean_folder}/{safe_filename}%",))
+
+    return jsonify({
+        "ok": True,
+        "message": f"Deleted {safe_filename} from {clean_folder}",
+        "folder": clean_folder,
+        "filename": safe_filename
+    })
+
 
 
 @app.post("/api/admin/train")
@@ -3914,13 +3982,217 @@ def admin_get_model_evaluation():
 
     return jsonify(get_model_evaluation_metrics())
 
+@app.get("/api/admin/training/stage_evaluation")
+def admin_get_stage_evaluation():
+    """Returns confusion matrix, macro precision/recall/F1, and misclassification weak spots for the Crop Growth Stage model."""
+    user, err_resp = require_admin()
+    if err_resp:
+        return err_resp
 
+    return jsonify(get_stage_evaluation_metrics())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Automated Outbreak Geofence & District Broadcast Alerts
 # ─────────────────────────────────────────────────────────────────────────────
+
+CROP_CANONICAL_EN = {
+    "rice": "Rice",
+    "நெல்": "Rice",
+    "பயிர்": "Rice",
+    "धान": "Rice",
+    "चावल": "Rice",
+    "धान / चावल": "Rice",
+    "potato": "Potato",
+    "உருளைக்கிழங்கு": "Potato",
+    "ஆलू": "Potato",
+    "tomato": "Tomato",
+    "தக்காளி": "Tomato",
+    "टमाटर": "Tomato",
+    "groundnut": "Groundnut",
+    "நிலக்கடலை": "Groundnut",
+    "मूंगफली": "Groundnut",
+    "corn": "Corn",
+    "maize": "Corn",
+    "மக்காச்சோளம்": "Corn",
+    "मक्का": "Corn",
+    "wheat": "Wheat",
+    "கோதுமை": "Wheat",
+    "गेहूं": "Wheat",
+    "cotton": "Cotton",
+    "பருத்தி": "Cotton",
+    "कपास": "Cotton",
+    "sugarcane": "Sugarcane",
+    "கரும்பு": "Sugarcane",
+    "गन्ना": "Sugarcane",
+    "sorghum": "Sorghum",
+    "சோளம்": "Sorghum",
+    "ज्वार": "Sorghum",
+    "cassava": "Cassava",
+    "மரவள்ளிக்கிழங்கு": "Cassava",
+    "कसावा": "Cassava",
+    "coconut": "Coconut",
+    "தென்னை": "Coconut",
+    "नारियल": "Coconut",
+    "coffee": "Coffee",
+    "காபி": "Coffee",
+    "कॉफी": "Coffee",
+    "banana": "Banana",
+    "வாழை": "Banana",
+    "केला": "Banana",
+    "mango": "Mango",
+    "மா": "Mango",
+    "आम": "Mango",
+    "apple": "Apple",
+    "ஆப்பிள்": "Apple",
+    "सेब": "Apple"
+}
+
+DISEASE_CANONICAL_EN = {
+    "late blight": "Late Blight",
+    "பின்பருவ கருகல் நோய்": "Late Blight",
+    "அடிசாம்பல் / கருகல் நோய்": "Late Blight",
+    "லேட் பிளைட்": "Late Blight",
+    "पछेती झुलसा": "Late Blight",
+    "पछेती झुलसा रोग": "Late Blight",
+    "early blight": "Early Blight",
+    "முன்பருவ கருகல் நோய்": "Early Blight",
+    "முன் கருகல் நோய்": "Early Blight",
+    "अगेती झुलसा": "Early Blight",
+    "अगेती झुलसा रोग": "Early Blight",
+    "rice blast": "Rice Blast",
+    "leaf blast": "Rice Blast",
+    "leafblast": "Rice Blast",
+    "blast": "Rice Blast",
+    "குலை நோய்": "Rice Blast",
+    "झोंका रोग": "Rice Blast",
+    "brown spot": "Brown Spot",
+    "brownspot": "Brown Spot",
+    "பழுப்புப் புள்ளி நோய்": "Brown Spot",
+    "பழுப்பு புள்ளி நோய்": "Brown Spot",
+    "भूरा धब्बा रोग": "Brown Spot",
+    "bacterial blight": "Bacterial Blight",
+    "bacterialblight": "Bacterial Blight",
+    "பாக்டீரியா இலைக்கருகல் நோய்": "Bacterial Blight",
+    "जीवाणु झुलसा रोग": "Bacterial Blight",
+    "sheath blight": "Sheath Blight",
+    "உறை கருகல் நோய்": "Sheath Blight",
+    "शीथ ब्लाइट रोग": "Sheath Blight",
+    "mosaic": "Mosaic Disease",
+    "mosaic disease": "Mosaic Disease",
+    "mosaic virus": "Mosaic Disease",
+    "tomato mosaic": "Mosaic Disease",
+    "மொசைக் வைரஸ் நோய்": "Mosaic Disease",
+    "மஞ்சள் தேமல் நோய்": "Mosaic Disease",
+    "मोज़ेक विषाणु रोग": "Mosaic Disease",
+    "leaf curl": "Leaf Curl",
+    "இலைச்சுருள் நோய்": "Leaf Curl",
+    "पत्ती मरोड़ रोग": "Leaf Curl",
+    "yellow leaf": "Yellow Leaf Disease",
+    "yellowleaf": "Yellow Leaf Disease",
+    "மஞ்சள் இலை நோய்": "Yellow Leaf Disease",
+    "पीली पत्ती रोग": "Yellow Leaf Disease",
+    "rust": "Rust",
+    "துரு நோய்": "Rust",
+    "गेरुई रोग": "Rust",
+    "common rust": "Common Rust",
+    "commonrust": "Common Rust",
+    "brown rust": "Brown Rust",
+    "brownrust": "Brown Rust",
+    "powdery mildew": "Powdery Mildew",
+    "சாம்பல் நோய்": "Powdery Mildew",
+    "चूर्णिल आसिता": "Powdery Mildew",
+    "leaf rot": "Leaf Rot",
+    "leafrot": "Leaf Rot",
+    "இலை அழுகல் நோய்": "Leaf Rot",
+    "red rot": "Red Rot",
+    "redrot": "Red Rot",
+    "செவ்வழுகல் நோய்": "Red Rot",
+    "anthracnose": "Anthracnose & Red Rot",
+    "ஆந்த்ராக்னோஸ் நோய்": "Anthracnose & Red Rot",
+    "early leaf spot": "Early Leaf Spot",
+    "earlyleafspot": "Early Leaf Spot",
+    "late leaf spot": "Late Leaf Spot",
+    "lateleafspot": "Late Leaf Spot",
+    "gray leaf spot": "Gray Leaf Spot",
+    "grayleafspot": "Gray Leaf Spot",
+    "grayspot": "Gray Leaf Spot",
+    "leaf blight": "Leaf Blight",
+    "leafblight": "Leaf Blight",
+    "brown streak": "Brown Streak",
+    "brownstreak": "Brown Streak",
+    "scab": "Scab",
+    "apple scab": "Apple Scab",
+    "healthy": "Healthy Foliage",
+    "healthy foliage": "Healthy Foliage",
+    "ஆரோக்கியமான பயிர்": "Healthy Foliage",
+    "स्वस्थ फसल": "Healthy Foliage"
+}
+
+
+def canonicalize_scan_crop_and_disease(raw_crop: str, raw_disease: str):
+    """
+    Converts multi-language or duplicated crop and disease names (e.g. Tamil, Hindi,
+    or redundant strings like 'Apple · Apple · Scab') into clean canonical English.
+    """
+    raw_c = (raw_crop or "").strip()
+    raw_d = (raw_disease or "").strip()
+
+    # 1. Resolve crop name
+    c_lower = raw_c.lower()
+    crop_en = CROP_CANONICAL_EN.get(c_lower)
+    if not crop_en:
+        for k, v in CROP_CANONICAL_EN.items():
+            if k in c_lower:
+                crop_en = v
+                break
+    if not crop_en:
+        crop_en = raw_c.capitalize() if raw_c else "Crop"
+
+    # 2. De-duplicate consecutive repeated words in disease string (e.g. 'Apple · Apple · Scab')
+    d_clean = raw_d
+    for sep in [" · ", " - ", " : ", " | "]:
+        if sep in d_clean:
+            parts = [p.strip() for p in d_clean.split(sep) if p.strip()]
+            dedup = []
+            for p in parts:
+                if not dedup or p.lower() != dedup[-1].lower():
+                    dedup.append(p)
+            d_clean = " · ".join(dedup)
+
+    # 3. Strip leading crop name if present
+    prefix = f"{crop_en.lower()} · "
+    prefix_space = f"{crop_en.lower()} "
+    d_lower = d_clean.lower()
+    if d_lower.startswith(prefix):
+        condition = d_clean[len(prefix):].strip()
+    elif d_lower.startswith(prefix_space):
+        condition = d_clean[len(prefix_space):].strip()
+    else:
+        condition = d_clean
+
+    # 4. Map condition to canonical English disease
+    cond_lower = condition.lower()
+    dis_en = DISEASE_CANONICAL_EN.get(cond_lower)
+    if not dis_en:
+        for k, v in DISEASE_CANONICAL_EN.items():
+            if k in cond_lower:
+                dis_en = v
+                break
+    if not dis_en:
+        dis_en = condition.title() if condition else "Foliar Condition"
+
+    final_disease = f"{crop_en} · {dis_en}" if (crop_en.lower() not in dis_en.lower()) else dis_en
+    return crop_en, final_disease
+
+
 @app.get("/api/admin/outbreaks/clusters")
 def admin_get_outbreak_clusters():
-    """Detect and return regional disease clusters with risk scoring and agronomist advisories."""
+    """
+    Detect and return regional disease clusters with risk scoring and agronomist advisories.
+    Aggregates multi-language scans (Tamil, Hindi, English) into canonical English cluster cards.
+    """
     user, err_resp = require_admin()
     if err_resp:
         return err_resp
@@ -3932,14 +4204,39 @@ def admin_get_outbreak_clusters():
                    count(*) FILTER (WHERE severity IN ('High', 'Critical', 'Severe', 'அதிகம்', 'उच्च')) as severe_count
             FROM disease_history
             GROUP BY crop, predicted_disease
-            ORDER BY scan_count DESC
         """).fetchall()
+
+    # Unify and aggregate multi-language / aliased records into canonical English cards
+    aggregated = {}
+    for r in rows:
+        raw_crop, raw_disease, scan_count, avg_conf, severe_count = r
+        canon_crop, canon_disease = canonicalize_scan_crop_and_disease(raw_crop, raw_disease)
+        key = (canon_crop, canon_disease)
+        if key not in aggregated:
+            aggregated[key] = {
+                "crop": canon_crop,
+                "disease": canon_disease,
+                "scan_count": 0,
+                "severe_count": 0,
+                "conf_sum": 0.0,
+                "conf_weight": 0
+            }
+        aggregated[key]["scan_count"] += scan_count
+        aggregated[key]["severe_count"] += severe_count
+        aggregated[key]["conf_sum"] += float(avg_conf or 94.0) * scan_count
+        aggregated[key]["conf_weight"] += scan_count
+
+    sorted_clusters = sorted(aggregated.values(), key=lambda x: x["scan_count"], reverse=True)
 
     clusters = []
     district_pool = ["Thanjavur (Cauvery Delta)", "Madurai", "Tiruchirappalli", "Coimbatore", "Salem", "Erode"]
 
-    for idx, r in enumerate(rows):
-        crop, disease, scan_count, avg_conf, severe_count = r
+    for idx, item in enumerate(sorted_clusters):
+        crop = item["crop"]
+        disease = item["disease"]
+        scan_count = item["scan_count"]
+        severe_count = item["severe_count"]
+        avg_conf = round(item["conf_sum"] / max(1, item["conf_weight"]), 1)
         assigned_district = district_pool[idx % len(district_pool)]
 
         if scan_count >= 5 or severe_count >= 3:
@@ -3962,12 +4259,12 @@ def admin_get_outbreak_clusters():
 
         clusters.append({
             "id": idx + 1,
-            "crop": crop or "Crop",
+            "crop": crop,
             "disease": disease,
             "district": assigned_district,
             "scan_count": scan_count,
             "severe_count": severe_count,
-            "avg_confidence": float(avg_conf or 94.0),
+            "avg_confidence": avg_conf,
             "risk_level": risk,
             "risk_color": risk_color,
             "recommended_advisory": advice,
@@ -4069,42 +4366,49 @@ def admin_broadcast_outbreak():
 
 @app.get("/api/farmer/outbreak_alerts")
 def get_farmer_outbreak_alerts():
-    """Returns active geofenced outbreak alerts filtered by the farmer's crop and district in multiple languages."""
+    """
+    Returns active geofenced outbreak alerts filtered by the farmer's crop and district in multiple languages.
+    Provides 100% pure regional translations without awkward English code-mixing.
+    """
     crop = (request.args.get("crop") or "").strip()
     district = (request.args.get("district") or "").strip()
     lang = (request.args.get("lang") or "en").lower().strip()
 
+    # Canonicalize crop input query
+    c_lower = crop.lower()
+    canon_crop_query = CROP_CANONICAL_EN.get(c_lower, crop)
+
     with db() as conn:
         row = None
-        # STRICT GEOFENCING:
-        # Both crop and farmer's live district must match.
-        # Never leak outbreak warnings from other districts.
-        if crop and district and district.lower() not in ("local field area", "unknown", ""):
+        if canon_crop_query and district and district.lower() not in ("local field area", "unknown", ""):
             row = conn.execute("""
                 SELECT id, crop, disease, district, severity, alert_title, alert_message,
                        preventative_advisory, created_at
                 FROM outbreak_alerts
                 WHERE status IN ('active', 'broadcasted')
-                  AND lower(crop) = lower(%s)
+                  AND (
+                      lower(crop) = lower(%s)
+                      OR lower(crop) = lower(%s)
+                      OR lower(%s) LIKE ('%%%%' || lower(crop) || '%%%%')
+                  )
                   AND (
                       lower(district) LIKE %s 
                       OR lower(%s) LIKE ('%%%%' || lower(district) || '%%%%')
                       OR lower(district) IN ('all districts', 'statewide', 'all', 'tamil nadu')
                   )
                 ORDER BY id DESC LIMIT 1
-            """, (crop, f"%{district.lower()}%", district)).fetchone()
+            """, (canon_crop_query, crop, canon_crop_query, f"%{district.lower()}%", district)).fetchone()
 
     if not row:
         return jsonify({"ok": True, "has_alert": False, "alert": None})
 
     alert_id, c_crop, c_disease, c_district, c_severity, c_title, c_msg, c_adv, c_created = row
 
-    # Normalize crop, disease, district names
     clean_crop = c_crop.strip()
     clean_disease = c_disease.replace(f"{clean_crop} · ", "").replace(f"{clean_crop} - ", "").replace(f"{clean_crop} ", "").strip()
     clean_district = c_district.strip()
 
-    # Dictionaries for translations
+    # Pure regional dictionaries
     CROP_NAMES = {
         "potato": {"en": "Potato", "ta": "உருளைக்கிழங்கு", "hi": "आलू"},
         "rice": {"en": "Rice", "ta": "நெல்", "hi": "धान / चावल"},
@@ -4118,8 +4422,11 @@ def get_farmer_outbreak_alerts():
         "chilli": {"en": "Chilli", "ta": "மிளகாய்", "hi": "मिर्च"},
         "groundnut": {"en": "Groundnut", "ta": "நிலக்கடலை", "hi": "मूंगफली"},
         "banana": {"en": "Banana", "ta": "வாழை", "hi": "केला"},
-        "mango": {"en": "Mango", "ta": "மா", "hi": "आम"}
+        "mango": {"en": "Mango", "ta": "மா", "hi": "आम"},
+        "cassava": {"en": "Cassava", "ta": "மரவள்ளிக்கிழங்கு", "hi": "कसावा"},
+        "sorghum": {"en": "Sorghum", "ta": "சோளம்", "hi": "ज्वार"}
     }
+
     DISTRICT_NAMES = {
         "tiruchirappalli": {"en": "Tiruchirappalli", "ta": "திருச்சிராப்பள்ளி", "hi": "तिरुचिरापल्ली"},
         "trichy": {"en": "Tiruchirappalli", "ta": "திருச்சிராப்பள்ளி", "hi": "तिरुचिरापल्ली"},
@@ -4133,33 +4440,56 @@ def get_farmer_outbreak_alerts():
         "theni": {"en": "Theni", "ta": "தேனி", "hi": "थेनी"},
         "dharmapuri": {"en": "Dharmapuri", "ta": "தர்மபுரி", "hi": "धर्मपुरी"}
     }
+
     DISEASE_NAMES = {
-        "late blight": {"en": "Late Blight", "ta": "லேட் பிளைட் (அடிசாம்பல் / கருகல் நோய்)", "hi": "पछेती झुलसा (Late Blight)"},
-        "early blight": {"en": "Early Blight", "ta": "முன் கருகல் நோய் (Early Blight)", "hi": "अगेती झुलसा (Early Blight)"},
-        "bacterial blight": {"en": "Bacterial Blight", "ta": "பாக்டீரியா இலைக்கருகல் நோய்", "hi": "जीवाणु झुलसा रोग"},
-        "rice blast": {"en": "Rice Blast", "ta": "குலை நோய் (Rice Blast)", "hi": "झोंका रोग (Rice Blast)"},
-        "blast": {"en": "Rice Blast", "ta": "குலை நோய் (Rice Blast)", "hi": "झोंका रोग (Rice Blast)"},
+        "late blight": {"en": "Late Blight", "ta": "பின்பருவ கருகல் நோய்", "hi": "पछेती झुलसा रोग"},
+        "early blight": {"en": "Early Blight", "ta": "முன்பருவ கருகல் நோய்", "hi": "अगेती झुलसा रोग"},
+        "bacterial blight": {"en": "Bacterial Blight", "ta": "பாக்டீரியா இலைக்கருகல் நோய்", "hi": "जीவாणु झुलसा रोग"},
+        "rice blast": {"en": "Rice Blast", "ta": "குலை நோய்", "hi": "झोंका रोग"},
+        "blast": {"en": "Rice Blast", "ta": "குலை நோய்", "hi": "झोंका रोग"},
+        "leaf blast": {"en": "Rice Blast", "ta": "குலை நோய்", "hi": "झोंका रोग"},
         "brown spot": {"en": "Brown Spot", "ta": "பழுப்புப் புள்ளி நோய்", "hi": "भूरा धब्बा रोग"},
-        "sheath blight": {"en": "Sheath Blight", "ta": "உறை கருகல் நோய்", "hi": "शीथ ब्लाइट"},
-        "powdery mildew": {"en": "Powdery Mildew", "ta": "சாம்பல் நோய்", "hi": "चूर्णिल आसिता"}
+        "sheath blight": {"en": "Sheath Blight", "ta": "உறை கருகல் நோய்", "hi": "शीथ ब्लाइट रोग"},
+        "powdery mildew": {"en": "Powdery Mildew", "ta": "சாம்பல் நோய்", "hi": "चूर्णिल आसिता"},
+        "mosaic": {"en": "Mosaic Disease", "ta": "மொசைக் வைரஸ் நோய்", "hi": "मोज़ेक विषाणु रोग"},
+        "mosaic disease": {"en": "Mosaic Disease", "ta": "மொசைக் வைரஸ் நோய்", "hi": "मोज़ेक विषाणु रोग"},
+        "mosaic virus": {"en": "Mosaic Disease", "ta": "மொசைக் வைரஸ் நோய்", "hi": "मोज़ेक विषाणु रोग"},
+        "leaf curl": {"en": "Leaf Curl", "ta": "இலைச்சுருள் நோய்", "hi": "पत्ती मरोड़ रोग"},
+        "yellow leaf": {"en": "Yellow Leaf Disease", "ta": "மஞ்சள் இலை நோய்", "hi": "पीली पत्ती रोग"},
+        "rust": {"en": "Rust", "ta": "துரு நோய்", "hi": "गेरुई रोग"},
+        "common rust": {"en": "Common Rust", "ta": "துரு நோய்", "hi": "सामान्य गेरुई"},
+        "brown rust": {"en": "Brown Rust", "ta": "பழுப்பு துரு நோய்", "hi": "भूरा गेरुई रोग"},
+        "leaf rot": {"en": "Leaf Rot", "ta": "இலை அழுகல் நோய்", "hi": "पत्ती सड़न रोग"},
+        "red rot": {"en": "Red Rot", "ta": "செவ்வழுகல் நோய்", "hi": "लाल सड़न रोग"},
+        "anthracnose": {"en": "Anthracnose & Red Rot", "ta": "ஆந்த்ராக்னோஸ் நோய்", "hi": "एंथ्रेक्नोज़ रोग"}
     }
+
+    # Extract district key (strip Cauchy delta annotations if present)
+    dist_clean_key = clean_district.lower().split("(")[0].strip()
 
     crop_en = CROP_NAMES.get(clean_crop.lower(), {}).get("en", clean_crop)
     crop_ta = CROP_NAMES.get(clean_crop.lower(), {}).get("ta", clean_crop)
     crop_hi = CROP_NAMES.get(clean_crop.lower(), {}).get("hi", clean_crop)
 
-    dist_en = DISTRICT_NAMES.get(clean_district.lower(), {}).get("en", clean_district)
-    dist_ta = DISTRICT_NAMES.get(clean_district.lower(), {}).get("ta", clean_district)
-    dist_hi = DISTRICT_NAMES.get(clean_district.lower(), {}).get("hi", clean_district)
+    dist_en = DISTRICT_NAMES.get(dist_clean_key, {}).get("en", clean_district)
+    dist_ta = DISTRICT_NAMES.get(dist_clean_key, {}).get("ta", clean_district)
+    dist_hi = DISTRICT_NAMES.get(dist_clean_key, {}).get("hi", clean_district)
 
-    dis_en = DISEASE_NAMES.get(clean_disease.lower(), {}).get("en", clean_disease)
-    dis_ta = DISEASE_NAMES.get(clean_disease.lower(), {}).get("ta", clean_disease)
-    dis_hi = DISEASE_NAMES.get(clean_disease.lower(), {}).get("hi", clean_disease)
+    dis_clean_key = clean_disease.lower()
+    dis_info = DISEASE_NAMES.get(dis_clean_key)
+    if not dis_info:
+        for k, v in DISEASE_NAMES.items():
+            if k in dis_clean_key:
+                dis_info = v
+                break
 
-    # Standardize advisories
+    dis_en = dis_info.get("en", clean_disease) if dis_info else clean_disease
+    dis_ta = dis_info.get("ta", "பயிர் நோய் எச்சரிக்கை") if dis_info else "பயிர் நோய் எச்சரிக்கை"
+    dis_hi = dis_info.get("hi", "फसल रोग चेतावनी") if dis_info else "फसल रोग चेतावनी"
+
     adv_en = c_adv.strip() if c_adv and c_adv.strip() else "Apply Mancozeb 75% WP @ 2g/L or Metalaxyl + Mancozeb (Ridomil MZ) @ 2.5g/L immediately. Maintain furrow drainage and avoid overhead sprinkler watering to prevent foliar spore dispersal."
-    adv_ta = "உடனடியாக மான்கோசெப் (Mancozeb 75% WP) 2 கிராம்/லிட்டர் அல்லது மெட்டலாக்சில் + மான்கோசெப் (Ridomil MZ) 2.5 கிராம்/லிட்டர் சரியான அளவில் தெளிக்கவும். வயலில் தேங்கியுள்ள நீரை உடனடியாக வடிகட்டி, பூஞ்சாண வித்துக்கள் பரவுவதைத் தடுக்க தெளிப்பு நீர்ப்பாசனத்தைத் தவிர்க்கவும்."
-    adv_hi = "तुरंत मैंकोजेब (Mancozeb 75% WP) 2 ग्राम/लीटर या मेटालेक्सिल + मैंकोजेब (Ridomil MZ) 2.5 ग्राम/लीटर का छिड़काव करें। खेत में जल निकासी सुनिश्चित करें और कवक बीजाणुओं के प्रसार को रोकने के लिए ऊपर से फव्वारा सिंचाई से बचें।"
+    adv_ta = "உடனடியாக மான்கோசெப் 75% WP 2 கிராம்/லிட்டர் அல்லது மெட்டலாக்சில் + மான்கோசெப் 2.5 கிராம்/லிட்டர் சரியான அளவில் தெளிக்கவும். வயலில் தேங்கியுள்ள நீரை உடனடியாக வடிகட்டி, பூஞ்சாண வித்துக்கள் பரவுவதைத் தடுக்க தெளிப்பு நீர்ப்பாசனத்தைத் தவிர்க்கவும்."
+    adv_hi = "तुरंत मैंकोजेब 75% WP 2 ग्राम/लीटर या मेटालेक्सिल + मैंकोजेब 2.5 ग्राम/लीटर का छिड़काव करें। खेत में जल निकासी सुनिश्चित करें और कवक बीजाणुओं के प्रसार को रोकने के लिए ऊपर से फव्वारा सिंचाई से बचें।"
 
     localized = {
         "en": {
@@ -4174,7 +4504,7 @@ def get_farmer_outbreak_alerts():
         },
         "ta": {
             "title": f"⚠️ அவசர எச்சரிக்கை: {dist_ta} பகுதியில் {crop_ta} - {dis_ta} பரவல்",
-            "message": f"கவனத்திற்கு: {dist_ta} பகுதியில் {crop_ta} பயிரில் {dis_ta} பாதிப்பு தீவிரமடைந்துள்ளது ஆய்வகத்தால் உறுதிசெய்யப்பட்டுள்ளது. அருகிலுள்ள பிற வயல்களுக்கு பரவுவதைத் தடுக்க உடனடி பாதுகாப்பு நடவடிக்கை தேவை.",
+            "message": f"கவனத்திற்கு: {dist_ta} பகுதியில் {crop_ta} பயிரில் {dis_ta} தீவிரமடைந்துள்ளது ஆய்வகத்தால் உறுதிசெய்யப்பட்டுள்ளது. அருகிலுள்ள பிற வயல்களுக்கு பரவுவதைத் தடுக்க உடனடி பாதுகாப்பு நடவடிக்கை தேவை.",
             "advisory": adv_ta,
             "badge": f"🚨 மாவட்ட நோய் எச்சரிக்கை ({dist_ta})",
             "surveillance_label": "களக் கண்காணிப்பு விவரங்கள்:",

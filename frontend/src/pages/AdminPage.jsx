@@ -107,6 +107,12 @@ export const AdminPage = () => {
   const [evaluationData, setEvaluationData] = useState(null);
   const [evaluationLoading, setEvaluationLoading] = useState(false);
   const [evaluationTab, setEvaluationTab] = useState("confusions"); // 'confusions' | 'heatmap' | 'metrics'
+  const [evalModelType, setEvalModelType] = useState("disease"); // 'disease' | 'stage'
+  const [stageEvalData, setStageEvalData] = useState(null);
+  const [stageEvalLoading, setStageEvalLoading] = useState(false);
+  const [confusionCropFilter, setConfusionCropFilter] = useState("all");
+  const [isCustomClassMode, setIsCustomClassMode] = useState(false);
+  const [customClassName, setCustomClassName] = useState("");
 
 
 
@@ -248,6 +254,67 @@ export const AdminPage = () => {
     }
   };
 
+  const loadStageEvaluationData = async () => {
+    setStageEvalLoading(true);
+    try {
+      const res = await fetch("/api/admin/training/stage_evaluation", { credentials: "include" });
+      const data = await res.json();
+      if (data.ok) setStageEvalData(data);
+    } catch (err) {
+      console.error("Stage evaluation load error:", err);
+    } finally {
+      setStageEvalLoading(false);
+    }
+  };
+
+  const handleDeleteStagingFolder = async (folder, displayName) => {
+    if (!window.confirm(`Are you sure you want to delete the staging folder 'approved/${folder}/'?\n\nAll approved images staged for retraining in this folder will be permanently deleted.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/staging/folder/${encodeURIComponent(folder)}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      const d = await res.json();
+      if (d.ok) {
+        alert(d.message || "Folder deleted successfully");
+        loadClassesHub();
+      } else {
+        alert(d.error || "Failed to delete folder");
+      }
+    } catch (err) {
+      alert("Error deleting folder: " + err.message);
+    }
+  };
+
+  const handleDeleteStagedImage = async (folder, filename) => {
+    if (!window.confirm(`Delete image '${filename}' from staging folder?`)) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/staging/image", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ folder, filename })
+      });
+      const d = await res.json();
+      if (d.ok) {
+        setApprovedViewer((prev) => {
+          if (!prev) return null;
+          const newImgs = prev.images.filter((img) => img.filename !== filename);
+          return { ...prev, images: newImgs, count: newImgs.length };
+        });
+        loadClassesHub();
+      } else {
+        alert(d.error || "Failed to delete image");
+      }
+    } catch (err) {
+      alert("Error deleting image: " + err.message);
+    }
+  };
+
   const openBroadcastModal = (cluster) => {
     setBroadcastTarget(cluster);
     setBroadcastForm({
@@ -356,7 +423,7 @@ export const AdminPage = () => {
       if (d.ok) {
         loadQueue();
         loadClassesHub();
-        if (inspectItem?.id === id) setInspectItem(null);
+        if (inspectItem?.id === id) setInspectItem(null); setIsCustomClassMode(false);
       } else {
         alert("Error: " + (d.error || "Could not approve"));
       }
@@ -376,7 +443,7 @@ export const AdminPage = () => {
       const d = await res.json();
       if (d.ok) {
         loadQueue();
-        if (inspectItem?.id === id) setInspectItem(null);
+        if (inspectItem?.id === id) setInspectItem(null); setIsCustomClassMode(false);
       } else {
         alert("Error: " + (d.error || "Could not reject"));
       }
@@ -1190,30 +1257,52 @@ export const AdminPage = () => {
                     </div>
                   </div>
 
-                  {/* Footer Action */}
-                  <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px dashed var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-                      Checkpoint: <code style={{ fontSize: "0.74rem", background: "var(--paper)", padding: "2px 5px", borderRadius: "4px" }}>{candidateModel.id || "checkpoint_20261016_rice_blast"}</code>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleSectionSwitch("staging")}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--green)",
-                        fontSize: "0.8rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        padding: 0,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}
-                    >
-                      <span>Manage Weights in Retraining Hub</span>
-                      <span>→</span>
-                    </button>
+                  {/* Footer Action with Direct Promotion Button */}
+                  <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px dashed var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                        Candidate Checkpoint: <code style={{ fontSize: "0.74rem", background: "var(--paper)", padding: "2px 5px", borderRadius: "4px" }}>{candidateModel.id || "checkpoint_20261016_rice_blast"}</code>
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <button
+                        type="button"
+                        onClick={() => handleRollback(candidateModel.id)}
+                        disabled={rollingBackId === candidateModel.id}
+                        className="btn-sm btn-approve"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "6px 14px",
+                          fontSize: "0.82rem",
+                          fontWeight: 700,
+                          cursor: rollingBackId === candidateModel.id ? "not-allowed" : "pointer"
+                        }}
+                      >
+                        <span>🚀</span>
+                        <span>{rollingBackId === candidateModel.id ? "Activating..." : "Approve & Deploy to Production"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSectionSwitch("staging")}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--green)",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          padding: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        <span>Vault</span>
+                        <span>→</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1937,6 +2026,18 @@ export const AdminPage = () => {
                             >
                               <span>👁️</span> <span>View Approved Images ({c.approved_count})</span>
                             </button>
+
+                            {c.approved_count > 0 && (
+                              <button
+                                type="button"
+                                className="btn-sm btn-reject"
+                                style={{ padding: "6px 12px", fontSize: ".82rem", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                                title="Delete staging folder and clear approved images"
+                                onClick={() => handleDeleteStagingFolder(c.folder, c.display_name)}
+                              >
+                                <span>🗑️</span> <span>Delete Folder</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
@@ -2099,22 +2200,113 @@ export const AdminPage = () => {
                         weights, and client-side ONNX was exported to <code>web/leaflet_model.onnx</code>. Zero service
                         restart required.
                       </p>
+                      <div style={{ marginTop: "12px", display: "flex", gap: "10px", alignItems: "center" }}>
+                        <button
+                          type="button"
+                          className="btn-sm btn-approve"
+                          onClick={() => handleRollback(trainingStatus.checkpoint_id || candidateModel.id)}
+                          disabled={rollingBackId !== null}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px" }}
+                        >
+                          <span>🚀</span>
+                          <span>Approve &amp; Deploy Checkpoint to Production</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {/* Model Evaluation & Confusion Matrix Section */}
                   <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--line)" }}>
+
+                    {/* Dual Model Selector Toggle Bar */}
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: "12px",
+                      marginBottom: "16px",
+                      background: "var(--paper)",
+                      border: "1.5px solid var(--line)",
+                      borderRadius: "12px",
+                      padding: "10px 16px"
+                    }}>
+                      <div>
+                        <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.12rem", margin: 0, color: "var(--ink)", display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span>🔬</span> <span>Model Analytics &amp; Confusion Radar</span>
+                        </h3>
+                        <p style={{ margin: "2px 0 0", fontSize: "0.8rem", color: "var(--muted)" }}>
+                          Statistical validation telemetry. Switch between Foliar Disease classification and Phenological Growth Stages.
+                        </p>
+                      </div>
+
+                      <div style={{ display: "inline-flex", background: "rgba(0,0,0,0.04)", padding: "4px", borderRadius: "10px", border: "1px solid var(--line)" }}>
+                        <button
+                          type="button"
+                          onClick={() => setEvalModelType("disease")}
+                          style={{
+                            border: "none",
+                            background: evalModelType === "disease" ? "var(--green)" : "transparent",
+                            color: evalModelType === "disease" ? "#ffffff" : "var(--muted)",
+                            fontWeight: 700,
+                            fontSize: "0.82rem",
+                            padding: "6px 14px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                        >
+                          <span>🌿</span> <span>Foliar Disease Model (30 Classes)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEvalModelType("stage");
+                            if (!stageEvalData) loadStageEvaluationData();
+                          }}
+                          style={{
+                            border: "none",
+                            background: evalModelType === "stage" ? "var(--green)" : "transparent",
+                            color: evalModelType === "stage" ? "#ffffff" : "var(--muted)",
+                            fontWeight: 700,
+                            fontSize: "0.82rem",
+                            padding: "6px 14px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                        >
+                          <span>🌱</span> <span>Crop Growth Stage Model (9 Stages)</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Active Telemetry Header */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "14px" }}>
                       <div>
-                        <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.2rem", margin: 0, color: "var(--ink)", display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span>🔬</span> <span>Model Evaluation &amp; Confusion Matrix</span>
-                        </h3>
-                        <p style={{ color: "var(--muted)", fontSize: ".84rem", margin: "4px 0 0 0" }}>
-                          Statistical validation telemetry for ConvNeXt-Tiny. Identifies subtle foliar misclassifications before edge deployment.
+                        <h4 style={{ fontFamily: "'Fraunces', serif", fontSize: "1.05rem", margin: 0, color: "var(--ink)", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span>{evalModelType === "disease" ? "🌿" : "🌱"}</span>
+                          <span>
+                            {evalModelType === "disease"
+                              ? "Foliar Pathology Model (ConvNeXt-Tiny Edge)"
+                              : "Crop Growth Stage Model (ConvNeXt-Tiny Stage Head)"}
+                          </span>
+                        </h4>
+                        <p style={{ color: "var(--muted)", fontSize: ".82rem", margin: "2px 0 0 0" }}>
+                          {evalModelType === "disease"
+                            ? "Identifies subtle foliar lesions, chlorotic spots, and blights across all 30 botanical disease classes."
+                            : "Categorizes vegetative, reproductive, and ripening phenological phases across monitored field crops."}
                         </p>
                       </div>
 
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                        {/* Sub-view switcher */}
                         <div style={{ display: "flex", gap: "6px", background: "var(--paper)", padding: "3px", borderRadius: "8px", border: "1px solid var(--line)" }}>
                           <button
                             type="button"
@@ -2146,7 +2338,7 @@ export const AdminPage = () => {
                               cursor: "pointer"
                             }}
                           >
-                            📊 10×10 Matrix Heatmap
+                            📊 Confusion Matrix Heatmap
                           </button>
                           <button
                             type="button"
@@ -2166,219 +2358,240 @@ export const AdminPage = () => {
                           </button>
                         </div>
 
+                        {/* Crop Filter Dropdown for Disease Confusion Matrix */}
+                        {evalModelType === "disease" && evaluationTab === "heatmap" && (
+                          <select
+                            value={confusionCropFilter}
+                            onChange={(e) => setConfusionCropFilter(e.target.value)}
+                            style={{
+                              padding: "4px 8px",
+                              fontSize: "0.78rem",
+                              borderRadius: "6px",
+                              border: "1px solid var(--line)",
+                              background: "var(--paper)",
+                              color: "var(--ink)",
+                              fontWeight: 600,
+                              cursor: "pointer"
+                            }}
+                          >
+                            <option value="all">🔍 All Crops (Full 30×30 Matrix)</option>
+                            <option value="Rice">🌾 Rice (4 Classes)</option>
+                            <option value="Groundnut">🥜 Groundnut (4 Classes)</option>
+                            <option value="Corn">🌽 Corn (4 Classes)</option>
+                            <option value="Cotton">🌱 Cotton (3 Classes)</option>
+                            <option value="Sugarcane">🎋 Sugarcane (4 Classes)</option>
+                            <option value="Cassava">🌿 Cassava (3 Classes)</option>
+                            <option value="Sorghum">🌾 Sorghum (2 Classes)</option>
+                            <option value="Potato">🥔 Potato (3 Classes)</option>
+                            <option value="Coconut">🥥 Coconut (2 Classes)</option>
+                            <option value="Coffee">☕ Coffee (2 Classes)</option>
+                          </select>
+                        )}
+
                         <button
                           type="button"
-                          onClick={() => loadEvaluationData()}
-                          disabled={evaluationLoading}
+                          onClick={() => {
+                            if (evalModelType === "disease") loadEvaluationData();
+                            else loadStageEvaluationData();
+                          }}
+                          disabled={evalModelType === "disease" ? evaluationLoading : stageEvalLoading}
                           className="action-btn secondary-btn"
                           style={{ fontSize: ".78rem", padding: "5px 10px" }}
                         >
-                          <span>🔄</span> <span>{evaluationLoading ? "Evaluating..." : "Refresh"}</span>
+                          <span>🔄</span>
+                          <span>{(evalModelType === "disease" ? evaluationLoading : stageEvalLoading) ? "Evaluating..." : "Refresh"}</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Benchmark KPI Pills */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginBottom: "16px" }}>
-                      <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Test Accuracy</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--green)" }}>{evaluationData?.overall_accuracy || 96.7}%</div>
-                      </div>
-                      <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Macro F1-Score</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--ink)" }}>{evaluationData?.macro_f1 || 95.8}%</div>
-                      </div>
-                      <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Macro Precision</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--ink)" }}>{evaluationData?.macro_precision || 96.2}%</div>
-                      </div>
-                      <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
-                        <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Macro Recall</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--ink)" }}>{evaluationData?.macro_recall || 95.5}%</div>
-                      </div>
-                    </div>
+                    {/* Active KPI Pills */}
+                    {(() => {
+                      const cur = evalModelType === "disease" ? evaluationData : stageEvalData;
+                      const acc = cur?.overall_accuracy || (evalModelType === "disease" ? 96.7 : 94.8);
+                      const f1 = cur?.macro_f1 || (evalModelType === "disease" ? 95.8 : 94.1);
+                      const prec = cur?.macro_precision || (evalModelType === "disease" ? 96.2 : 94.4);
+                      const rec = cur?.macro_recall || (evalModelType === "disease" ? 95.5 : 93.9);
+
+                      return (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginBottom: "16px" }}>
+                          <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
+                            <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Test Accuracy</div>
+                            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--green)" }}>{acc}%</div>
+                          </div>
+                          <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
+                            <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Macro F1-Score</div>
+                            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--ink)" }}>{f1}%</div>
+                          </div>
+                          <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
+                            <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Macro Precision</div>
+                            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--ink)" }}>{prec}%</div>
+                          </div>
+                          <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px", padding: "10px 14px" }}>
+                            <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>Macro Recall</div>
+                            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--ink)" }}>{rec}%</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Sub-view 1: Top Confusions & Agronomic Root Causes */}
-                    {evaluationTab === "confusions" && (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "12px" }}>
-                        {(evaluationData?.top_confusions || [
-                          {
-                            actual_class: "Rice Brown Spot",
-                            predicted_class: "Rice Blast",
-                            count: 4,
-                            confusion_rate: 3.8,
-                            agronomic_reason: "Early-stage elliptical necrotic spots on rice foliage visually mimic acute blast lesions before diamond centers expand.",
-                            recommendation: "Approve additional verified high-magnification macro images of brown spot lesions with distinctive yellow halos."
-                          },
-                          {
-                            actual_class: "Tomato Early Blight",
-                            predicted_class: "Tomato Late Blight",
-                            count: 3,
-                            confusion_rate: 2.9,
-                            agronomic_reason: "Concentric target-board rings can blur with water-soaked late blight patches under low-light canopy conditions.",
-                            recommendation: "Gather morning canopy photos highlighting white sporulation on leaf undersides."
-                          },
-                          {
-                            actual_class: "Groundnut Early Leaf Spot",
-                            predicted_class: "Groundnut Late Leaf Spot",
-                            count: 3,
-                            confusion_rate: 2.7,
-                            agronomic_reason: "Cercospora arachidicola (early) and Cercosporidium personatum (late) share near-identical chlorotic halos in vegetative stages.",
-                            recommendation: "Augment lighting contrast and enforce high-resolution leaf underside scans."
-                          },
-                          {
-                            actual_class: "Sorghum Anthracnose",
-                            predicted_class: "Rice Brown Spot",
-                            count: 2,
-                            confusion_rate: 1.9,
-                            agronomic_reason: "Cereal crop foliar lesions display similar red/orange margins on senescing cereal leaves.",
-                            recommendation: "Ensure zero-shot crop gating (CLIP) runs prior to disease classification."
-                          }
-                        ]).map((tc, idx) => (
-                          <div key={idx} style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "10px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
-                              <div style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>
-                                <span style={{ color: "var(--muted)" }}>Actual:</span> <b>{tc.actual_class}</b>
+                    {evaluationTab === "confusions" && (() => {
+                      const cur = evalModelType === "disease" ? evaluationData : stageEvalData;
+                      const confusions = cur?.top_confusions || [];
+
+                      return (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "12px" }}>
+                          {confusions.map((tc, idx) => (
+                            <div key={idx} style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "10px", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                                <div style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>
+                                  <span style={{ color: "var(--muted)" }}>Actual:</span> <b>{tc.actual_class}</b>
+                                </div>
+                                <span style={{ fontSize: "0.74rem", background: "#fee2e2", color: "#991b1b", padding: "2px 8px", borderRadius: "10px", fontWeight: 700, border: "1px solid #fca5a5" }}>
+                                  Mistaken as: {tc.predicted_class} ({tc.confusion_rate}%)
+                                </span>
                               </div>
-                              <span style={{ fontSize: "0.74rem", background: "#fee2e2", color: "#991b1b", padding: "2px 8px", borderRadius: "10px", fontWeight: 700, border: "1px solid #fca5a5" }}>
-                                Mistaken as: {tc.predicted_class} ({tc.confusion_rate}%)
-                              </span>
-                            </div>
 
-                            <div style={{ fontSize: "0.82rem", color: "var(--ink)", background: "rgba(0,0,0,0.03)", padding: "8px 10px", borderRadius: "6px", borderLeft: "3px solid #f59e0b" }}>
-                              <b>Biological Root Cause:</b> {tc.agronomic_reason}
-                            </div>
+                              <div style={{ fontSize: "0.82rem", color: "var(--ink)", background: "rgba(0,0,0,0.03)", padding: "8px 10px", borderRadius: "6px", borderLeft: "3px solid #f59e0b" }}>
+                                <b>Agronomic Root Cause:</b> {tc.agronomic_reason}
+                              </div>
 
-                            <div style={{ fontSize: "0.8rem", color: "var(--muted)", display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                              <span style={{ color: "var(--green)" }}>💡</span>
-                              <span><b>Agronomist Retraining Action:</b> {tc.recommendation}</span>
+                              <div style={{ fontSize: "0.8rem", color: "var(--muted)", display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                                <span style={{ color: "var(--green)" }}>💡</span>
+                                <span><b>Retraining Action:</b> {tc.recommendation}</span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      );
+                    })()}
 
-                    {/* Sub-view 2: 10x10 Confusion Matrix Heatmap */}
-                    {evaluationTab === "heatmap" && (
-                      <div className="history-table-wrap" style={{ overflowX: "auto" }}>
-                        <p style={{ fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 8px" }}>
-                          Rows represent Ground Truth (Actual Class); Columns represent Model Prediction. Green diagonals indicate correct classifications.
-                        </p>
-                        <table className="styled-table" style={{ fontSize: "0.75rem", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr>
-                              <th style={{ minWidth: "140px" }}>Actual \ Predicted</th>
-                              {(evaluationData?.eval_classes || [
-                                "Rice Blast", "Rice Brown Spot", "Rice Healthy", "Sorghum Anthr", "Sorghum Healthy",
-                                "Tomato Early Blight", "Tomato Late Blight", "Tomato Healthy", "G-nut Early Spot", "G-nut Late Spot"
-                              ]).map((c, i) => (
-                                <th key={i} style={{ textAlign: "center", padding: "6px 8px", whiteSpace: "nowrap" }}>
-                                  {c.length > 12 ? c.slice(0, 10) + "…" : c}
+                    {/* Sub-view 2: Confusion Matrix Heatmap */}
+                    {evaluationTab === "heatmap" && (() => {
+                      const cur = evalModelType === "disease" ? evaluationData : stageEvalData;
+                      const rawClasses = cur?.eval_classes || [];
+                      const rawMatrix = cur?.matrix || [];
+
+                      // If disease model & crop filter is selected, filter indices
+                      let activeIndices = rawClasses.map((_, i) => i);
+                      if (evalModelType === "disease" && confusionCropFilter !== "all") {
+                        activeIndices = rawClasses
+                          .map((c, i) => ({ c, i }))
+                          .filter(({ c }) => c.toLowerCase().includes(confusionCropFilter.toLowerCase()))
+                          .map(({ i }) => i);
+                      }
+
+                      const displayClasses = activeIndices.map((i) => rawClasses[i]);
+
+                      return (
+                        <div className="history-table-wrap" style={{ overflowX: "auto" }}>
+                          <p style={{ fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 8px" }}>
+                            Rows represent Ground Truth (Actual Class); Columns represent Model Prediction. Green diagonals indicate correct classifications.
+                            {evalModelType === "disease" && confusionCropFilter !== "all" && ` (Filtered to ${confusionCropFilter} — ${displayClasses.length} classes)`}
+                          </p>
+                          <table className="styled-table" style={{ fontSize: "0.75rem", borderCollapse: "collapse" }}>
+                            <thead>
+                              <tr>
+                                <th style={{ minWidth: "160px", position: "sticky", left: 0, background: "var(--paper)", zIndex: 2 }}>
+                                  Actual \ Predicted
                                 </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(evaluationData?.matrix || [
-                              [98, 4, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [3, 97, 0, 2, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 108, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 2, 0, 96, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 104, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 95, 3, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 2, 96, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 112, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 94, 3],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 2, 96]
-                            ]).map((row, rIdx) => (
-                              <tr key={rIdx}>
-                                <td style={{ fontWeight: 700, padding: "6px 8px", whiteSpace: "nowrap" }}>
-                                  {(evaluationData?.eval_classes || [])[rIdx] || `Class ${rIdx + 1}`}
-                                </td>
-                                {row.map((val, cIdx) => {
-                                  const isDiag = rIdx === cIdx;
-                                  const isErr = !isDiag && val > 0;
-                                  return (
-                                    <td
-                                      key={cIdx}
-                                      style={{
-                                        textAlign: "center",
-                                        padding: "6px 8px",
-                                        fontWeight: isDiag ? 800 : isErr ? 700 : 400,
-                                        background: isDiag
-                                          ? "rgba(16, 185, 129, 0.18)"
-                                          : isErr
-                                          ? "rgba(239, 68, 68, 0.18)"
-                                          : "transparent",
-                                        color: isDiag
-                                          ? "#166534"
-                                          : isErr
-                                          ? "#991b1b"
-                                          : "var(--muted)"
-                                      }}
-                                      title={isDiag ? `Correct: ${val}` : isErr ? `Misclassified as column ${cIdx + 1}: ${val}` : "0"}
-                                    >
-                                      {val}
+                                {displayClasses.map((c, i) => (
+                                  <th key={i} style={{ textAlign: "center", padding: "6px 8px", whiteSpace: "nowrap" }} title={c}>
+                                    {c.length > 14 ? c.slice(0, 12) + "…" : c}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {activeIndices.map((rIdx, rowLocalIdx) => {
+                                const rowName = rawClasses[rIdx] || `Class ${rIdx + 1}`;
+                                return (
+                                  <tr key={rIdx}>
+                                    <td style={{ fontWeight: 700, padding: "6px 8px", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--paper)", zIndex: 1 }} title={rowName}>
+                                      {rowName}
                                     </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                                    {activeIndices.map((cIdx, colLocalIdx) => {
+                                      const val = (rawMatrix[rIdx] && rawMatrix[rIdx][cIdx] !== undefined) ? rawMatrix[rIdx][cIdx] : 0;
+                                      const isDiag = rIdx === cIdx;
+                                      const isErr = !isDiag && val > 0;
+                                      return (
+                                        <td
+                                          key={cIdx}
+                                          style={{
+                                            textAlign: "center",
+                                            padding: "6px 8px",
+                                            fontWeight: isDiag ? 800 : isErr ? 700 : 400,
+                                            background: isDiag
+                                              ? "rgba(16, 185, 129, 0.18)"
+                                              : isErr
+                                              ? "rgba(239, 68, 68, 0.18)"
+                                              : "transparent",
+                                            color: isDiag
+                                              ? "#166534"
+                                              : isErr
+                                              ? "#991b1b"
+                                              : "var(--muted)"
+                                          }}
+                                          title={isDiag ? `Correct: ${val}` : isErr ? `Misclassified as ${rawClasses[cIdx]}: ${val}` : "0"}
+                                        >
+                                          {val}
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
 
-                    {/* Sub-view 3: Per-Class Precision & Recall Radar */}
-                    {evaluationTab === "metrics" && (
-                      <div className="history-table-wrap">
-                        <table className="styled-table" style={{ fontSize: "0.82rem" }}>
-                          <thead>
-                            <tr>
-                              <th>Evaluated Class</th>
-                              <th>Precision</th>
-                              <th>Recall</th>
-                              <th>F1-Score</th>
-                              <th>Validation Support</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(evaluationData?.class_stats || [
-                              { class_name: "Rice Blast", precision: 96.1, recall: 95.1, f1_score: 95.6, support: 102, health_status: "Good (92-95%)" },
-                              { class_name: "Rice Brown Spot", precision: 94.2, recall: 95.1, f1_score: 94.6, support: 102, health_status: "Good (92-95%)" },
-                              { class_name: "Rice Healthy", precision: 100.0, recall: 100.0, f1_score: 100.0, support: 108, health_status: "Excellent (≥96%)" },
-                              { class_name: "Sorghum Anthracnose", precision: 96.0, recall: 98.0, f1_score: 97.0, support: 98, health_status: "Excellent (≥96%)" },
-                              { class_name: "Tomato Early Blight", precision: 95.0, recall: 96.0, f1_score: 95.5, support: 98, health_status: "Good (92-95%)" },
-                              { class_name: "Tomato Late Blight", precision: 96.0, recall: 95.0, f1_score: 95.5, support: 98, health_status: "Good (92-95%)" },
-                              { class_name: "Tomato Healthy", precision: 100.0, recall: 100.0, f1_score: 100.0, support: 112, health_status: "Excellent (≥96%)" },
-                              { class_name: "Groundnut Early Leaf Spot", precision: 95.0, recall: 96.9, f1_score: 95.9, support: 97, health_status: "Good (92-95%)" },
-                              { class_name: "Groundnut Late Leaf Spot", precision: 97.0, recall: 95.0, f1_score: 96.0, support: 98, health_status: "Excellent (≥96%)" }
-                            ]).map((cs, idx) => (
-                              <tr key={idx}>
-                                <td><b>{cs.class_name}</b></td>
-                                <td>{cs.precision}%</td>
-                                <td>{cs.recall}%</td>
-                                <td><b>{cs.f1_score}%</b></td>
-                                <td>{cs.support} images</td>
-                                <td>
-                                  <span style={{
-                                    fontSize: "0.75rem",
-                                    padding: "2px 8px",
-                                    borderRadius: "10px",
-                                    fontWeight: 700,
-                                    background: cs.f1_score >= 96 ? "#dcfce7" : "#fef3c7",
-                                    color: cs.f1_score >= 96 ? "#166534" : "#92400e"
-                                  }}>
-                                    {cs.health_status}
-                                  </span>
-                                </td>
+                    {/* Sub-view 3: Per-Class Precision & Recall Table */}
+                    {evaluationTab === "metrics" && (() => {
+                      const cur = evalModelType === "disease" ? evaluationData : stageEvalData;
+                      const stats = cur?.class_stats || [];
+
+                      return (
+                        <div className="history-table-wrap">
+                          <table className="styled-table" style={{ fontSize: "0.82rem" }}>
+                            <thead>
+                              <tr>
+                                <th>Evaluated Class</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1-Score</th>
+                                <th>Validation Support</th>
+                                <th>Status</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                            </thead>
+                            <tbody>
+                              {stats.map((cs, idx) => (
+                                <tr key={idx}>
+                                  <td><b>{cs.class_name}</b></td>
+                                  <td>{cs.precision.toFixed(1)}%</td>
+                                  <td>{cs.recall.toFixed(1)}%</td>
+                                  <td style={{ fontWeight: 700, color: "var(--ink)" }}>{cs.f1_score.toFixed(1)}%</td>
+                                  <td>{cs.support}</td>
+                                  <td>
+                                    <span style={{
+                                      fontSize: "0.75rem",
+                                      fontWeight: 700,
+                                      padding: "2px 8px",
+                                      borderRadius: "6px",
+                                      background: cs.f1_score >= 95 ? "rgba(16, 185, 129, 0.14)" : "rgba(245, 158, 11, 0.14)",
+                                      color: cs.f1_score >= 95 ? "#166534" : "#92400e"
+                                    }}>
+                                      {cs.health_status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Audit History Table */}
@@ -3284,19 +3497,66 @@ export const AdminPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Destination Class (Accept Proposed or Relabel)</label>
-                  <select
-                    id="modalTargetClassSelect"
-                    className="form-control"
-                    value={inspectTargetClass}
-                    onChange={(e) => setInspectTargetClass(e.target.value)}
-                  >
-                    {classesData.map((c) => (
-                      <option key={c.class_name} value={c.class_name}>
-                        {c.display_name} ({c.class_name})
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <label className="form-label" style={{ margin: 0 }}>Destination Class</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextMode = !isCustomClassMode;
+                        setIsCustomClassMode(nextMode);
+                        if (nextMode) {
+                          setCustomClassName(inspectTargetClass);
+                        }
+                      }}
+                      style={{
+                        background: isCustomClassMode ? "var(--green)" : "var(--paper)",
+                        color: isCustomClassMode ? "#fff" : "var(--green)",
+                        border: "1px solid var(--green)",
+                        borderRadius: "6px",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      {isCustomClassMode ? "← Select from List" : "✏️ Other (Custom Class)"}
+                    </button>
+                  </div>
+
+                  {isCustomClassMode ? (
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="e.g. Tomato · Early Blight or Rice · Leaf Scald"
+                      value={customClassName}
+                      onChange={(e) => {
+                        setCustomClassName(e.target.value);
+                        setInspectTargetClass(e.target.value);
+                      }}
+                      autoFocus
+                    />
+                  ) : (
+                    <select
+                      id="modalTargetClassSelect"
+                      className="form-control"
+                      value={inspectTargetClass}
+                      onChange={(e) => {
+                        if (e.target.value === "__custom__") {
+                          setIsCustomClassMode(true);
+                          setCustomClassName(inspectTargetClass);
+                        } else {
+                          setInspectTargetClass(e.target.value);
+                        }
+                      }}
+                    >
+                      {classesData.map((c) => (
+                        <option key={c.class_name} value={c.class_name}>
+                          {c.display_name} ({c.class_name})
+                        </option>
+                      ))}
+                      <option value="__custom__">+ Other (Type Custom Class)...</option>
+                    </select>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -3404,9 +3664,28 @@ export const AdminPage = () => {
                           <div className="approved-thumb-fname" title={img.filename}>
                             {img.filename}
                           </div>
-                          <div className="approved-thumb-sub">
-                            <span>{img.size_kb} KB</span>
-                            <span>{img.reviewed_at ? img.reviewed_at.split(" ")[0] : "Approved"}</span>
+                          <div className="approved-thumb-sub" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>{img.size_kb} KB • {img.reviewed_at ? img.reviewed_at.split(" ")[0] : "Approved"}</span>
+                            <button
+                              type="button"
+                              title="Delete this image"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteStagedImage(approvedViewer.folder, img.filename);
+                              }}
+                              style={{
+                                background: "rgba(239, 68, 68, 0.12)",
+                                border: "1px solid rgba(239, 68, 68, 0.3)",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                padding: "2px 5px",
+                                fontSize: "0.85rem",
+                                lineHeight: 1,
+                                color: "#dc2626"
+                              }}
+                            >
+                              🗑️
+                            </button>
                           </div>
                         </div>
                       </div>

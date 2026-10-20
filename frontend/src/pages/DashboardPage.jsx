@@ -683,7 +683,7 @@ export const DashboardPage = () => {
     let isMounted = true;
     const fetchOutbreakAlert = async () => {
       try {
-        const cropQuery = selectedCropName || "Rice";
+        const cropQuery = canonicalEnglishCrop || "Rice";
         const districtQuery = liveWeather?.district || "";
         const res = await fetch(`/api/farmer/outbreak_alerts?crop=${encodeURIComponent(cropQuery)}&district=${encodeURIComponent(districtQuery)}&lang=${activeLang}`);
         if (res.ok) {
@@ -706,7 +706,7 @@ export const DashboardPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedCropName, activeLang, liveWeather]);
+  }, [canonicalEnglishCrop, activeLang, liveWeather]);
 
   const handleSelectCrop = (id) => {
     setSelectedCropId(id);
