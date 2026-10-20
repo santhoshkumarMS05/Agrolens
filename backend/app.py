@@ -74,6 +74,20 @@ FRONTEND_DIST = (BASE.parent / "frontend" / "dist").resolve()
 FRONTEND_PUBLIC = (BASE.parent / "frontend" / "public").resolve()
 WEB = FRONTEND_DIST if FRONTEND_DIST.exists() else FRONTEND_PUBLIC
 TRAINING_POOL = (BASE / "training_pool").resolve()
+# ── Startup Cleanup: Merge & Purge Duplicate Staging Folders ──
+try:
+    _dup_phase = TRAINING_POOL / "approved" / "rice_reproductive_phase"
+    if _dup_phase.exists():
+        _canonical = TRAINING_POOL / "approved" / "rice_reproductive"
+        _canonical.mkdir(parents=True, exist_ok=True)
+        for _f in _dup_phase.iterdir():
+            if _f.is_file():
+                shutil.move(str(_f), str(_canonical / _f.name))
+        shutil.rmtree(str(_dup_phase), ignore_errors=True)
+        print("[cleanup] Successfully merged and purged duplicate approved/rice_reproductive_phase/")
+except Exception as _e:
+    print(f"[warn] Cleanup duplicate folder error: {_e}")
+
 (TRAINING_POOL / "pending").mkdir(parents=True, exist_ok=True)
 (TRAINING_POOL / "approved").mkdir(parents=True, exist_ok=True)
 (TRAINING_POOL / "rejected").mkdir(parents=True, exist_ok=True)
@@ -3528,7 +3542,15 @@ def admin_get_classes():
             stage_cname = f"{crop_key} · {phase_key}"
             folder = sanitize_folder_name(f"{crop_key}_{phase_key}")
             seen_folders.add(folder)
+            seen_folders.add(f"{folder}_phase")
             folder_dir = approved_root / folder
+            alt_dir = approved_root / f"{folder}_phase"
+            if alt_dir.exists():
+                folder_dir.mkdir(parents=True, exist_ok=True)
+                for item in alt_dir.iterdir():
+                    if item.is_file():
+                        shutil.move(str(item), str(folder_dir / item.name))
+                shutil.rmtree(str(alt_dir), ignore_errors=True)
             approved_count = len([f for f in folder_dir.iterdir() if f.is_file()]) if folder_dir.exists() else 0
             pending_count = pending_map.get(stage_cname, 0)
             is_trained_stage = (
@@ -3560,9 +3582,11 @@ def admin_get_classes():
     # 5. Open-world / newly approved classes (strictly separates diseases vs growth stages)
     STAGE_KEYWORDS = ["vegetative", "reproductive", "ripening", "flowering", "booting", "tillering", "maturity", "harvest", "seedling", "stage", "phase"]
     for folder in disk_folders:
-        if folder in seen_folders:
+        norm_f = folder[:-6] if folder.endswith("_phase") else folder
+        if folder in seen_folders or norm_f in seen_folders:
             continue
         seen_folders.add(folder)
+        seen_folders.add(norm_f)
 
         # Confirm folder does not match a canonical base class
         canon_from_folder = canonical_class_name(folder.replace("_", " "))
@@ -3747,18 +3771,26 @@ def admin_delete_staging_folder(folder_name):
         return err_resp
 
     clean_folder = sanitize_folder_name(folder_name)
-    target_dir = TRAINING_POOL / "approved" / clean_folder
+    variants = [clean_folder]
+    if clean_folder.endswith("_phase"):
+        variants.append(clean_folder[:-6])
+    else:
+        variants.append(f"{clean_folder}_phase")
+
     deleted_files = 0
-    if target_dir.exists():
-        deleted_files = len([f for f in target_dir.iterdir() if f.is_file()])
-        shutil.rmtree(str(target_dir), ignore_errors=True)
+    for v in set(variants):
+        target_dir = TRAINING_POOL / "approved" / v
+        if target_dir.exists():
+            deleted_files += len([f for f in target_dir.iterdir() if f.is_file()])
+            shutil.rmtree(str(target_dir), ignore_errors=True)
 
     with db() as conn:
-        conn.execute("""
-            UPDATE training_queue
-            SET status = 'rejected', notes = 'Folder purged by admin'
-            WHERE image_path LIKE %s
-        """, (f"%approved/{clean_folder}/%",))
+        for v in set(variants):
+            conn.execute("""
+                UPDATE training_queue
+                SET status = 'rejected', notes = 'Folder purged by admin'
+                WHERE image_path LIKE %s
+            """, (f"%approved/{v}/%",))
 
     return jsonify({
         "ok": True,

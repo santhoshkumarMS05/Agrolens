@@ -2027,11 +2027,10 @@ export const AdminPage = () => {
                               <span>👁️</span> <span>View Approved Images ({c.approved_count})</span>
                             </button>
 
-                            {c.approved_count > 0 && (
+                            {(c.approved_count > 0 || c.is_new_class || (c.folder && c.folder.endsWith('_phase'))) && (
                               <button
                                 type="button"
-                                className="btn-sm btn-reject"
-                                style={{ padding: "6px 12px", fontSize: ".82rem", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                                className="delete-folder-btn"
                                 title="Delete staging folder and clear approved images"
                                 onClick={() => handleDeleteStagingFolder(c.folder, c.display_name)}
                               >

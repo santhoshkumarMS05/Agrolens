@@ -780,6 +780,39 @@ a.nav-link.active,
   transform: none;
   box-shadow: none;
 }
+.delete-folder-btn {
+  font-family: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 99px;
+  border: 1.5px solid #dc2626;
+  background: rgba(220, 38, 38, 0.05);
+  color: #dc2626;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+}
+.delete-folder-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.22);
+  transform: translateY(-1px);
+}
+.delete-folder-btn:disabled, .delete-folder-btn.disabled {
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+  box-shadow: none;
+}
+
 
 /* Approved Samples Gallery Modal */
 .approved-viewer-card {
