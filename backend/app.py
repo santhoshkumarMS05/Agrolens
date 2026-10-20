@@ -3121,13 +3121,17 @@ def admin_get_farmer_scans(farmer_id):
 
     scans = []
     for r in rows:
+        raw_crop = r[5] or "Crop"
+        raw_disease = r[4] or ""
+        canon_crop, canon_disease = canonicalize_scan_crop_and_disease(raw_crop, raw_disease)
+        clean_predicted = f"{canon_crop} · {canon_disease}"
         scans.append({
             "id": r[0],
             "image_name": r[1],
             "image_path": r[2],
             "gradcam_image": r[3],
-            "predicted_disease": r[4],
-            "crop": r[5] or "Crop",
+            "predicted_disease": clean_predicted,
+            "crop": canon_crop,
             "confidence": round(float(r[6]), 1) if r[6] is not None else 0.0,
             "severity": r[7] or "Normal",
             "diagnosis": r[8],
@@ -4030,193 +4034,242 @@ def admin_get_stage_evaluation():
 # ─────────────────────────────────────────────────────────────────────────────
 
 CROP_CANONICAL_EN = {
-    "rice": "Rice",
-    "நெல்": "Rice",
-    "பயிர்": "Rice",
-    "धान": "Rice",
-    "चावल": "Rice",
-    "धान / चावल": "Rice",
-    "potato": "Potato",
-    "உருளைக்கிழங்கு": "Potato",
-    "ஆलू": "Potato",
-    "tomato": "Tomato",
-    "தக்காளி": "Tomato",
-    "टमाटर": "Tomato",
-    "groundnut": "Groundnut",
-    "நிலக்கடலை": "Groundnut",
-    "मूंगफली": "Groundnut",
-    "corn": "Corn",
-    "maize": "Corn",
-    "மக்காச்சோளம்": "Corn",
-    "मक्का": "Corn",
-    "wheat": "Wheat",
-    "கோதுமை": "Wheat",
-    "गेहूं": "Wheat",
-    "cotton": "Cotton",
-    "பருத்தி": "Cotton",
-    "कपास": "Cotton",
-    "sugarcane": "Sugarcane",
-    "கரும்பு": "Sugarcane",
-    "गन्ना": "Sugarcane",
-    "sorghum": "Sorghum",
-    "சோளம்": "Sorghum",
-    "ज्वार": "Sorghum",
-    "cassava": "Cassava",
-    "மரவள்ளிக்கிழங்கு": "Cassava",
-    "कसावा": "Cassava",
-    "coconut": "Coconut",
-    "தென்னை": "Coconut",
-    "नारियल": "Coconut",
-    "coffee": "Coffee",
-    "காபி": "Coffee",
-    "कॉफी": "Coffee",
-    "banana": "Banana",
-    "வாழை": "Banana",
-    "केला": "Banana",
-    "mango": "Mango",
-    "மா": "Mango",
-    "आम": "Mango",
-    "apple": "Apple",
-    "ஆப்பிள்": "Apple",
-    "सेब": "Apple"
+    # Rice / Paddy
+    "rice": "Rice", "paddy": "Rice", "நெல்": "Rice", "அரிசி": "Rice", "பயிர்": "Rice", "धान": "Rice", "चावल": "Rice", "धान / चावल": "Rice",
+    # Potato
+    "potato": "Potato", "உருளைக்கிழங்கு": "Potato", "உருளை": "Potato", "ஆलू": "Potato", "आलू": "Potato",
+    # Tomato
+    "tomato": "Tomato", "தக்காளி": "Tomato", "நாட்டு தக்காளி": "Tomato", "टमाटर": "Tomato",
+    # Groundnut / Peanut
+    "groundnut": "Groundnut", "peanut": "Groundnut", "நிலக்கடலை": "Groundnut", "வேர்க்கடலை": "Groundnut", "மணிலா": "Groundnut", "मूंगफली": "Groundnut",
+    # Corn / Maize
+    "corn": "Corn", "maize": "Corn", "மக்காச்சோளம்": "Corn", "மக்கா சோளம்": "Corn", "मक्का": "Corn", "भुट्टा": "Corn",
+    # Cotton
+    "cotton": "Cotton", "பருத்தி": "Cotton", "கபாஸ்": "Cotton", "कपास": "Cotton",
+    # Sugarcane
+    "sugarcane": "Sugarcane", "கரும்பு": "Sugarcane", "गन्ना": "Sugarcane",
+    # Sorghum / Jowar
+    "sorghum": "Sorghum", "jowar": "Sorghum", "சோளம்": "Sorghum", "வெள்ளை சோளம்": "Sorghum", "ज्वार": "Sorghum",
+    # Cassava / Tapioca
+    "cassava": "Cassava", "tapioca": "Cassava", "மரவள்ளிக்கிழங்கு": "Cassava", "மரவள்ளி": "Cassava", "குச்சிவள்ளி": "Cassava", "कसावा": "Cassava", "टैपिओका": "Cassava",
+    # Coconut
+    "coconut": "Coconut", "தென்னை": "Coconut", "தேங்காய்": "Coconut", "தென்னை மரம்": "Coconut", "नारियल": "Coconut",
+    # Coffee
+    "coffee": "Coffee", "காபி": "Coffee", "காப்பி": "Coffee", "कॉफ़ी": "Coffee", "कॉफी": "Coffee",
+    # Banana
+    "banana": "Banana", "plantain": "Banana", "வாழை": "Banana", "வாழை மரம்": "Banana", "केला": "Banana",
+    # Mango
+    "mango": "Mango", "மாம்பழம்": "Mango", "மாங்காய்": "Mango", "மா": "Mango", "आम": "Mango",
+    # Apple
+    "apple": "Apple", "ஆப்பிள்": "Apple", "सेब": "Apple",
+    # Wheat
+    "wheat": "Wheat", "கோதுமை": "Wheat", "गेहूं": "Wheat",
+    # Chilli / Pepper
+    "chilli": "Chilli", "chili": "Chilli", "pepper": "Chilli", "மிளகாய்": "Chilli", "मिर्च": "Chilli",
+    # Brinjal / Eggplant
+    "brinjal": "Brinjal", "eggplant": "Brinjal", "aubergine": "Brinjal", "கத்திரிக்காய்": "Brinjal", "बैंगन": "Brinjal",
+    # Okra
+    "okra": "Okra", "bhendi": "Okra", "bhindi": "Okra", "வெண்டைக்காய்": "Okra", "भिंडी": "Okra",
+    # Onion
+    "onion": "Onion", "வெங்காயம்": "Onion", "प्याज": "Onion",
+    # Garlic
+    "garlic": "Garlic", "பூண்டு": "Garlic", "लहसुन": "Garlic",
+    # Ginger
+    "ginger": "Ginger", "இஞ்சி": "Ginger", "अदरक": "Ginger",
+    # Turmeric
+    "turmeric": "Turmeric", "மஞ்சள்": "Turmeric", "हल्दी": "Turmeric",
 }
 
 DISEASE_CANONICAL_EN = {
-    "late blight": "Late Blight",
-    "பின்பருவ கருகல் நோய்": "Late Blight",
-    "அடிசாம்பல் / கருகல் நோய்": "Late Blight",
-    "லேட் பிளைட்": "Late Blight",
-    "पछेती झुलसा": "Late Blight",
-    "पछेती झुलसा रोग": "Late Blight",
-    "early blight": "Early Blight",
-    "முன்பருவ கருகல் நோய்": "Early Blight",
-    "முன் கருகல் நோய்": "Early Blight",
-    "अगेती झुलसा": "Early Blight",
-    "अगेती झुलसा रोग": "Early Blight",
-    "rice blast": "Rice Blast",
-    "leaf blast": "Rice Blast",
-    "leafblast": "Rice Blast",
-    "blast": "Rice Blast",
-    "குலை நோய்": "Rice Blast",
-    "झोंका रोग": "Rice Blast",
-    "brown spot": "Brown Spot",
-    "brownspot": "Brown Spot",
-    "பழுப்புப் புள்ளி நோய்": "Brown Spot",
-    "பழுப்பு புள்ளி நோய்": "Brown Spot",
-    "भूरा धब्बा रोग": "Brown Spot",
-    "bacterial blight": "Bacterial Blight",
-    "bacterialblight": "Bacterial Blight",
-    "பாக்டீரியா இலைக்கருகல் நோய்": "Bacterial Blight",
-    "जीवाणु झुलसा रोग": "Bacterial Blight",
-    "sheath blight": "Sheath Blight",
-    "உறை கருகல் நோய்": "Sheath Blight",
-    "शीथ ब्लाइट रोग": "Sheath Blight",
-    "mosaic": "Mosaic Disease",
-    "mosaic disease": "Mosaic Disease",
-    "mosaic virus": "Mosaic Disease",
-    "tomato mosaic": "Mosaic Disease",
-    "மொசைக் வைரஸ் நோய்": "Mosaic Disease",
-    "மஞ்சள் தேமல் நோய்": "Mosaic Disease",
-    "मोज़ेक विषाणु रोग": "Mosaic Disease",
-    "leaf curl": "Leaf Curl",
-    "இலைச்சுருள் நோய்": "Leaf Curl",
-    "पत्ती मरोड़ रोग": "Leaf Curl",
-    "yellow leaf": "Yellow Leaf Disease",
-    "yellowleaf": "Yellow Leaf Disease",
-    "மஞ்சள் இலை நோய்": "Yellow Leaf Disease",
-    "पीली पत्ती रोग": "Yellow Leaf Disease",
-    "rust": "Rust",
-    "துரு நோய்": "Rust",
-    "गेरुई रोग": "Rust",
-    "common rust": "Common Rust",
-    "commonrust": "Common Rust",
-    "brown rust": "Brown Rust",
-    "brownrust": "Brown Rust",
-    "powdery mildew": "Powdery Mildew",
-    "சாம்பல் நோய்": "Powdery Mildew",
-    "चूर्णिल आसिता": "Powdery Mildew",
-    "leaf rot": "Leaf Rot",
-    "leafrot": "Leaf Rot",
-    "இலை அழுகல் நோய்": "Leaf Rot",
-    "red rot": "Red Rot",
-    "redrot": "Red Rot",
-    "செவ்வழுகல் நோய்": "Red Rot",
-    "anthracnose": "Anthracnose & Red Rot",
-    "ஆந்த்ராக்னோஸ் நோய்": "Anthracnose & Red Rot",
-    "early leaf spot": "Early Leaf Spot",
-    "earlyleafspot": "Early Leaf Spot",
-    "late leaf spot": "Late Leaf Spot",
-    "lateleafspot": "Late Leaf Spot",
-    "gray leaf spot": "Gray Leaf Spot",
-    "grayleafspot": "Gray Leaf Spot",
-    "grayspot": "Gray Leaf Spot",
-    "leaf blight": "Leaf Blight",
-    "leafblight": "Leaf Blight",
-    "brown streak": "Brown Streak",
-    "brownstreak": "Brown Streak",
-    "scab": "Scab",
-    "apple scab": "Apple Scab",
-    "healthy": "Healthy Foliage",
-    "healthy foliage": "Healthy Foliage",
-    "ஆரோக்கியமான பயிர்": "Healthy Foliage",
-    "स्वस्थ फसल": "Healthy Foliage"
+    # Late Blight
+    "late blight": "Late Blight", "lateblight": "Late Blight",
+    "பின்பருவ கருகல்": "Late Blight", "பின்பருவ கருகல் நோய்": "Late Blight", "பின் கருகல் நோய்": "Late Blight", "பின் கருகல்": "Late Blight",
+    "அடிசாம்பல் / கருகல் நோய்": "Late Blight", "லேட் பிளைட்": "Late Blight",
+    "पछेती झुलसा": "Late Blight", "पछेती झुलसा रोग": "Late Blight", "लेट ब्लाइट": "Late Blight",
+
+    # Early Blight
+    "early blight": "Early Blight", "earlyblight": "Early Blight",
+    "முன்பருவ கருகல்": "Early Blight", "முன்பருவ கருகல் நோய்": "Early Blight", "முன் கருகல் நோய்": "Early Blight", "முன் கருகல்": "Early Blight",
+    "ஆரம்ப கருகல் நோய்": "Early Blight", "அர்லி பிளைட்": "Early Blight",
+    "अगेती झुलसा": "Early Blight", "अगेती झुलसा रोग": "Early Blight", "अगेती ब्लाइट": "Early Blight",
+
+    # Rice Blast
+    "rice blast": "Rice Blast", "leaf blast": "Rice Blast", "leafblast": "Rice Blast", "blast": "Rice Blast",
+    "குலை நோய்": "Rice Blast", "குலைநோய்": "Rice Blast",
+    "झोंका रोग": "Rice Blast", "ब्लास्ट": "Rice Blast",
+
+    # Brown Spot
+    "brown spot": "Brown Spot", "brownspot": "Brown Spot",
+    "பழுப்புப் புள்ளி": "Brown Spot", "பழுப்புப் புள்ளி நோய்": "Brown Spot", "பழுப்பு புள்ளி நோய்": "Brown Spot", "பழுப்பு புள்ளி": "Brown Spot",
+    "भूरा धब्बा": "Brown Spot", "भूरा धब्बा रोग": "Brown Spot",
+
+    # Bacterial Blight / Sheath Blight / Leaf Blight
+    "bacterial blight": "Bacterial Blight", "bacterialblight": "Bacterial Blight",
+    "பாக்டீரியா இலைக்கருகல்": "Bacterial Blight", "பாக்டீரியா இலைக்கருகல் நோய்": "Bacterial Blight",
+    "जीवाणु झुलसा": "Bacterial Blight", "जीवाणु झुलसा रोग": "Bacterial Blight",
+    "sheath blight": "Sheath Blight", "sheathblight": "Sheath Blight",
+    "உறை கருகல்": "Sheath Blight", "உறை கருகல் நோய்": "Sheath Blight",
+    "शीथ ब्लाइट": "Sheath Blight", "शीथ ब्लाइट रोग": "Sheath Blight",
+    "leaf blight": "Leaf Blight", "leafblight": "Leaf Blight",
+    "இலைக்கருகல்": "Leaf Blight", "இலை கருகல் நோய்": "Leaf Blight", "கருகல் நோய்": "Leaf Blight", "கருகல்": "Leaf Blight",
+    "पत्ती झुलसा": "Leaf Blight",
+
+    # Mosaic / Mosaic Disease / Mosaic Virus
+    "mosaic": "Mosaic Disease", "mosaic disease": "Mosaic Disease", "mosaic virus": "Mosaic Disease", "tomato mosaic": "Mosaic Disease",
+    "மோசைக்": "Mosaic Disease", "மொசைக்": "Mosaic Disease", "மோசைக் வைரஸ்": "Mosaic Disease", "மொசைக் வைரஸ்": "Mosaic Disease",
+    "மோசைக் வைரஸ் நோய்": "Mosaic Disease", "மொசைக் வைரஸ் நோய்": "Mosaic Disease",
+    "மோசைக் காய்ச்சல்": "Mosaic Disease", "மரவள்ளி மோசைக் காய்ச்சல்": "Mosaic Disease",
+    "மஞ்சள் தேமல் நோய்": "Mosaic Disease", "மஞ்சள் தேமல்": "Mosaic Disease",
+    "मोज़ेक": "Mosaic Disease", "मोज़ेक विषाणु": "Mosaic Disease", "मोज़ेक विषाणु रोग": "Mosaic Disease", "मोज़ेक रोग": "Mosaic Disease",
+
+    # Gray Leaf Spot / Grey Leaf Spot
+    "gray leaf spot": "Gray Leaf Spot", "grayleafspot": "Gray Leaf Spot", "grey leaf spot": "Gray Leaf Spot", "grayspot": "Gray Leaf Spot",
+    "சாம்பல் இலைப்புள்ளி": "Gray Leaf Spot", "சாம்பல் நிற இலைப்புள்ளி": "Gray Leaf Spot",
+    "ग्रे लीफ स्पॉट": "Gray Leaf Spot", "ग्रे लीफ स्पॉट / ब्लाइट": "Gray Leaf Spot", "ग्रे लीफ ब्लाइट": "Gray Leaf Spot", "ग्रे लीफ": "Gray Leaf Spot",
+
+    # Leaf Spot
+    "early leaf spot": "Early Leaf Spot", "earlyleafspot": "Early Leaf Spot",
+    "late leaf spot": "Late Leaf Spot", "lateleafspot": "Late Leaf Spot",
+    "leaf spot": "Leaf Spot", "leafspot": "Leaf Spot",
+    "இலைப்புள்ளி": "Leaf Spot", "இலைப்புள்ளி நோய்": "Leaf Spot",
+    "पत्ती धब्बा": "Leaf Spot", "पत्ती धब्बा रोग": "Leaf Spot",
+
+    # Leaf Curl
+    "leaf curl": "Leaf Curl", "leafcurl": "Leaf Curl",
+    "இலைச்சுருள்": "Leaf Curl", "இலைச்சுருள் நோய்": "Leaf Curl", "இலை சுருள் நோய்": "Leaf Curl",
+    "पत्ती मरोड़": "Leaf Curl", "पत्ती मरोड़ रोग": "Leaf Curl",
+
+    # Yellow Leaf Disease
+    "yellow leaf": "Yellow Leaf Disease", "yellow leaf disease": "Yellow Leaf Disease", "yellowleaf": "Yellow Leaf Disease",
+    "மஞ்சள் இலை நோய்": "Yellow Leaf Disease", "மஞ்சள் இலை": "Yellow Leaf Disease",
+    "पीली पत्ती रोग": "Yellow Leaf Disease", "पीली पत्ती": "Yellow Leaf Disease",
+
+    # Rust / Common Rust / Leaf Rust
+    "rust": "Rust", "common rust": "Common Rust", "commonrust": "Common Rust",
+    "brown rust": "Brown Rust", "leaf rust": "Leaf Rust", "leafrust": "Leaf Rust",
+    "துரு நோய்": "Rust", "துரு": "Rust", "இலை துரு நோய்": "Leaf Rust",
+    "गेरुई": "Rust", "गेरुई रोग": "Rust", "रतुआ": "Rust", "पत्ती का रतुआ": "Leaf Rust",
+
+    # Powdery Mildew / Downy Mildew
+    "powdery mildew": "Powdery Mildew", "powderymildew": "Powdery Mildew",
+    "சாம்பல் நோய்": "Powdery Mildew", "சாம்பல்நோய்": "Powdery Mildew",
+    "चूर्णिल आसिता": "Powdery Mildew", "चूर्णिल फफूंद": "Powdery Mildew",
+    "downy mildew": "Downy Mildew", "அடிச்சாம்பல் நோய்": "Downy Mildew",
+
+    # Leaf Rot / Red Rot / Fruit Rot
+    "leaf rot": "Leaf Rot", "leafrot": "Leaf Rot",
+    "இலை அழுகல்": "Leaf Rot", "இலை அழுகல் நோய்": "Leaf Rot",
+    "red rot": "Red Rot", "redrot": "Red Rot",
+    "செவ்வழுகல் நோய்": "Red Rot", "செவ்வழுகல்": "Red Rot", "लाल सड़न": "Red Rot",
+    "fruit rot": "Fruit Rot", "காய் அழுகல்": "Fruit Rot",
+
+    # Anthracnose
+    "anthracnose": "Anthracnose", "anthracnose & red rot": "Anthracnose & Red Rot",
+    "ஆந்த்ராக்னோஸ்": "Anthracnose", "ஆந்த்ராக்னோஸ் நோய்": "Anthracnose",
+    "एंथ्रेकनोज": "Anthracnose", "एंथ्रेक्नोज़": "Anthracnose",
+
+    # Scab / Apple Scab
+    "scab": "Scab", "apple scab": "Scab",
+    "செதிள் நோய்": "Scab", "செதிள்": "Scab", "ஸ்கேப்": "Scab", "स्कैब": "Scab",
+
+    # Brown Streak
+    "brown streak": "Brown Streak", "brownstreak": "Brown Streak",
+    "பழுப்பு வரி நோய்": "Brown Streak", "பழுப்பு வரி": "Brown Streak", "भूरा धारी रोग": "Brown Streak", "भूरा धारी": "Brown Streak",
+
+    # Suspected Condition / General
+    "suspected condition": "Suspected Condition",
+    "சாத்தியமான பாதிப்பு": "Suspected Condition",
+    "संभावित स्थिति": "Suspected Condition",
+
+    # Healthy Foliage
+    "healthy": "Healthy Foliage", "healthy foliage": "Healthy Foliage", "healthy leaf": "Healthy Foliage",
+    "ஆரோக்கியமானது": "Healthy Foliage", "ஆரோக்கியமான பயிர்": "Healthy Foliage",
+    "स्वस्थ": "Healthy Foliage", "स्वस्थ फसल": "Healthy Foliage"
 }
 
 
 def canonicalize_scan_crop_and_disease(raw_crop: str, raw_disease: str):
     """
-    Converts multi-language or duplicated crop and disease names (e.g. Tamil, Hindi,
-    or redundant strings like 'Apple · Apple · Scab') into clean canonical English.
+    Translates and normalizes multi-language (Tamil, Hindi, English) or compound
+    crop and disease strings into clean, pure canonical English.
+    Removes duplicated crop prefixes (e.g. 'Apple · Apple · Scab' -> ('Apple', 'Scab')).
     """
     raw_c = (raw_crop or "").strip()
     raw_d = (raw_disease or "").strip()
 
-    # 1. Resolve crop name
+    # 1. Resolve canonical English crop
+    crop_en = None
     c_lower = raw_c.lower()
-    crop_en = CROP_CANONICAL_EN.get(c_lower)
+    for k, v in CROP_CANONICAL_EN.items():
+        if k in c_lower:
+            crop_en = v
+            break
+
+    # If crop not matched from raw_c, inspect inside raw_d
     if not crop_en:
+        d_lower = raw_d.lower()
         for k, v in CROP_CANONICAL_EN.items():
-            if k in c_lower:
+            if k in d_lower:
                 crop_en = v
                 break
     if not crop_en:
         crop_en = raw_c.capitalize() if raw_c else "Crop"
 
-    # 2. De-duplicate consecutive repeated words in disease string (e.g. 'Apple · Apple · Scab')
-    d_clean = raw_d
-    for sep in [" · ", " - ", " : ", " | "]:
-        if sep in d_clean:
-            parts = [p.strip() for p in d_clean.split(sep) if p.strip()]
-            dedup = []
-            for p in parts:
-                if not dedup or p.lower() != dedup[-1].lower():
-                    dedup.append(p)
-            d_clean = " · ".join(dedup)
+    # 2. Extract and filter segments separated by delimiters
+    segments = [s.strip() for s in re.split(r"[·|/:\-]+", raw_d) if s.strip()]
 
-    # 3. Strip leading crop name if present
-    prefix = f"{crop_en.lower()} · "
-    prefix_space = f"{crop_en.lower()} "
-    d_lower = d_clean.lower()
-    if d_lower.startswith(prefix):
-        condition = d_clean[len(prefix):].strip()
-    elif d_lower.startswith(prefix_space):
-        condition = d_clean[len(prefix_space):].strip()
-    else:
-        condition = d_clean
-
-    # 4. Map condition to canonical English disease
-    cond_lower = condition.lower()
-    dis_en = DISEASE_CANONICAL_EN.get(cond_lower)
-    if not dis_en:
-        for k, v in DISEASE_CANONICAL_EN.items():
-            if k in cond_lower:
-                dis_en = v
+    # Filter out segments that are merely the crop name (English or regional)
+    filtered_segments = []
+    for s in segments:
+        s_low = s.lower()
+        is_crop = False
+        for k, v in CROP_CANONICAL_EN.items():
+            if s_low == k or s_low == v.lower():
+                is_crop = True
                 break
-    if not dis_en:
-        dis_en = condition.title() if condition else "Foliar Condition"
+        if not is_crop:
+            filtered_segments.append(s)
 
-    final_disease = f"{crop_en} · {dis_en}" if (crop_en.lower() not in dis_en.lower()) else dis_en
-    return crop_en, final_disease
+    combined_rem = " ".join(filtered_segments).strip() if filtered_segments else raw_d
+
+    # 3. Match against DISEASE_CANONICAL_EN
+    dis_en = None
+    for s in filtered_segments:
+        s_low = s.lower()
+        if s_low in DISEASE_CANONICAL_EN:
+            dis_en = DISEASE_CANONICAL_EN[s_low]
+            break
+
+    if not dis_en:
+        comb_low = combined_rem.lower()
+        for k in sorted(DISEASE_CANONICAL_EN.keys(), key=len, reverse=True):
+            if k in comb_low:
+                dis_en = DISEASE_CANONICAL_EN[k]
+                break
+
+    if not dis_en:
+        d_low = raw_d.lower()
+        for k in sorted(DISEASE_CANONICAL_EN.keys(), key=len, reverse=True):
+            if k in d_low:
+                dis_en = DISEASE_CANONICAL_EN[k]
+                break
+
+    # If still unmapped, strip regional non-ASCII glyphs and retain clean Latin text
+    if not dis_en:
+        latin_only = re.sub(r"[^ -~]", "", combined_rem).strip()
+        latin_only = re.sub(r"\s+", " ", latin_only).strip()
+        if latin_only.lower().startswith(crop_en.lower()):
+            latin_only = latin_only[len(crop_en):].strip()
+        dis_en = latin_only.title() if latin_only else "Foliar Condition"
+
+    # Ensure crop name is not redundantly prepended
+    if dis_en.lower().startswith(f"{crop_en.lower()} "):
+        if dis_en != "Rice Blast":
+            dis_en = dis_en[len(crop_en) + 1:].strip()
+    if dis_en.lower().startswith(f"{crop_en.lower()} · "):
+        dis_en = dis_en[len(crop_en) + 3:].strip()
+
+    return crop_en, dis_en
 
 
 @app.get("/api/admin/outbreaks/clusters")
@@ -4288,6 +4341,12 @@ def admin_get_outbreak_clusters():
             advice = "Fungal blight warning: Apply Mancozeb 75% WP @ 2g/L or Azoxystrobin 23% SC @ 1ml/L. Remove and destroy infected crop residues."
         elif "Early Blight" in disease or "Late Blight" in disease:
             advice = "Solanaceous blight advisory: Apply Chlorothalonil 75% WP @ 2g/L. Avoid overhead sprinkler irrigation to inhibit spore dispersal."
+        elif "Mosaic" in disease:
+            advice = "Viral vector control: Rogue infected plants immediately and control whitefly vectors with Neem oil (3ml/L) or Imidacloprid."
+        elif "Gray Leaf Spot" in disease:
+            advice = "Foliar fungicide application: Spray Mancozeb 75% WP (2g/L) or Carbendazim (1g/L) upon early symptom appearance."
+        elif "Scab" in disease:
+            advice = "Fungicide management: Apply Captan 50% WP (2.5g/L) or Difenoconazole 25% EC (0.5ml/L) to prevent fruit and foliage lesion expansion."
 
         clusters.append({
             "id": idx + 1,

@@ -172,13 +172,17 @@ export const AdminPage = () => {
       loadTrainingStatus();
       loadFeedbackQueue();
       loadCheckpoints();
+      loadEvaluationData();
+      loadStageEvaluationData();
     }
   }, [user, isAdmin]);
 
-  // Periodic polling for training console when active
+  // Periodic polling for training console when active & auto-load evaluation
   useEffect(() => {
     let timer;
     if (activeSection === "staging" && stagingTab === "console") {
+      if (!evaluationData) loadEvaluationData();
+      if (!stageEvalData) loadStageEvaluationData();
       timer = setInterval(() => {
         loadTrainingStatus();
       }, 2000);
@@ -316,14 +320,19 @@ export const AdminPage = () => {
   };
 
   const openBroadcastModal = (cluster) => {
+    const cleanCrop = (cluster.crop || "Crop").trim();
+    let cleanDisease = (cluster.disease || "Condition").trim();
+    if (cleanDisease.toLowerCase().startsWith(cleanCrop.toLowerCase() + " · ")) {
+      cleanDisease = cleanDisease.slice(cleanCrop.length + 3).trim();
+    }
     setBroadcastTarget(cluster);
     setBroadcastForm({
-      crop: cluster.crop,
-      disease: cluster.disease,
+      crop: cleanCrop,
+      disease: cleanDisease,
       district: cluster.district,
       severity: cluster.risk_level === "CRITICAL SURGE" ? "Critical" : "High",
-      title: `⚠️ Urgent AgroLens Alert: ${cluster.disease} Surge in ${cluster.district}`,
-      message: `Attention farmers in ${cluster.district}: Increased foliar incidence of ${cluster.disease} in ${cluster.crop} has been verified by the AgroLens pathology laboratory. Early prophylactic management is strongly advised.`,
+      title: `⚠️ Urgent AgroLens Alert: ${cleanDisease} Surge in ${cluster.district}`,
+      message: `Attention farmers in ${cluster.district}: Increased foliar incidence of ${cleanDisease} in ${cleanCrop} has been verified by the AgroLens pathology laboratory. Early prophylactic management is strongly advised.`,
       advisory: cluster.recommended_advisory || "Spray recommended preventative fungicide and maintain field drainage."
     });
     setBroadcastSuccess("");
@@ -1053,54 +1062,61 @@ export const AdminPage = () => {
                       Collecting regional disease incidence data...
                     </div>
                   ) : (
-                    outbreakClusters.slice(0, 5).map((cluster, idx) => (
-                      <div key={idx} className="outbreak-row" style={{ flexDirection: "column", gap: "8px", padding: "12px", background: "var(--paper)", borderRadius: "8px", border: "1px solid var(--line)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "8px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{
-                              fontSize: "0.74rem",
-                              fontWeight: 800,
-                              padding: "2px 8px",
-                              borderRadius: "12px",
-                              background: cluster.risk_level === "CRITICAL SURGE" ? "#fee2e2" : "#fef3c7",
-                              color: cluster.risk_level === "CRITICAL SURGE" ? "#991b1b" : "#92400e",
-                              border: `1px solid ${cluster.risk_color}`
-                            }}>
-                              {cluster.risk_level}
-                            </span>
-                            <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>
-                              🌱 {cluster.crop} · {cluster.disease}
+                    outbreakClusters.slice(0, 5).map((cluster, idx) => {
+                      const cleanCrop = (cluster.crop || "Crop").trim();
+                      let cleanDisease = (cluster.disease || "Condition").trim();
+                      if (cleanDisease.toLowerCase().startsWith(cleanCrop.toLowerCase() + " · ")) {
+                        cleanDisease = cleanDisease.slice(cleanCrop.length + 3).trim();
+                      }
+                      return (
+                        <div key={idx} className="outbreak-row" style={{ flexDirection: "column", gap: "8px", padding: "12px", background: "var(--paper)", borderRadius: "8px", border: "1px solid var(--line)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "8px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{
+                                fontSize: "0.74rem",
+                                fontWeight: 800,
+                                padding: "2px 8px",
+                                borderRadius: "12px",
+                                background: cluster.risk_level === "CRITICAL SURGE" ? "#fee2e2" : "#fef3c7",
+                                color: cluster.risk_level === "CRITICAL SURGE" ? "#991b1b" : "#92400e",
+                                border: `1px solid ${cluster.risk_color}`
+                              }}>
+                                {cluster.risk_level}
+                              </span>
+                              <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--ink)" }}>
+                                🌱 {cleanCrop} · {cleanDisease}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                              📍 <b>{cluster.district}</b>
                             </span>
                           </div>
-                          <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-                            📍 <b>{cluster.district}</b>
-                          </span>
-                        </div>
 
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", fontSize: "0.82rem", color: "var(--muted)" }}>
-                          <span><b>{cluster.scan_count}</b> field scans ({cluster.severe_count} severe) · {cluster.avg_confidence}% avg conf</span>
-                          <button
-                            type="button"
-                            onClick={() => openBroadcastModal(cluster)}
-                            style={{
-                              background: "rgba(239, 68, 68, 0.1)",
-                              color: "#dc2626",
-                              border: "1px solid #ef4444",
-                              borderRadius: "6px",
-                              padding: "3px 10px",
-                              fontSize: "0.78rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px"
-                            }}
-                          >
-                            <span>📢</span> <span>Broadcast Warning</span>
-                          </button>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", fontSize: "0.82rem", color: "var(--muted)" }}>
+                            <span><b>{cluster.scan_count}</b> field scans ({cluster.severe_count} severe) · {cluster.avg_confidence}% avg conf</span>
+                            <button
+                              type="button"
+                              onClick={() => openBroadcastModal(cluster)}
+                              style={{
+                                background: "rgba(239, 68, 68, 0.1)",
+                                color: "#dc2626",
+                                border: "1px solid #ef4444",
+                                borderRadius: "6px",
+                                padding: "3px 10px",
+                                fontSize: "0.78rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px"
+                              }}
+                            >
+                              <span>📢</span> <span>Broadcast Warning</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 
@@ -2242,7 +2258,10 @@ export const AdminPage = () => {
                       <div style={{ display: "inline-flex", background: "rgba(0,0,0,0.04)", padding: "4px", borderRadius: "10px", border: "1px solid var(--line)" }}>
                         <button
                           type="button"
-                          onClick={() => setEvalModelType("disease")}
+                          onClick={() => {
+                            setEvalModelType("disease");
+                            if (!evaluationData) loadEvaluationData();
+                          }}
                           style={{
                             border: "none",
                             background: evalModelType === "disease" ? "var(--green)" : "transparent",
