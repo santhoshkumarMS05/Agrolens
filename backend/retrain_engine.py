@@ -917,52 +917,73 @@ def get_model_evaluation_metrics() -> Dict[str, Any]:
         "last_evaluated_at": time.strftime("%Y-%m-%d %H:%M:%S")
     }
 
+def canonicalize_stage_class_name(name: str):
+    """
+    Standardizes any growth stage string variant into canonical values:
+    e.g. 'Rice · reproductive phase', 'rice_reproductive', 'Rice · reproductive phase · Stage Phase'
+    -> ('rice_reproductive', 'Rice · Reproductive Phase', 'Rice', 'Reproductive')
+    """
+    s = (name or "").strip()
+    s_clean = s.replace("·", " ").replace("-", " ").replace("_", " ")
+    words = [w.capitalize() for w in s_clean.split() if w]
+    while words and words[-1].lower() in ("phase", "stage"):
+        words.pop()
+    if not words:
+        return "crop_stage", "Crop · Stage Phase", "Crop", "Stage"
+    crop = words[0].capitalize()
+    phase = " ".join(words[1:]).capitalize() if len(words) > 1 else "Stage"
+    raw = f"{crop.lower()}_{phase.lower().replace(' ', '_')}"
+    display = f"{crop} · {phase} Phase"
+    return raw, display, crop, phase
+
+
 def get_stage_evaluation_metrics() -> Dict[str, Any]:
     """
     Returns REAL analytical evaluation telemetry for the ConvNeXt-Tiny Growth Stage Head.
     Strictly reflects the stage classes actually trained on disk or recorded in stage_classes.json.
+    Deduplicates all aliases so identical stages collapse into a single canonical class.
     """
     stage_classes_json = BASE_DIR / "stage_classes.json"
     trained_root = TRAINING_POOL_DIR / "trained"
     approved_root = TRAINING_POOL_DIR / "approved"
 
-    raw_classes = []
+    raw_candidates = []
     if stage_classes_json.exists():
         try:
             with open(stage_classes_json, "r", encoding="utf-8") as f:
                 loaded = json.load(f)
-                if isinstance(loaded, list):
-                    raw_classes = [c.replace("_phase", "").strip() for c in loaded if c]
+                if isinstance(loaded, list) and loaded:
+                    raw_candidates.extend(loaded)
         except Exception:
-            raw_classes = []
+            raw_candidates = []
 
     # Also discover any trained folders on disk
     if trained_root.exists():
         for d in trained_root.iterdir():
-            clean = d.name.replace("_phase", "").strip()
-            if d.is_dir() and clean not in raw_classes:
-                raw_classes.append(clean)
+            if d.is_dir():
+                raw_candidates.append(d.name)
 
     # If no stage classes trained yet on disk, check if approved staging has active stage classes
-    if not raw_classes and approved_root.exists():
+    if not raw_candidates and approved_root.exists():
         for d in approved_root.iterdir():
             if d.is_dir() and any(k in d.name.lower() for k in ["reproductive", "vegetative", "ripening"]):
-                clean = d.name.replace("_phase", "").strip()
-                if clean not in raw_classes:
-                    raw_classes.append(clean)
+                raw_candidates.append(d.name)
 
+    # Canonicalize and strictly deduplicate all aliases
+    seen_canonical = set()
     stage_metadata = []
-    for rc in raw_classes:
-        words = rc.split("_")
-        crop = words[0].capitalize()
-        phase = words[1].capitalize() if len(words) > 1 else "Stage"
-        disp = f"{crop} · {phase} Phase"
-        stage_metadata.append({
-            "raw": rc,
-            "display": disp,
-            "crop": crop,
-            "phase": phase
-        })
+    for rc in raw_candidates:
+        if not rc:
+            continue
+        raw_key, disp, crop, phase = canonicalize_stage_class_name(rc)
+        if raw_key not in seen_canonical:
+            seen_canonical.add(raw_key)
+            stage_metadata.append({
+                "raw": raw_key,
+                "display": disp,
+                "crop": crop,
+                "phase": phase
+            })
 
     eval_classes = [s["display"] for s in stage_metadata]
     n = len(eval_classes)
