@@ -2077,22 +2077,56 @@ table.styled-table tr:last-child td { border-bottom: none; }
 .btn-pdf-export {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
+  gap: 5px;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 6px 14px;
+  padding: 4px 12px;
   border-radius: 99px;
   background: var(--paper-2);
   border: 1px solid var(--line);
   color: var(--green);
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .btn-pdf-export:hover {
   background: var(--paper-3);
   border-color: var(--green);
   box-shadow: 0 2px 8px rgba(45, 70, 39, 0.12);
+  transform: translateY(-1px);
+}
+
+.btn-pdf-export:active {
+  transform: translateY(0);
+}
+
+.btn-farmer-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 99px;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-farmer-delete:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-farmer-delete:active {
+  transform: translateY(0);
 }
 
 /* Step-by-step styled advisory lists in admin modals */

@@ -3022,22 +3022,6 @@ export const AdminPage = () => {
                                 className="btn-farmer-delete"
                                 title={`Permanently delete account for ${f.name || f.email}`}
                                 onClick={(e) => handleDeleteFarmer(f, e)}
-                                style={{
-                                  background: "rgba(239, 68, 68, 0.12)",
-                                  color: "#ef4444",
-                                  border: "1px solid rgba(239, 68, 68, 0.35)",
-                                  borderRadius: "6px",
-                                  padding: "4px 8px",
-                                  fontSize: "0.76rem",
-                                  fontWeight: 600,
-                                  cursor: "pointer",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "3px",
-                                  transition: "all 0.15s ease",
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.22)")}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.12)")}
                               >
                                 🗑️ Delete
                               </button>
@@ -3113,21 +3097,8 @@ export const AdminPage = () => {
                     </button>
                     <button
                       type="button"
-                      style={{
-                        padding: "8px 16px",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        background: "rgba(239, 68, 68, 0.14)",
-                        color: "#ef4444",
-                        border: "1px solid rgba(239, 68, 68, 0.35)",
-                        borderRadius: "8px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        transition: "all 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.25)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.14)")}
+                      className="btn-farmer-delete"
+                      style={{ padding: "8px 18px", fontWeight: 700, cursor: "pointer" }}
                       onClick={() => handleDeleteFarmer(activeFarmer)}
                     >
                       🗑️ Delete User Account
