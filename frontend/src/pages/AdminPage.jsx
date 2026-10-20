@@ -2438,6 +2438,20 @@ export const AdminPage = () => {
                       const cur = evalModelType === "disease" ? evaluationData : stageEvalData;
                       const confusions = cur?.top_confusions || [];
 
+                      if (confusions.length === 0) {
+                        return (
+                          <div style={{ background: "var(--paper)", border: "1px dashed var(--line)", borderRadius: "10px", padding: "30px", textAlign: "center" }}>
+                            <div style={{ fontSize: "1.8rem", marginBottom: "8px" }}>🌱</div>
+                            <h4 style={{ margin: "0 0 6px", color: "var(--ink)" }}>No Inter-Class Misclassifications</h4>
+                            <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>
+                              {evalModelType === "stage"
+                                ? (cur?.status_message || "Stage Head Standby Mode: Multi-class confusion radar activates as additional stage classes (≥2) are trained.")
+                                : "Zero validation confusion anomalies recorded."}
+                            </p>
+                          </div>
+                        );
+                      }
+
                       return (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "12px" }}>
                           {confusions.map((tc, idx) => (
@@ -2452,7 +2466,15 @@ export const AdminPage = () => {
                               </div>
 
                               <div style={{ fontSize: "0.82rem", color: "var(--ink)", background: "rgba(0,0,0,0.03)", padding: "8px 10px", borderRadius: "6px", borderLeft: "3px solid #f59e0b" }}>
-                                <b>Agronomic Root Cause:</b> {tc.agronomic_reason}
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                  <b>Agronomic Root Cause:</b>
+                                  {tc.insight_source && (
+                                    <span style={{ fontSize: "0.68rem", background: "rgba(16, 185, 129, 0.12)", color: "var(--green)", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                                      ⚡ {tc.insight_source}
+                                    </span>
+                                  )}
+                                </div>
+                                {tc.agronomic_reason}
                               </div>
 
                               <div style={{ fontSize: "0.8rem", color: "var(--muted)", display: "flex", alignItems: "flex-start", gap: "6px" }}>
@@ -2470,6 +2492,18 @@ export const AdminPage = () => {
                       const cur = evalModelType === "disease" ? evaluationData : stageEvalData;
                       const rawClasses = cur?.eval_classes || [];
                       const rawMatrix = cur?.matrix || [];
+
+                      if (rawClasses.length === 0) {
+                        return (
+                          <div style={{ background: "var(--paper)", border: "1px dashed var(--line)", borderRadius: "10px", padding: "30px", textAlign: "center" }}>
+                            <div style={{ fontSize: "1.8rem", marginBottom: "8px" }}>📊</div>
+                            <h4 style={{ margin: "0 0 6px", color: "var(--ink)" }}>Standby Mode Active</h4>
+                            <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>
+                              {cur?.status_message || "0 stage classes trained yet. Staging threshold requires ≥5 classes for edge deployment."}
+                            </p>
+                          </div>
+                        );
+                      }
 
                       // If disease model & crop filter is selected, filter indices
                       let activeIndices = rawClasses.map((_, i) => i);

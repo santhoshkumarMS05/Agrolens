@@ -1,0 +1,27 @@
+{
+  "Rice \u00b7 Leaf Blast -> Rice \u00b7 Brown Spot": {
+    "agronomic_reason": "Both diseases produce spindle-shaped necrotic lesions with yellow chlorotic halos, making them visually indistinguishable under standard field lighting conditions.",
+    "recommendation": "Capture high-magnification close-ups of individual lesions from a top-down angle in diffuse light to reveal distinct margin and center textures.",
+    "source": "Groq LLM (qwen/qwen3.8-27b)"
+  },
+  "Groundnut \u00b7 Early Leaf Spot -> Groundnut \u00b7 Late Leaf Spot": {
+    "agronomic_reason": "Both diseases produce circular necrotic lesions with chlorotic halos, but early spot features distinct tan centers and concentric rings.",
+    "recommendation": "Capture high-magnification, top-down images in diffuse light to clearly resolve the tan centers and concentric ring patterns.",
+    "source": "Groq LLM (qwen/qwen3.8-27b)"
+  },
+  "Corn \u00b7 Leaf Blight -> Corn \u00b7 Gray Leaf Spot": {
+    "agronomic_reason": "Both diseases produce elongated, tan-to-brown necrotic lesions with chlorotic halos, creating similar visual patterns under diffuse canopy lighting conditions.",
+    "recommendation": "Capture high-resolution, top-down images in direct sunlight to highlight the distinct rectangular shape and grayish color of Gray Leaf Spot lesions.",
+    "source": "Groq LLM (qwen/qwen3.8-27b)"
+  },
+  "Cassava \u00b7 Mosaic Disease -> Cassava \u00b7 Brown Streak": {
+    "agronomic_reason": "Both diseases induce interveinal chlorosis and mosaic patterns, creating visually indistinguishable yellow-green mottling on the upper leaf surface under diffuse lighting.",
+    "recommendation": "Capture high-resolution close-ups of leaf undersides in bright, direct sunlight to reveal the distinct brown necrotic streaks unique to Brown Streak Disease.",
+    "source": "Groq LLM (qwen/qwen3.8-27b)"
+  },
+  "Sugarcane \u00b7 Red Rot -> Sugarcane \u00b7 Brown Rust": {
+    "agronomic_reason": "Both diseases produce reddish-brown necrotic lesions on leaf blades, creating similar colorimetric signatures that confuse spectral feature extraction.",
+    "recommendation": "Capture high-magnification dorsal leaf images under diffuse lighting to distinguish Red Rot's vascular streaks from Brown Rust's uredinial pustules.",
+    "source": "Groq LLM (qwen/qwen3.8-27b)"
+  }
+}
