@@ -76,7 +76,9 @@ Instant classification featuring confidence gauges, high-resolution **Grad-CAM v
 ### 3. Interactive AI Crop Doctor & Precision Spray Calculator
 An interactive multilingual conversational agronomist paired with an integrated **Precision Spray Dosage Calculator** that calibrates active ingredients, water volume, and tank ratios across backpack sprayers and tractor tanks based on exact farm acreage.
 
-![Crop Doctor & Spray Calculator](docs/images/app_crop_doctor.png)
+![Field Microclimate & 3-Day Best Spray Window Forecast](docs/images/spray_window_forecast.png)
+
+![Grad-CAM Heatmap & Multilingual Agronomic Advisory](docs/images/gradcam_treatment_advisory.png)
 
 ---
 
