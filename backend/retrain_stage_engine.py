@@ -36,7 +36,6 @@ STAGE_CLASSES_PATH = BASE_DIR / "stage_classes.json"
 STAGE_MODEL_PATH = BASE_DIR / "stage_model.pth"
 STAGE_ONNX_PATH = BASE_DIR / "stage_model.onnx"
 FRONTEND_STAGE_ONNX = BASE_DIR.parent / "frontend" / "public" / "stage_model.onnx"
-WEB_STAGE_ONNX = BASE_DIR.parent / "web" / "stage_model.onnx"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -81,17 +80,17 @@ def get_stage_class_names() -> List[str]:
 
 
 def save_stage_class_names(names: List[str]):
-    """Save stage class names in backend, web, and frontend."""
+    """Save stage class names in backend and frontend."""
     with open(STAGE_CLASSES_PATH, "w", encoding="utf-8") as f:
         json.dump(names, f, indent=2)
 
-    for target_dir in [BASE_DIR.parent / "frontend" / "public", BASE_DIR.parent / "web"]:
-        try:
-            target_dir.mkdir(parents=True, exist_ok=True)
-            with open(target_dir / "stage_classes.json", "w", encoding="utf-8") as f:
-                json.dump(names, f, indent=2)
-        except Exception as e:
-            print(f"[warn] Failed writing stage_classes.json to {target_dir}: {e}")
+    target_dir = BASE_DIR.parent / "frontend" / "public"
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        with open(target_dir / "stage_classes.json", "w", encoding="utf-8") as f:
+            json.dump(names, f, indent=2)
+    except Exception as e:
+        print(f"[warn] Failed writing stage_classes.json to {target_dir}: {e}")
 
 
 def sanitize_folder_name(name: str) -> str:
@@ -249,14 +248,13 @@ def export_stage_onnx(model: nn.Module) -> bool:
         )
         print(f"[OK] Exported stage model to {STAGE_ONNX_PATH}")
 
-        # 2. Copy to frontend and web directories for client-side offline use
-        for target in [FRONTEND_STAGE_ONNX, WEB_STAGE_ONNX]:
-            try:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(str(STAGE_ONNX_PATH), str(target))
-                print(f"[OK] Copied stage ONNX to {target}")
-            except Exception as e:
-                print(f"[warn] Could not copy stage ONNX to {target}: {e}")
+        # 2. Copy to frontend directory for client-side offline use
+        try:
+            FRONTEND_STAGE_ONNX.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(str(STAGE_ONNX_PATH), str(FRONTEND_STAGE_ONNX))
+            print(f"[OK] Copied stage ONNX to {FRONTEND_STAGE_ONNX}")
+        except Exception as e:
+            print(f"[warn] Could not copy stage ONNX to {FRONTEND_STAGE_ONNX}: {e}")
 
         model.to(DEVICE)
         return True

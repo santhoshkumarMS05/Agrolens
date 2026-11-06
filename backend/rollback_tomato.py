@@ -16,7 +16,7 @@ import psycopg
 from dotenv import load_dotenv
 
 BASE = Path(__file__).resolve().parent
-WEB = (BASE.parent / "web").resolve()
+WEB = (BASE.parent / "frontend" / "public").resolve()
 load_dotenv(BASE / ".env")
 
 DB_NAME = os.getenv("DB_NAME", "agrolens")
